@@ -1,0 +1,22 @@
+:root { color-scheme: dark; }
+body { font-family: Arial, sans-serif; margin: 0; background: linear-gradient(135deg, #07111f, #102942); color: #f4f7fb; }
+.container { max-width: 1280px; margin: 0 auto; padding: 1.2rem; }
+nav { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.nav-link { padding: 0.65rem 0.9rem; border-radius: 999px; background: rgba(255,255,255,0.08); color: white; cursor: pointer; }
+.nav-link.active { background: #2a7de1; }
+.card { background: rgba(8, 20, 35, 0.86); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 1.2rem; box-shadow: 0 12px 34px rgba(0,0,0,0.25); }
+.grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1rem; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.stat { padding: 0.9rem; border-radius: 12px; background: rgba(255,255,255,0.05); }
+form { display: grid; gap: 0.7rem; }
+input, textarea, select { width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid #34506f; background: #0f2135; color: white; }
+button { padding: 0.8rem 1rem; border: none; border-radius: 10px; background: #29b37b; color: white; cursor: pointer; font-weight: bold; }
+.muted { color: #8fa8c2; }
+.decision-list { display: grid; gap: 0.8rem; margin-top: 1rem; }
+.decision-item { padding: 0.9rem; border-radius: 12px; background: rgba(255,255,255,0.04); }
+.report-box { margin-top: 1rem; padding: 0.9rem; border-radius: 12px; background: rgba(255,255,255,0.04); }
+.admin-panel { margin-top: 1rem; display: grid; gap: 0.6rem; }
+.admin-item { padding: 0.7rem; border-radius: 10px; background: rgba(255,255,255,0.04); }
+.login-box { display: grid; gap: 0.6rem; max-width: 380px; margin: 2rem auto; }
+.hidden { display: none; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } }

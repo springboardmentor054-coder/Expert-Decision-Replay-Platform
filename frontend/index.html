@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExpertDecisionReplayPlatform</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <div class="pill">Decision Replay Platform</div>
+          <h1>ExpertDecisionReplayPlatform</h1>
+          <p class="muted">Capture, review, approve, and learn from every important organizational decision.</p>
+        </div>
+        <div class="card">
+          <strong>Platform Highlights</strong>
+          <ul>
+            <li>Structured decision documentation</li>
+            <li>Approval flows and audit trails</li>
+            <li>Discussion threads and version history</li>
+          </ul>
+        </div>
+      </header>
+
+      <div class="card login-box" id="login-card">
+        <h2>Secure access</h2>
+        <input id="username" placeholder="Username" value="admin" />
+        <input id="password" placeholder="Password" type="password" value="admin123" />
+        <button id="login-btn">Login</button>
+        <div id="login-msg" class="muted"></div>
+      </div>
+
+      <div id="app" class="hidden">
+        <nav>
+          <div class="nav-link active" data-view="dashboard">Dashboard</div>
+          <div class="nav-link" data-view="decisions">Decisions</div>
+          <div class="nav-link" data-view="approvals">Approvals</div>
+          <div class="nav-link" data-view="reports">Reports</div>
+          <div class="nav-link" data-view="admin">Admin</div>
+        </nav>
+
+        <div id="dashboard" class="view">
+          <div class="stats">
+            <div class="stat"><strong id="decision-count">0</strong><br/>Decisions</div>
+            <div class="stat"><strong id="approved-count">0</strong><br/>Approved</div>
+            <div class="stat"><strong id="active-count">0</strong><br/>In Progress</div>
+          </div>
+
+          <div class="grid">
+            <section class="card">
+              <h2>Record a new decision</h2>
+              <form id="decision-form">
+                <input id="title" placeholder="Decision title" required />
+                <textarea id="problem" rows="3" placeholder="Problem statement"></textarea>
+                <textarea id="alternatives" rows="2" placeholder="Alternatives (comma separated)"></textarea>
+                <textarea id="criteria" rows="2" placeholder="Evaluation criteria (comma separated)"></textarea>
+                <textarea id="risks" rows="2" placeholder="Risks (comma separated)"></textarea>
+                <textarea id="stakeholders" rows="2" placeholder="Stakeholders (comma separated)"></textarea>
+                <textarea id="outcome" rows="2" placeholder="Final outcome"></textarea>
+                <select id="status">
+                  <option>Draft</option>
+                  <option>In Progress</option>
+                  <option>Approved</option>
+                  <option>Closed</option>
+                </select>
+                <button type="submit">Save decision</button>
+              </form>
+            </section>
+
+            <section class="card">
+              <h2>Recent decisions</h2>
+              <div id="decision-list" class="decision-list"></div>
+              <div class="report-box">
+                <h3>Workflow snapshot</h3>
+                <div id="report-summary" class="muted"></div>
+                <div id="audit-summary" class="muted" style="margin-top:0.4rem;"></div>
+                <div class="admin-panel">
+                  <div class="admin-item"><strong>Export</strong><br/><a href="http://127.0.0.1:8000/api/export" style="color:#69b7ff;">Download decision report</a></div>
+                  <div class="admin-item"><strong>Governance</strong><br/>Version history and audit logs are tracked for every decision entry.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="decisions" class="view hidden">
+          <div class="card">
+            <h2>Decision library</h2>
+            <p class="muted">A structured view of prior organizational decisions for review and reuse.</p>
+            <div id="decision-library" class="decision-list"></div>
+          </div>
+        </div>
+
+        <div id="approvals" class="view hidden">
+          <div class="card">
+            <h2>Approvals</h2>
+            <p class="muted">Approval queue and sign-off status for each decision record.</p>
+            <div id="approval-list" class="decision-list"></div>
+          </div>
+        </div>
+
+        <div id="reports" class="view hidden">
+          <div class="card">
+            <h2>Reports</h2>
+            <p class="muted">Summary analytics and export-ready decision reporting.</p>
+            <div id="report-list" class="decision-list"></div>
+          </div>
+        </div>
+
+        <div id="admin" class="view hidden">
+          <div class="card">
+            <h2>Administration</h2>
+            <div class="admin-panel">
+              <div class="admin-item"><strong>System status</strong><br/>The platform is active and recording decisions.</div>
+              <div class="admin-item"><strong>Audit readiness</strong><br/>Every decision contains discussions, approvals, history, and audit events.</div>
+              <div class="admin-item"><strong>Export</strong><br/><a href="http://127.0.0.1:8000/api/export" style="color:#69b7ff;">Download the full decision report</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
