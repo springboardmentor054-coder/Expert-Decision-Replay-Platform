@@ -1,160 +1,53 @@
-# Expert Decision Replay Platform
+﻿# ExpertDecisionReplayPlatform
 
-## Overview
-
-The **Expert Decision Replay Platform** is a web-based knowledge management system designed to capture, organize, and reuse expert decisions within an organization. It helps preserve valuable decision-making knowledge, allowing employees to learn from previous cases, avoid repeating mistakes, and make informed decisions efficiently.
-
-
-## Problem Statement
-
-Organizations often lose valuable knowledge when experienced employees leave or when important decisions are not documented properly. As a result, teams may repeat the same analysis, waste time, and make inconsistent decisions.
-
-This platform addresses that problem by creating a centralized repository of expert decisions that can be searched, reviewed, and reused whenever needed.
-
-
-## Objectives
-
-* Store and manage expert decisions in a centralized system.
-* Enable users to search and reuse previous decisions.
-* Implement secure role-based access control.
-* Maintain complete decision history and audit logs.
-* Improve collaboration among employees and experts.
-* Preserve organizational knowledge for future reference.
-
-
-## Features
-
-* User Authentication (JWT)
-* Role-Based Access Control (Admin, Expert, Employee)
-* User Management Module
-* Decision Submission
-* Decision Review & Approval Workflow
-* Decision Repository
-* Advanced Search & Filters
-* Decision History
-* Audit Logs
-* Dashboard & Analytics
-* Responsive User Interface
-
-## User Roles
-
-### Admin
-
-* Manage users
-* Assign roles
-* Activate/Deactivate accounts
-* View reports
-* Manage the entire platform
-
-### Expert
-
-* Review submitted decisions
-* Approve or reject decisions
-* Provide recommendations
-
-### Employee
-
-* Submit new decisions
-* View approved decisions
-* Update personal profile
-
----
-
-## Tech Stack
-
-### Frontend
-
-* React.js
-* HTML5
-* CSS3
-* JavaScript
-* Tailwind CSS
-
-### Backend
-
-* Node.js
-* Express.js
-
-### Database
-
-* MongoDB
-
-### Authentication
-
-* JWT (JSON Web Token)
-* bcrypt.js
-
-### Tools
-
-* Git
-* GitHub
-* Postman
-* VS Code
+ExpertDecisionReplayPlatform is a full-stack decision replay platform scaffold with a Python backend and a frontend starter. The project is organized to support authentication, decision management, approvals, discussions, reporting, and administration features.
 
 ## Project Structure
 
-```text
-Expert-Decision-Replay-Platform/
-│
-├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── utils/
-│   └── server.js
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── context/
-│   │   └── App.jsx
-│
-├── README.md
-└── package.json
+- Backend: [backend](backend)
+- Frontend: [frontend](frontend)
+- Database scripts: [database](database)
+- Documentation: [docs](docs)
+- Tests: [testing](testing)
 
+## Requirements
 
-## Installation
+Python dependencies are listed in [requirements.txt](requirements.txt).
 
-### Clone the Repository
+Install them with:
 
 ```bash
-git clone https://github.com/your-username/expert-decision-replay-platform.git
+pip install -r requirements.txt
 ```
 
-### Backend Setup
+## Run the Backend
+
+From the project root, start the backend server:
 
 ```bash
 cd backend
-npm install
-npm start
+python app/main.py
 ```
 
-### Frontend Setup
+The backend will be available at:
+
+- http://127.0.0.1:8000
+- Health endpoint: http://127.0.0.1:8000/api/health
+
+## Run the Frontend
+
+From the project root, start a simple static server:
 
 ```bash
 cd frontend
-npm install
-npm run dev
+python -m http.server 3000
+```
 
+Then open:
 
-## Future Enhancements
+- http://127.0.0.1:3000
 
-* AI-powered decision recommendations
-* Semantic search
-* AI-generated decision summaries
-* Email notifications
-* Multi-factor authentication
-* Decision quality scoring
-* Export reports (PDF/Excel)
-* Real-time collaboration
+## Notes
 
+This repository currently contains a functional scaffold and placeholder modules for the planned application. You can expand the API, models, services, and UI as the platform grows.
 
-## License
-
-This project is developed for academic and learning purposes.

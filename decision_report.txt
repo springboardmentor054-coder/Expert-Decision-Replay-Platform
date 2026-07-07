@@ -1,0 +1,6 @@
+Decision Report
+================
+
+- Adopt cloud migration | Status: Draft | Approved: No
+  Problem: Reduce operational cost
+  Outcome: Approved for pilot
