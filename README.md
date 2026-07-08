@@ -2,106 +2,197 @@
 
 ## Objective
 
-The Expert Decision Replay Platform is a centralized application designed to record, manage, and replay important organizational decisions. It helps organizations preserve decision-making knowledge by documenting problem statements, alternatives, discussions, approvals, implementation status, and final outcomes.
+The Expert Decision Replay Platform is a centralized application designed to record, manage, and replay important organizational decisions. The platform helps organizations preserve decision-making knowledge by documenting problem statements, alternatives, discussions, approvals, implementation status, and final outcomes.
+
+---
 
 ## Project Description
 
-The platform enables employees and organizations to review past decisions, understand the reasoning behind them, and make better decisions in the future. It supports structured decision management, collaboration, approval workflows, reporting, and audit tracking.
+The system enables organizations to review historical decisions, understand the reasoning behind them, and improve future decision-making processes. It provides structured decision management, collaboration tools, approval workflows, reporting capabilities, and audit tracking.
+
+---
 
 ## Key Features
 
-- Authentication
-- Decision Management
-- Alternative Analysis
-- Discussion Module
-- Approval Workflow
-- Knowledge Repository
-- Dashboard
-- Reports
-- Audit Logs
+* User Authentication
+* User Management
+* Decision Management
+* Alternative Analysis
+* Discussion Module
+* Approval Workflow
+* Knowledge Repository
+* Dashboard and Reports
+* Audit Logs
+
+---
 
 ## User Roles
 
-- Employee
-- Reviewer
-- Manager
-- Administrator
+* Employee
+* Reviewer
+* Manager
+* Administrator
+
+---
 
 ## Tech Stack
 
 ### Backend
-- Python
-- FastAPI
+
+* Python
+* FastAPI
+* SQLAlchemy
+* Pydantic
+* Uvicorn
 
 ### Frontend
-- Tkinter / PyQt / Flask
+
+* React.js
 
 ### Database
-- PostgreSQL
-- Redis
+
+* PostgreSQL
 
 ### Authentication
-- JWT
-- OAuth2
 
-### Backend Libraries
-- SQLAlchemy
-- Alembic
-- Pydantic
-- Uvicorn
+* JWT Authentication
+* OAuth2 Password Flow
 
-### DevOps
-- Docker
-- GitHub
-- GitHub Actions
-- Postman
+### Development Tools
+
+* Git
+* GitHub
+* Postman
+* VS Code
+
+---
 
 ## Project Structure
 
-```
+```text
 Expert-Decision-Replay-Platform/
 │
 ├── backend/
+│   ├── app/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── routers/
+│   │   ├── database.py
+│   │   └── main.py
+│   │
+│   └── requirements.txt
+│
 ├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
 ├── database/
+│   ├── Decision_Replay_ER_Diagram.drawio
+│   └── Decision_Replay_ER_Diagram.png
+│
 ├── docs/
-├── screenshots/
-├── testing/
 ├── README.md
 ├── users.md
 └── features.md
 ```
 
-## Expected Outcome
+---
 
-- Centralized decision management
-- Secure role-based authentication
-- Multi-level approval workflow
-- Collaboration through discussions
-- Decision history and audit logs
-- Reports and analytics dashboard
-- Docker-based deployment
+## Milestone 1 Progress
 
-## Database Design
+### Requirement Analysis
 
-The database for the Expert Decision Replay Platform has been designed.
-
-### Tables
-- Users
-- Roles
-- Teams
-- Decision Categories
-- Decisions
-- Alternatives
-- Risk Assessments
-- Discussion Threads
-- Comments
-- Approvals
-- Notifications
-- Documents
-- Audit Logs
+* Identified project objectives and requirements.
+* Finalized project modules and user roles.
 
 ### ER Diagram
-The ER Diagram is available in the `database` folder:
-- Decision_Replay_ER_Diagram.drawio
-- Decision_Replay_ER_Diagram.png
+
+* Designed the Entity Relationship Diagram for the platform.
+* Defined relationships between core entities.
+
+### Database Design
+
+* Finalized PostgreSQL database schema.
+* Created tables and relationships for the application.
+
+### FastAPI Backend Initialization
+
+* Initialized FastAPI project structure.
+* Configured database connectivity using SQLAlchemy.
+
+### React Frontend Initialization
+
+* Initialized React application for frontend development.
+
+### Authentication Module
+
+* Implemented JWT-based user registration and login.
+* Secured API endpoints using token authentication.
+
+### User Management Module
+
+* Implemented user creation and retrieval functionality.
+* Added role support for users.
+
+---
+
+## Database Tables
+
+* Users
+* Roles
+* Teams
+* Decision Categories
+* Decisions
+* Alternatives
+* Risk Assessments
+* Discussion Threads
+* Comments
+* Approvals
+* Notifications
+* Documents
+* Audit Logs
+
+---
+
+## API Features Completed
+
+* User Registration API
+* User Login API
+* JWT Token Generation
+* User Retrieval API
+
+---
+
+## ER Diagram
+
+The ER Diagram files are available in the `database` folder:
+
+* `Decision_Replay_ER_Diagram.drawio`
+* `Decision_Replay_ER_Diagram.png`
+
+---
+
+## Expected Outcome
+
+* Centralized decision management platform
+* Secure role-based authentication system
+* Multi-level approval workflow
+* Collaborative decision discussions
+* Decision history and audit tracking
+* Reporting and analytics dashboard
+* Scalable and maintainable architecture
+
+---
+
+## Current Status
+
+✅ Requirement Analysis Completed
+✅ ER Diagram Completed
+✅ Database Finalized
+✅ FastAPI Project Initialized
+✅ React Project Initialized
+✅ Authentication Module Completed
+✅ User Management Module Completed
+
+**Milestone 1 Successfully Completed**
