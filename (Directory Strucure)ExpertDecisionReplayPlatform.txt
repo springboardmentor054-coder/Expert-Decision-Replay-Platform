@@ -1,0 +1,143 @@
+ExpertDecisionReplayPlatform/
+│
+├── administrator/
+│   ├── admin_manual.pdf
+│   ├── backup_restore.md
+│   ├── deployment_steps.md
+│   ├── maintenance_guide.md
+│   ├── system_configuration.md
+│   └── user_roles.md
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── alternatives.py
+│   │   │   ├── approvals.py
+│   │   │   ├── audit.py
+│   │   │   ├── auth.py
+│   │   │   ├── dashboard.py
+│   │   │   ├── decisions.py
+│   │   │   ├── discussions.py
+│   │   │   ├── notifications.py
+│   │   │   ├── reports.py
+│   │   │   └── teams.py
+│   │   │
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   ├── database.py
+│   │   │   ├── dependencies.py
+│   │   │   └── security.py
+│   │   │
+│   │   ├── models/
+│   │   │   ├── alternative.py
+│   │   │   ├── approval.py
+│   │   │   ├── attachment.py
+│   │   │   ├── audit.py
+│   │   │   ├── decision.py
+│   │   │   ├── discussion.py
+│   │   │   ├── team.py
+│   │   │   ├── user.py
+│   │   │   └── version.py
+│   │   │
+│   │   ├── schemas/
+│   │   │   ├── approval.py
+│   │   │   ├── decision.py
+│   │   │   ├── discussion.py
+│   │   │   ├── report.py
+│   │   │   ├── team.py
+│   │   │   └── user.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── approval_service.py
+│   │   │   ├── auth_service.py
+│   │   │   ├── dashboard_service.py
+│   │   │   ├── decision_service.py
+│   │   │   ├── discussion_service.py
+│   │   │   ├── notification_service.py
+│   │   │   └── report_service.py
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── email.py
+│   │   │   ├── excel_export.py
+│   │   │   ├── file_upload.py
+│   │   │   ├── helpers.py
+│   │   │   └── pdf_export.py
+│   │   │
+│   │   ├── __pycache__/
+│   │   ├── decisions.db
+│   │   ├── main.py
+│   │   └── storage.py
+│   │
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── tests/
+│       ├── test_audit_and_versions.py
+│       ├── test_auth_and_persistence.py
+│       ├── test_decisions.py
+│       ├── test_reports_export.py
+│       └── test_workflows.py
+│
+├── database/
+│   ├── backups/
+│   │   └── README.md
+│   ├── migrations/
+│   │   └── README.md
+│   ├── init.sql
+│   ├── schema.sql
+│   └── seed_data.sql
+│
+├── docs/
+│   ├── API_Documentation.pdf
+│   ├── Database_Design.pdf
+│   ├── Deployment_Guide.pdf
+│   ├── Final_Report.pdf
+│   ├── Project_Proposal.pdf
+│   ├── Software_Requirements_Specification.pdf
+│   ├── System_Architecture.pdf
+│   └── User_Manual.pdf
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── app.js
+│   ├── index.html
+│   ├── package.json
+│   ├── styles.css
+│   ├── vite.config.js
+│   └── Dockerfile
+│
+├── screenshots/
+│   ├── analytics.png
+│   ├── approval.png
+│   ├── create_decision.png
+│   ├── dashboard.png
+│   ├── discussion.png
+│   ├── login.png
+│   └── reports.png
+│
+├── testing/
+│   ├── api_tests/
+│   │   └── postman_collection.json
+│   ├── backend_tests/
+│   │   ├── test_auth.py
+│   │   ├── test_dashboard.py
+│   │   ├── test_decisions.py
+│   │   ├── test_reports.py
+│   │   └── test_users.py
+│   ├── frontend_tests/
+│   │   ├── Dashboard.test.js
+│   │   ├── Decision.test.js
+│   │   └── Login.test.js
+│   └── performance/
+│       └── load_test.py
+│
+├── .gitignore
+├── FEATURES.md
+├── LICENSE
+├── README.md
+├── docker-compose.yml
+├── project_structure.txt
+├── requirements.txt
+├── run.py
+└── users.md
