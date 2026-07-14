@@ -1,53 +1,178 @@
-﻿# ExpertDecisionReplayPlatform
 
-ExpertDecisionReplayPlatform is a full-stack decision replay platform scaffold with a Python backend and a frontend starter. The project is organized to support authentication, decision management, approvals, discussions, reporting, and administration features.
+<h1 align="center">🧠 Expert Decision Replay Platform</h1>
 
-## Project Structure
+<p align="center">
+A platform to manage organizational decisions from creation to approval while preserving valuable knowledge.
+</p>
 
-- Backend: [backend](backend)
-- Frontend: [frontend](frontend)
-- Database scripts: [database](database)
-- Documentation: [docs](docs)
-- Tests: [testing](testing)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.x-green?style=flat-square" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-Backend-purple?style=flat-square" alt="FastAPI">
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-red?style=flat-square" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Docker-Deployment-2496ED?style=flat-square" alt="Docker">
+</p>
 
-## Requirements
+---
 
-Python dependencies are listed in [requirements.txt](requirements.txt).
+## 📖 About the Project
 
-Install them with:
+Organizations make important decisions every day, but the reasoning behind them is often lost over time. This leads to repeated mistakes, duplicated efforts, and loss of valuable knowledge.
 
+The **Expert Decision Replay Platform** solves this problem by storing every decision along with its discussions, alternatives, approvals, supporting documents, and final outcome. Employees can revisit previous decisions, understand why they were made, and make better decisions in the future.
+
+---
+
+## ✨ Key Features
+
+- 👥 Secure user authentication with role-based access
+- 📝 Create and manage organizational decisions
+- ⚖️ Compare multiple alternatives before approval
+- 💬 Team discussions with comments and attachments
+- ✅ Multi-level approval workflow
+- 📚 Searchable knowledge repository
+- 📊 Dashboards for Employees, Managers, and Admins
+- 🔍 Complete audit logs and version history
+- 📄 Export reports in PDF and Excel formats
+
+---
+
+## 👤 User Roles
+
+| Role | Responsibility |
+|------|----------------|
+| Employee | Create and manage decisions |
+| Reviewer | Review and provide feedback |
+| Manager | Approve or reject decisions |
+| Administrator | Manage users, reports, and system settings |
+
+---
+
+## 🔄 Decision Workflow
+
+```text
+Create Decision
+       │
+       ▼
+Add Alternatives
+       │
+       ▼
+Team Discussion
+       │
+       ▼
+Review Process
+       │
+       ▼
+Manager Approval
+       │
+       ▼
+Store in Knowledge Repository
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Backend | Python, FastAPI |
+| Database | PostgreSQL, Redis |
+| Authentication | JWT, OAuth2 |
+| ORM | SQLAlchemy |
+| Storage | AWS S3 / Local Storage |
+| DevOps | Docker, GitHub Actions |
+| Tools | Git, GitHub, Postman |
+
+---
+
+## 🏗️ System Architecture
+
+```text
+                             USERS
+      ┌───────────────────────────────────────────┐
+      │ Employees • Reviewers • Managers • Admins │
+      └───────────────────────────────────────────┘
+                         │
+                         ▼
+              PYTHON APPLICATION (Desktop / Web)
+      ┌───────────────────────────────────────────┐
+      │ Dashboard • Decisions • Reports • Search  │
+      └───────────────────────────────────────────┘
+                         │
+                         ▼
+                 APPLICATION LAYER
+      ┌───────────────────────────────────────────┐
+      │ Authentication (JWT)                      │
+      │ Authorization & Access Control            │
+      │ Session Management                        │
+      │ File Management                           │
+      │ Audit Logging                             │
+      │ System Configuration                      │
+      └───────────────────────────────────────────┘
+                         │
+                         ▼
+                  BUSINESS MODULES
+      ┌───────────────────────────────────────────┐
+      │ User Management                           │
+      │ Decision Management                       │
+      │ Alternative Analysis                      │
+      │ Discussion Module                         │
+      │ Approval Workflow                         │
+      │ Knowledge Repository                      │
+      │ Reports & Analytics                       │
+      │ Audit & Compliance                        │
+      └───────────────────────────────────────────┘
+                 │                       │
+        ┌────────┘                       └────────┐
+        ▼                                         ▼
+  INTEGRATIONS                              DATA LAYER
+┌─────────────────┐                    ┌─────────────────┐
+│ Email Service   │                    │ PostgreSQL      │
+│ File Storage    │                    │ File Storage    │
+│ LDAP / AD       │                    │ Activity Logs   │
+│ Document Store  │                    │ Backup & Restore│
+└─────────────────┘                    └─────────────────┘
+                 │                       │
+                 └───────────┬───────────┘
+                             ▼
+                 INFRASTRUCTURE LAYER
+      ┌───────────────────────────────────────────┐
+      │ Python • FastAPI • Uvicorn • Docker       │
+      │ HTTPS/SSL • Monitoring • Backup           │
+      └───────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Getting Started
+
+### Clone the repository
+```bash
+git clone https://github.com/your-username/expert-decision-replay-platform.git
+cd expert-decision-replay-platform
+```
+
+### Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run the Backend
-
-From the project root, start the backend server:
-
+### Run the server
 ```bash
-cd backend
-python app/main.py
+uvicorn main:app --reload
 ```
 
-The backend will be available at:
+---
 
-- http://127.0.0.1:8000
-- Health endpoint: http://127.0.0.1:8000/api/health
+## 📌 Future Enhancements
 
-## Run the Frontend
+- AI-powered decision recommendations
+- Real-time notifications
+- Advanced analytics dashboard
+- Mobile application support
+- Integration with enterprise tools
 
-From the project root, start a simple static server:
+---
 
-```bash
-cd frontend
-python -m http.server 3000
-```
 
-Then open:
-
-- http://127.0.0.1:3000
-
-## Notes
-
-This repository currently contains a functional scaffold and placeholder modules for the planned application. You can expand the API, models, services, and UI as the platform grows.
-
+## 📄 License
+This project is intended for educational and learning purposes.
