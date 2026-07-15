@@ -7,12 +7,16 @@ function EditDecision() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+
   const [decision, setDecision] = useState({
+
     title: "",
     problem_statement: "",
     description: "",
     status: ""
+
   });
+
 
 
   useEffect(() => {
@@ -34,6 +38,7 @@ function EditDecision() {
 
 
 
+
   const handleChange = (e) => {
 
     setDecision({
@@ -45,6 +50,7 @@ function EditDecision() {
     });
 
   };
+
 
 
 
@@ -67,6 +73,7 @@ function EditDecision() {
 
     })
 
+
     .then(response => {
 
       if(response.ok){
@@ -76,6 +83,7 @@ function EditDecision() {
         navigate("/decisions");
 
       }
+
       else{
 
         alert("Update Failed");
@@ -84,6 +92,7 @@ function EditDecision() {
 
     })
 
+
     .catch(error => console.log(error));
 
 
@@ -91,19 +100,81 @@ function EditDecision() {
 
 
 
+
   return (
 
     <div className="container">
 
+
       <h1>Edit Decision</h1>
 
 
+      {/* Navigation Buttons */}
+
+      <div style={{ marginBottom: "20px" }}>
+
+
+        <button onClick={() => navigate("/")}>
+          Create Decision
+        </button>
+
+
+
+        <button
+
+          onClick={() => navigate("/decisions")}
+
+          style={{ marginLeft: "10px" }}
+
+        >
+
+          View Decisions
+
+        </button>
+
+
+
+        <button
+
+          onClick={() => navigate("/add-alternative")}
+
+          style={{ marginLeft: "10px" }}
+
+        >
+
+          Add Alternative
+
+        </button>
+
+
+
+        <button
+
+          onClick={() => navigate("/alternatives")}
+
+          style={{ marginLeft: "10px" }}
+
+        >
+
+          View Alternatives
+
+        </button>
+
+
+      </div>
+
+
+
+
+
       <div className="form-container">
+
 
         <form onSubmit={handleSubmit}>
 
 
           <label>Title</label>
+
 
           <input
 
@@ -117,7 +188,9 @@ function EditDecision() {
 
 
 
+
           <label>Problem Statement</label>
+
 
           <textarea
 
@@ -131,7 +204,9 @@ function EditDecision() {
 
 
 
+
           <label>Description</label>
+
 
           <textarea
 
@@ -145,7 +220,9 @@ function EditDecision() {
 
 
 
+
           <label>Status</label>
+
 
           <input
 
@@ -159,6 +236,7 @@ function EditDecision() {
 
 
 
+
           <button type="submit" className="submit-btn">
 
             Update Decision
@@ -167,6 +245,7 @@ function EditDecision() {
 
 
         </form>
+
 
       </div>
 

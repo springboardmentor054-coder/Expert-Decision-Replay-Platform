@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Decision.css";
 
-
 function Decisions() {
 
   const [decisions, setDecisions] = useState([]);
@@ -13,19 +12,12 @@ function Decisions() {
   useEffect(() => {
 
     fetch("http://127.0.0.1:8000/decisions")
-
-      .then(response => response.json())
-
-      .then(data => {
-
+      .then((response) => response.json())
+      .then((data) => {
         setDecisions(data);
-
       })
-
-      .catch(error => {
-
+      .catch((error) => {
         console.log(error);
-
       });
 
   }, []);
@@ -54,7 +46,6 @@ function Decisions() {
 
       }
 
-
     } catch (error) {
 
       console.log(error);
@@ -69,7 +60,36 @@ function Decisions() {
 
     <div className="container">
 
+
       <h1>All Decisions</h1>
+
+
+      <div style={{ marginBottom: "20px" }}>
+
+
+        <button onClick={() => navigate("/")}>
+          Create Decision
+        </button>
+
+
+        <button
+          onClick={() => navigate("/alternatives")}
+          style={{ marginLeft: "10px" }}
+        >
+          View Alternatives
+        </button>
+
+
+        <button
+          onClick={() => navigate("/documents")}
+          style={{ marginLeft: "10px" }}
+        >
+          View Documents
+        </button>
+
+
+      </div>
+
 
 
       <table>
@@ -97,24 +117,16 @@ function Decisions() {
             <tr key={decision.id}>
 
 
-              <td>
-                {decision.id}
-              </td>
+              <td>{decision.id}</td>
 
 
-              <td>
-                {decision.title}
-              </td>
+              <td>{decision.title}</td>
 
 
-              <td>
-                {decision.problem_statement}
-              </td>
+              <td>{decision.problem_statement}</td>
 
 
-              <td>
-                {decision.status}
-              </td>
+              <td>{decision.status}</td>
 
 
 
@@ -122,15 +134,33 @@ function Decisions() {
 
 
                 <button
-
                   onClick={() =>
                     navigate(`/edit/${decision.id}`)
                   }
-
                 >
-
                   Edit
+                </button>
 
+
+
+                <button
+                  onClick={() =>
+                    navigate(`/upload-document/${decision.id}`)
+                  }
+                  style={{ marginLeft: "10px" }}
+                >
+                  Upload Document
+                </button>
+
+
+
+                <button
+                  onClick={() =>
+                    navigate("/documents")
+                  }
+                  style={{ marginLeft: "10px" }}
+                >
+                  Documents
                 </button>
 
 
@@ -151,6 +181,8 @@ function Decisions() {
 
                   }}
 
+                  style={{ marginLeft: "10px" }}
+
                 >
 
                   Delete
@@ -158,10 +190,12 @@ function Decisions() {
                 </button>
 
 
+
               </td>
 
 
             </tr>
+
 
           ))}
 
