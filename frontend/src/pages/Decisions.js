@@ -8,7 +8,6 @@ function Decisions() {
 
   const navigate = useNavigate();
 
-
   useEffect(() => {
 
     fetch("http://127.0.0.1:8000/decisions")
@@ -22,8 +21,6 @@ function Decisions() {
 
   }, []);
 
-
-
   const deleteDecision = async (id) => {
 
     try {
@@ -34,7 +31,6 @@ function Decisions() {
           method: "DELETE",
         }
       );
-
 
       if (response.ok) {
 
@@ -54,23 +50,17 @@ function Decisions() {
 
   };
 
-
-
   return (
 
     <div className="container">
 
-
       <h1>All Decisions</h1>
 
-
       <div style={{ marginBottom: "20px" }}>
-
 
         <button onClick={() => navigate("/")}>
           Create Decision
         </button>
-
 
         <button
           onClick={() => navigate("/alternatives")}
@@ -79,7 +69,6 @@ function Decisions() {
           View Alternatives
         </button>
 
-
         <button
           onClick={() => navigate("/documents")}
           style={{ marginLeft: "10px" }}
@@ -87,10 +76,7 @@ function Decisions() {
           View Documents
         </button>
 
-
       </div>
-
-
 
       <table>
 
@@ -100,15 +86,15 @@ function Decisions() {
 
             <th>ID</th>
             <th>Title</th>
-            <th>Problem Statement</th>
+            <th>Category</th>
             <th>Status</th>
+            <th>Created By</th>
+            <th>Created Date</th>
             <th>Actions</th>
 
           </tr>
 
         </thead>
-
-
 
         <tbody>
 
@@ -116,32 +102,47 @@ function Decisions() {
 
             <tr key={decision.id}>
 
-
               <td>{decision.id}</td>
-
 
               <td>{decision.title}</td>
 
-
-              <td>{decision.problem_statement}</td>
-
+              <td>{decision.category_id}</td>
 
               <td>{decision.status}</td>
 
+              <td>{decision.created_by}</td>
 
+              <td>
+                {new Date(decision.created_at).toLocaleString(
+                  "en-GB",
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  }
+                )}
+              </td>
 
               <td>
 
+                <button
+                  onClick={() =>
+                    navigate(`/decision/${decision.id}`)
+                  }
+                >
+                  View
+                </button>
 
                 <button
                   onClick={() =>
                     navigate(`/edit/${decision.id}`)
                   }
+                  style={{ marginLeft: "10px" }}
                 >
                   Edit
                 </button>
-
-
 
                 <button
                   onClick={() =>
@@ -152,8 +153,6 @@ function Decisions() {
                   Upload Document
                 </button>
 
-
-
                 <button
                   onClick={() =>
                     navigate("/documents")
@@ -163,10 +162,7 @@ function Decisions() {
                   Documents
                 </button>
 
-
-
                 <button
-
                   onClick={() => {
 
                     if (
@@ -180,37 +176,25 @@ function Decisions() {
                     }
 
                   }}
-
                   style={{ marginLeft: "10px" }}
-
                 >
-
                   Delete
-
                 </button>
-
-
 
               </td>
 
-
             </tr>
-
 
           ))}
 
-
         </tbody>
 
-
       </table>
-
 
     </div>
 
   );
 
 }
-
 
 export default Decisions;

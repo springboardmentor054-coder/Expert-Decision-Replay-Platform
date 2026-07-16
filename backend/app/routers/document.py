@@ -5,6 +5,7 @@ import shutil
 
 from app.database.connection import SessionLocal
 from app.models.document import Document
+from app.models.decision import Decision
 from app.schemas.document import DocumentResponse
 
 
@@ -24,8 +25,9 @@ def get_db():
 
 
 @router.get("/", response_model=list[DocumentResponse])
-def get_documents(db: Session = Depends(get_db)):
-
+def get_documents(
+    db: Session = Depends(get_db)
+):
     return db.query(Document).all()
 
 
@@ -40,14 +42,11 @@ def get_document(
         Document.id == document_id
     ).first()
 
-
     if not document:
-
         raise HTTPException(
             status_code=404,
             detail="Document not found"
         )
-
 
     return document
 
@@ -63,31 +62,22 @@ def delete_document(
         Document.id == document_id
     ).first()
 
-
     if not document:
-
         raise HTTPException(
             status_code=404,
             detail="Document not found"
         )
 
-
-    # Delete file from uploads folder
-
+    # Delete physical file
     if os.path.exists(document.file_path):
-
         os.remove(document.file_path)
 
-
     db.delete(document)
-
     db.commit()
-
 
     return {
         "message": "Document deleted successfully"
     }
-
 
 
 
@@ -104,10 +94,7 @@ def get_decision_documents(
         Document.decision_id == decision_id
     ).all()
 
-
     return documents
-
-
 
 
 
@@ -119,108 +106,72 @@ def upload_document(
     db: Session = Depends(get_db)
 ):
 
+    # Verify decision exists
+    decision = db.query(Decision).filter(
+        Decision.id == decision_id
+    ).first()
 
-    # Allowed file types
-
-    allowed_types = [
-
-        "application/pdf",
-
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-
-        "image/png",
-
-        "image/jpeg"
-
-    ]
-
-
-    if file.content_type not in allowed_types:
-
+    if not decision:
         raise HTTPException(
-
-            status_code=400,
-
-            detail="Only PDF, DOCX, XLSX, PNG and JPG files are allowed"
-
+            status_code=404,
+            detail="Decision not found"
         )
 
+    # Allowed file types
+    allowed_types = [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/png",
+        "image/jpeg"
+    ]
 
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF, DOCX, XLSX, PNG and JPG files are allowed"
+        )
 
     # Maximum file size = 10 MB
-
     MAX_FILE_SIZE = 10 * 1024 * 1024
 
-
+    # Create uploads folder if it doesn't exist
+    os.makedirs("uploads", exist_ok=True)
 
     file_location = f"uploads/{file.filename}"
 
-
-
     with open(file_location, "wb") as buffer:
-
         shutil.copyfileobj(
             file.file,
             buffer
         )
 
-
-
-    # Check file size after upload
-
+    # Check uploaded file size
     file_size = os.path.getsize(file_location)
-
-
 
     if file_size > MAX_FILE_SIZE:
 
-
         os.remove(file_location)
 
-
         raise HTTPException(
-
             status_code=400,
-
             detail="File size must be less than 10 MB"
-
         )
 
-
-
-
     new_document = Document(
-
         decision_id=decision_id,
-
         file_name=file.filename,
-
         file_path=file_location,
-
         file_type=file.content_type,
-
         file_size=file_size,
-
         uploaded_by=uploaded_by
-
     )
 
-
-
     db.add(new_document)
-
     db.commit()
-
     db.refresh(new_document)
 
-
-
     return {
-
         "message": "File uploaded successfully",
-
         "document_id": new_document.id
-
     }
