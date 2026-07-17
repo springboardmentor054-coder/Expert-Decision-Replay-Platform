@@ -1,0 +1,173 @@
+{
+  "info": {
+    "name": "Expert Decision Replay Platform - Milestones 1 & 2",
+    "description": "Manual test collection covering Authentication, User Management, Decision Management, Alternative Analysis, Discussion Module, and Document Management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" },
+    { "key": "decision_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"full_name\": \"Jane Employee\",\n  \"email\": \"jane@edrp.local\",\n  \"password\": \"Password123\",\n  \"job_title\": \"Business Analyst\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Login (get token)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+        "url": "{{base_url}}/auth/login",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "username", "value": "admin@edrp.local" },
+            { "key": "password", "value": "Admin@12345" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Get Current User (/auth/me)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/auth/me"
+      }
+    },
+    {
+      "name": "4. Create Decision",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/decisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Migrate to cloud-native infrastructure\",\n  \"problem_statement\": \"Our on-prem servers are aging and scaling poorly.\",\n  \"category\": \"Infrastructure\",\n  \"evaluation_criteria\": \"Cost, scalability, security, migration risk\",\n  \"tags\": \"cloud,infrastructure,2026\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. List / Search Decisions",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions?search=cloud"
+      }
+    },
+    {
+      "name": "6. Edit Decision (creates new version)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/decisions/{{decision_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"evaluation_criteria\": \"Cost, scalability, security, migration risk, vendor lock-in\",\n  \"change_summary\": \"Added vendor lock-in as an evaluation criterion\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. View Version History",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions/{{decision_id}}/versions"
+      }
+    },
+    {
+      "name": "8. Change Decision Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/decisions/{{decision_id}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"under_review\"\n}"
+        }
+      }
+    },
+    {
+      "name": "9. Add Alternative",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/decisions/{{decision_id}}/alternatives",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"AWS Migration\",\n  \"pros\": \"Mature ecosystem, strong support\",\n  \"cons\": \"Higher cost at scale\",\n  \"estimated_cost\": 120000,\n  \"feasibility_score\": 4,\n  \"risk_level\": \"medium\",\n  \"risk_notes\": \"Requires staff retraining\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Compare Alternatives",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions/{{decision_id}}/alternatives/compare"
+      }
+    },
+    {
+      "name": "11. Add Comment / Discussion",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{base_url}}/decisions/{{decision_id}}/comments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"Recommend we also evaluate a hybrid approach before finalizing.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. View Threaded Comments",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions/{{decision_id}}/comments"
+      }
+    },
+    {
+      "name": "13. Upload Document (form-data, key='file')",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions/{{decision_id}}/documents",
+        "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] }
+      }
+    },
+    {
+      "name": "14. List Documents",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/decisions/{{decision_id}}/documents"
+      }
+    }
+  ]
+}
