@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-
+import { useParams, useNavigate } from "react-router-dom";
 function DecisionDetails() {
 
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const [decision, setDecision] = useState(null);
 
@@ -321,6 +321,11 @@ function DecisionDetails() {
             <p>
                 <strong>Status:</strong> {decision.status}
             </p>
+            <br />
+
+<button onClick={() => navigate(`/decision/${id}/history`)}>
+    View History
+</button>
 
 
 

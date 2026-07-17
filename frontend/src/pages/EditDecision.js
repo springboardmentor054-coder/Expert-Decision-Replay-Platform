@@ -7,16 +7,14 @@ function EditDecision() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const token = localStorage.getItem("token");
 
   const [decision, setDecision] = useState({
-
     title: "",
     problem_statement: "",
     description: "",
     status: ""
-
   });
-
 
 
   useEffect(() => {
@@ -54,27 +52,33 @@ function EditDecision() {
 
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
 
 
-    fetch(`http://127.0.0.1:8000/decisions/${id}`, {
+    try {
 
-      method: "PUT",
+      const response = await fetch(
+        `http://127.0.0.1:8000/decisions/${id}`,
+        {
 
-      headers: {
+          method: "PUT",
 
-        "Content-Type": "application/json"
+          headers: {
 
-      },
+            "Content-Type": "application/json",
 
-      body: JSON.stringify(decision)
+            "Authorization": `Bearer ${token}`
 
-    })
+          },
+
+          body: JSON.stringify(decision)
+
+        }
+      );
 
 
-    .then(response => {
 
       if(response.ok){
 
@@ -86,17 +90,31 @@ function EditDecision() {
 
       else{
 
-        alert("Update Failed");
+        const errorData = await response.json();
+
+        console.log("Update Error:", errorData);
+
+        alert(
+          "Update Failed: " +
+          JSON.stringify(errorData)
+        );
 
       }
 
-    })
 
+    }
 
-    .catch(error => console.log(error));
+    catch(error){
+
+      console.log("Network Error:", error);
+
+      alert("Server connection failed");
+
+    }
 
 
   };
+
 
 
 
@@ -109,9 +127,8 @@ function EditDecision() {
       <h1>Edit Decision</h1>
 
 
-      {/* Navigation Buttons */}
 
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom:"20px" }}>
 
 
         <button onClick={() => navigate("/")}>
@@ -124,7 +141,7 @@ function EditDecision() {
 
           onClick={() => navigate("/decisions")}
 
-          style={{ marginLeft: "10px" }}
+          style={{marginLeft:"10px"}}
 
         >
 
@@ -138,7 +155,7 @@ function EditDecision() {
 
           onClick={() => navigate("/add-alternative")}
 
-          style={{ marginLeft: "10px" }}
+          style={{marginLeft:"10px"}}
 
         >
 
@@ -152,7 +169,7 @@ function EditDecision() {
 
           onClick={() => navigate("/alternatives")}
 
-          style={{ marginLeft: "10px" }}
+          style={{marginLeft:"10px"}}
 
         >
 
@@ -237,7 +254,10 @@ function EditDecision() {
 
 
 
-          <button type="submit" className="submit-btn">
+          <button
+            type="submit"
+            className="submit-btn"
+          >
 
             Update Decision
 

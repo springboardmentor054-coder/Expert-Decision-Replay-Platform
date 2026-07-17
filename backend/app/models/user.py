@@ -18,3 +18,9 @@ class User(Base):
         back_populates="user",
         cascade="all, delete"
     )
+
+    decision_versions = relationship(
+        "DecisionVersion",
+        back_populates="user",
+        cascade="all, delete"
+    )
