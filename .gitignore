@@ -1,0 +1,12 @@
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/*.db
+backend/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+*.pyc
