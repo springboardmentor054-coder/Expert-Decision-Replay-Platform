@@ -11,8 +11,7 @@ function CreateDecision() {
     problem_statement: "",
     description: "",
     category_id: 1,
-    status: "Draft",
-    created_by: 1
+    status: "Draft"
   });
 
   const handleChange = (e) => {
@@ -22,7 +21,7 @@ function CreateDecision() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
 
@@ -36,28 +35,58 @@ function CreateDecision() {
       return;
     }
 
-    fetch("http://127.0.0.1:8000/decisions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(decision)
-    })
-      .then(response => {
+    // Get JWT token from localStorage
+    const token = localStorage.getItem("token");
 
-        if (response.ok) {
+    if (!token) {
+      alert("Please login first");
+      navigate("/login");
+      return;
+    }
 
-          alert("Decision Created Successfully");
-          navigate("/decisions");
+    try {
 
-        } else {
+      const response = await fetch(
+        "http://127.0.0.1:8000/decisions",
+        {
+          method: "POST",
 
-          alert("Error Creating Decision");
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
 
+          body: JSON.stringify(decision)
         }
+      );
 
-      })
-      .catch(error => console.log(error));
+      const data = await response.json();
+
+      if (response.ok) {
+
+        alert("Decision Created Successfully");
+
+        navigate("/decisions");
+
+      } else {
+
+        console.error("Create Decision Error:", data);
+
+        alert(
+          data.detail ||
+          data.message ||
+          "Error Creating Decision"
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error("Error:", error);
+
+      alert("Unable to connect to the server");
+
+    }
 
   };
 

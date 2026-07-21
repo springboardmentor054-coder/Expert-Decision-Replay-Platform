@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Decision.css";
 
 function Documents() {
@@ -8,12 +8,34 @@ function Documents() {
 
   const navigate = useNavigate();
 
+  // App.js uses /documents/:id
+  const { id } = useParams();
+
 
   useEffect(() => {
 
-    fetch("http://127.0.0.1:8000/documents")
+    // If ID exists, fetch documents
+    // only for that specific decision.
+    // Otherwise, fetch all documents.
 
-      .then((response) => response.json())
+    const url = id
+      ? `http://127.0.0.1:8000/documents/decision/${id}`
+      : "http://127.0.0.1:8000/documents";
+
+
+    fetch(url)
+
+      .then((response) => {
+
+        if (!response.ok) {
+
+          throw new Error("Failed to fetch documents");
+
+        }
+
+        return response.json();
+
+      })
 
       .then((data) => {
 
@@ -25,18 +47,19 @@ function Documents() {
 
         console.log(error);
 
+        setDocuments([]);
+
       });
 
-  }, []);
+  }, [id]);
 
 
-
-  const deleteDocument = async (id) => {
+  const deleteDocument = async (documentId) => {
 
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/documents/${id}`,
+        `http://127.0.0.1:8000/documents/${documentId}`,
         {
           method: "DELETE",
         }
@@ -46,13 +69,18 @@ function Documents() {
       if (response.ok) {
 
         setDocuments(
+
           documents.filter(
-            (document) => document.id !== id
+
+            (document) =>
+
+              document.id !== documentId
+
           )
+
         );
 
       }
-
 
     } catch (error) {
 
@@ -63,14 +91,18 @@ function Documents() {
   };
 
 
-
   return (
 
     <div className="container">
 
 
-      <h1>Documents</h1>
+      <h1>
 
+        {id
+          ? `Documents for Decision ${id}`
+          : "All Documents"}
+
+      </h1>
 
 
       {/* Navigation Buttons */}
@@ -78,12 +110,15 @@ function Documents() {
       <div style={{ marginBottom: "20px" }}>
 
 
-        <button onClick={() => navigate("/decisions")}>
+        <button
+
+          onClick={() => navigate("/decisions")}
+
+        >
 
           View Decisions
 
         </button>
-
 
 
         <button
@@ -102,151 +137,182 @@ function Documents() {
       </div>
 
 
+      {documents.length === 0 ? (
 
+        <p>
 
+          {id
 
-      <table>
+            ? "No documents found for this decision."
 
+            : "No documents uploaded yet."}
 
-        <thead>
+        </p>
 
-          <tr>
+      ) : (
 
-            <th>ID</th>
 
-            <th>File Name</th>
+        <table>
 
-            <th>File Type</th>
 
-            <th>File Size (Bytes)</th>
+          <thead>
 
-            <th>Uploaded Date</th>
+            <tr>
 
-            <th>Actions</th>
+              <th>ID</th>
 
-          </tr>
+              <th>File Name</th>
 
+              <th>File Type</th>
 
-        </thead>
+              <th>File Size (Bytes)</th>
 
+              <th>Uploaded Date</th>
 
-
-
-
-        <tbody>
-
-
-          {documents.map((document) => (
-
-
-            <tr key={document.id}>
-
-
-              <td>
-                {document.id}
-              </td>
-
-
-
-              <td>
-                {document.file_name}
-              </td>
-
-
-
-              <td>
-                {document.file_type}
-              </td>
-
-
-
-              <td>
-                {document.file_size}
-              </td>
-
-
-
-              <td>
-
-                {new Date(
-                  document.uploaded_at
-                ).toLocaleString("en-IN", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true
-                })}
-
-              </td>
-
-
-
-              <td>
-
-
-                <a
-
-                  href={`http://127.0.0.1:8000/${document.file_path}`}
-
-                  target="_blank"
-
-                  rel="noreferrer"
-
-                >
-
-                  <button>
-                    View
-                  </button>
-
-
-                </a>
-
-
-
-
-
-                <button
-
-                  onClick={() => {
-
-                    if (
-
-                      window.confirm(
-                        "Are you sure you want to delete this document?"
-                      )
-
-                    ) {
-
-                      deleteDocument(document.id);
-
-                    }
-
-                  }}
-
-                  style={{ marginLeft: "10px" }}
-
-                >
-
-                  Delete
-
-                </button>
-
-
-              </td>
-
+              <th>Actions</th>
 
             </tr>
 
-
-          ))}
-
-
-        </tbody>
+          </thead>
 
 
-      </table>
+          <tbody>
+
+
+            {documents.map((document) => (
+
+
+              <tr key={document.id}>
+
+
+                <td>
+
+                  {document.id}
+
+                </td>
+
+
+                <td>
+
+                  {document.file_name}
+
+                </td>
+
+
+                <td>
+
+                  {document.file_type}
+
+                </td>
+
+
+                <td>
+
+                  {document.file_size}
+
+                </td>
+
+
+                <td>
+
+                  {new Date(
+
+                    document.uploaded_at
+
+                  ).toLocaleString(
+
+                    "en-IN",
+
+                    {
+
+                      day: "2-digit",
+
+                      month: "long",
+
+                      year: "numeric",
+
+                      hour: "numeric",
+
+                      minute: "2-digit",
+
+                      hour12: true
+
+                    }
+
+                  )}
+
+                </td>
+
+
+                <td>
+
+
+                  <a
+
+                    href={`http://127.0.0.1:8000/${document.file_path}`}
+
+                    target="_blank"
+
+                    rel="noreferrer"
+
+                  >
+
+                    <button>
+
+                      View
+
+                    </button>
+
+                  </a>
+
+
+                  <button
+
+                    onClick={() => {
+
+                      if (
+
+                        window.confirm(
+
+                          "Are you sure you want to delete this document?"
+
+                        )
+
+                      ) {
+
+                        deleteDocument(
+
+                          document.id
+
+                        );
+
+                      }
+
+                    }}
+
+                    style={{ marginLeft: "10px" }}
+
+                  >
+
+                    Delete
+
+                  </button>
+
+
+                </td>
+
+
+              </tr>
+
+            ))}
+
+
+          </tbody>
+
+
+        </table>
+
+      )}
 
 
     </div>

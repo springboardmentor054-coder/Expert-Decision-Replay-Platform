@@ -11,7 +11,7 @@ from app.models.user import User
 
 SECRET_KEY = "your-secret-key-change-this-later"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 
 security = HTTPBearer()

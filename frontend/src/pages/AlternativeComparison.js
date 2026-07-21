@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Decision.css";
 
 
@@ -9,12 +9,36 @@ function AlternativeComparison() {
 
     const navigate = useNavigate();
 
+    // Get decision ID from URL
+    const { id } = useParams();
+
 
     useEffect(() => {
 
-        fetch("http://127.0.0.1:8000/alternatives")
+        // If decision ID exists,
+        // fetch only alternatives for that decision.
+        // Otherwise, fetch all alternatives.
 
-            .then(response => response.json())
+        const url = id
+            ? `http://127.0.0.1:8000/alternatives/decision/${id}`
+            : "http://127.0.0.1:8000/alternatives";
+
+
+        fetch(url)
+
+            .then(response => {
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to fetch alternatives"
+                    );
+
+                }
+
+                return response.json();
+
+            })
 
             .then(data => {
 
@@ -26,11 +50,12 @@ function AlternativeComparison() {
 
                 console.log(error);
 
+                setAlternatives([]);
+
             });
 
 
-    }, []);
-
+    }, [id]);
 
 
     return (
@@ -38,8 +63,13 @@ function AlternativeComparison() {
         <div className="container">
 
 
-            <h1>Alternative Comparison</h1>
+            <h1>
 
+                {id
+                    ? `Alternative Comparison - Decision ${id}`
+                    : "Alternative Comparison"}
+
+            </h1>
 
 
             <div style={{ marginBottom: "20px" }}>
@@ -48,7 +78,6 @@ function AlternativeComparison() {
                 <button onClick={() => navigate("/")}>
                     Create Decision
                 </button>
-
 
 
                 <button
@@ -62,7 +91,6 @@ function AlternativeComparison() {
                 </button>
 
 
-
                 <button
 
                     onClick={() => navigate("/add-alternative")}
@@ -72,7 +100,6 @@ function AlternativeComparison() {
                 >
                     Add Alternative
                 </button>
-
 
 
                 <button
@@ -89,79 +116,97 @@ function AlternativeComparison() {
             </div>
 
 
+            {alternatives.length === 0 ? (
+
+                <p>
+
+                    {id
+                        ? "No alternatives found for this decision."
+                        : "No alternatives available."}
+
+                </p>
+
+            ) : (
 
 
-
-            <table>
-
-
-                <thead>
-
-                    <tr>
-
-                        <th>Alternative Name</th>
-
-                        <th>Description</th>
-
-                        <th>Cost</th>
-
-                        <th>Feasibility</th>
-
-                        <th>Risk Level</th>
+                <table>
 
 
-                    </tr>
+                    <thead>
 
+                        <tr>
 
-                </thead>
+                            <th>Alternative Name</th>
 
+                            <th>Description</th>
 
+                            <th>Cost</th>
 
+                            <th>Feasibility</th>
 
-                <tbody>
-
-
-                    {alternatives.map((alternative) => (
-
-
-                        <tr key={alternative.id}>
-
-
-                            <td>
-                                {alternative.alternative_name}
-                            </td>
-
-
-                            <td>
-                                {alternative.description}
-                            </td>
-
-
-                            <td>
-                                {alternative.estimated_cost}
-                            </td>
-
-
-                            <td>
-                                {alternative.feasibility}
-                            </td>
-
-
-                            <td>
-                                {alternative.risk_level}
-                            </td>
-
+                            <th>Risk Level</th>
 
                         </tr>
 
-
-                    ))}
-
-
-                </tbody>
+                    </thead>
 
 
-            </table>
+                    <tbody>
+
+
+                        {alternatives.map((alternative) => (
+
+
+                            <tr key={alternative.id}>
+
+
+                                <td>
+
+                                    {alternative.alternative_name}
+
+                                </td>
+
+
+                                <td>
+
+                                    {alternative.description}
+
+                                </td>
+
+
+                                <td>
+
+                                    {alternative.estimated_cost}
+
+                                </td>
+
+
+                                <td>
+
+                                    {alternative.feasibility}
+
+                                </td>
+
+
+                                <td>
+
+                                    {alternative.risk_level}
+
+                                </td>
+
+
+                            </tr>
+
+
+                        ))}
+
+
+                    </tbody>
+
+
+                </table>
+
+            )}
 
 
         </div>
