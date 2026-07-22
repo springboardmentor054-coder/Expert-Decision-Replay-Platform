@@ -20,9 +20,25 @@ class DecisionVersion(Base):
 
     reasoning = Column(Text, nullable=False)
 
-    created_at = Column(
+    status = Column(
+        String,
+        default="Modified"
+    )
+
+    modified_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
+    )
+
+    modified_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
+    )
+
+    change_summary = Column(
+        Text,
+        nullable=True
     )
 
     decision_id = Column(
@@ -34,4 +50,8 @@ class DecisionVersion(Base):
     decision = relationship(
         "Decision",
         back_populates="versions"
+    )
+
+    modifier = relationship(
+        "User"
     )

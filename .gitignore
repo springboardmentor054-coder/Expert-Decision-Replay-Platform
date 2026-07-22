@@ -1,12 +1,27 @@
-# Backend
+# Python
+**/__pycache__/
+*.py[cod]
+
+# Virtual Environment
 backend/venv/
-backend/__pycache__/
+venv/
+
+# Database
 backend/*.db
+
+# Uploads
 backend/uploads/
+
+# Node
+frontend/node_modules/
 
 # IDE
 .vscode/
 .idea/
 
-# Python
-*.pyc
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db

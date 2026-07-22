@@ -83,7 +83,6 @@ def update_decision(
             detail="Decision not found"
         )
 
-    # Verify user exists
     user = db.query(User).filter(
         User.id == updated_decision.created_by
     ).first()
@@ -94,7 +93,6 @@ def update_decision(
             detail="User not found"
         )
 
-    # Get next version number
     latest_version = db.query(
         func.max(DecisionVersion.version_number)
     ).filter(
@@ -103,19 +101,20 @@ def update_decision(
 
     next_version = 1 if latest_version is None else latest_version + 1
 
-    # Save current decision as history
     history = DecisionVersion(
         version_number=next_version,
         title=decision.title,
         problem_statement=decision.problem_statement,
         decision_taken=decision.decision_taken,
         reasoning=decision.reasoning,
+        status="Modified",
+        modified_by=updated_decision.created_by,
+        change_summary=f"Decision updated to Version {next_version}",
         decision_id=decision.id
     )
 
     db.add(history)
 
-    # Update current decision
     decision.title = updated_decision.title
     decision.problem_statement = updated_decision.problem_statement
     decision.decision_taken = updated_decision.decision_taken

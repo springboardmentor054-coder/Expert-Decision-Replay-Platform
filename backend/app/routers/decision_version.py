@@ -3,35 +3,36 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 
+from app.models.decision import Decision
 from app.models.decision_version import DecisionVersion
 
 router = APIRouter(
-    prefix="/decision-versions",
+    prefix="/decisions",
     tags=["Decision Versions"]
 )
 
 
-@router.get("/")
-def get_all_versions(
-    db: Session = Depends(get_db)
-):
-    return db.query(DecisionVersion).all()
-
-
-@router.get("/{decision_id}")
+@router.get("/{decision_id}/versions")
 def get_versions_by_decision(
     decision_id: int,
     db: Session = Depends(get_db)
 ):
 
-    versions = db.query(DecisionVersion).filter(
-        DecisionVersion.decision_id == decision_id
-    ).all()
+    decision = db.query(Decision).filter(
+        Decision.id == decision_id
+    ).first()
 
-    if not versions:
+    if not decision:
         raise HTTPException(
             status_code=404,
-            detail="No version history found for this decision"
+            detail="Decision not found"
         )
+
+    versions = (
+        db.query(DecisionVersion)
+        .filter(DecisionVersion.decision_id == decision_id)
+        .order_by(DecisionVersion.version_number.desc())
+        .all()
+    )
 
     return versions

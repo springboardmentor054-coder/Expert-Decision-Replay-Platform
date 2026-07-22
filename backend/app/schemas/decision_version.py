@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
@@ -8,6 +9,12 @@ class DecisionVersionResponse(BaseModel):
     problem_statement: str
     decision_taken: str
     reasoning: str
+
+    status: str
+    modified_by: int
+    modified_at: datetime
+    change_summary: str | None = None
+
     decision_id: int
 
     model_config = ConfigDict(
