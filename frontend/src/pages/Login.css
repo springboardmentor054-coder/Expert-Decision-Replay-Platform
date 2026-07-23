@@ -1,0 +1,472 @@
+* {
+    box-sizing: border-box;
+}
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    background: #f8fafc;
+}
+
+/* ========================= */
+/* LEFT BRANDING SECTION */
+/* ========================= */
+
+.login-brand {
+    width: 48%;
+    min-height: 100vh;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(145deg, #0f172a, #172554 55%, #1d4ed8);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-brand::before {
+    content: "";
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    top: -180px;
+    right: -180px;
+}
+
+.login-brand::after {
+    content: "";
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    bottom: -150px;
+    left: -120px;
+}
+
+.brand-content {
+    max-width: 600px;
+    margin: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-logo {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 30px;
+}
+
+.brand-logo span {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.brand-content h1 {
+    font-size: 46px;
+    line-height: 1.1;
+    letter-spacing: -1.8px;
+    margin: 0 0 24px;
+    font-weight: 750;
+}
+
+.brand-description {
+    font-size: 17px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 520px;
+    margin-bottom: 42px;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.feature-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #bfdbfe;
+    font-weight: bold;
+}
+
+.feature-item strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.feature-item span {
+    display: block;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.brand-footer {
+    position: relative;
+    z-index: 2;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+}
+
+
+/* ========================= */
+/* RIGHT LOGIN SECTION */
+/* ========================= */
+
+.login-section {
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: #f8fafc;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 460px;
+}
+
+.login-header {
+    margin-bottom: 36px;
+}
+
+.welcome-text {
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.login-header h2 {
+    color: #0f172a;
+    font-size: 32px;
+    letter-spacing: -1px;
+    margin: 0 0 10px;
+}
+
+.login-subtitle {
+    color: #64748b;
+    font-size: 15px;
+    margin: 0;
+}
+
+
+/* ========================= */
+/* FORM */
+/* ========================= */
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 9px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    color: #94a3b8;
+    font-size: 17px;
+    z-index: 1;
+}
+
+.input-wrapper input {
+    width: 100%;
+    height: 54px;
+    padding: 0 48px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: white;
+    color: #0f172a;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.input-wrapper input::placeholder {
+    color: #94a3b8;
+}
+
+.input-wrapper input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 14px;
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    color: #1d4ed8;
+}
+
+
+/* ========================= */
+/* LOGIN BUTTON */
+/* ========================= */
+
+.login-button {
+    width: 100%;
+    height: 54px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.login-button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+.login-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.arrow {
+    font-size: 20px;
+    line-height: 0;
+}
+
+
+/* ========================= */
+/* LOADING SPINNER */
+/* ========================= */
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ========================= */
+/* ERROR MESSAGE */
+/* ========================= */
+
+.login-error {
+    margin-top: 18px;
+    padding: 13px 15px;
+    border-radius: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-error span {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dc2626;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+/* ========================= */
+/* FOOTER */
+/* ========================= */
+
+.login-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 45px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+
+/* ========================= */
+/* MOBILE LOGO */
+/* ========================= */
+
+.mobile-logo {
+    display: none;
+}
+
+
+/* ========================= */
+/* RESPONSIVE DESIGN */
+/* ========================= */
+
+@media (max-width: 900px) {
+
+    .login-brand {
+        width: 42%;
+        padding: 40px;
+    }
+
+    .brand-content h1 {
+        font-size: 34px;
+    }
+
+    .brand-description {
+        font-size: 15px;
+    }
+
+    .feature-list {
+        gap: 18px;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .login-page {
+        display: block;
+    }
+
+    .login-brand {
+        display: none;
+    }
+
+    .login-section {
+        min-height: 100vh;
+        padding: 30px 22px;
+    }
+
+    .login-card {
+        max-width: 430px;
+    }
+
+    .mobile-logo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+
+    .mobile-logo .brand-logo {
+        background: #2563eb;
+        color: white;
+        margin-bottom: 0;
+    }
+
+    .login-header {
+        text-align: center;
+    }
+
+    .login-header h2 {
+        font-size: 27px;
+    }
+
+    .login-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+    }
+
+}
+
+/* ========================= */
+/* AUTH SWITCH */
+/* ========================= */
+
+.auth-switch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 26px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.auth-switch button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-switch button:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}

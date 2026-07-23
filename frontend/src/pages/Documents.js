@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./Decision.css";
+import "./Documents.css";
 
 function Documents() {
 
@@ -8,15 +8,10 @@ function Documents() {
 
   const navigate = useNavigate();
 
-  // App.js uses /documents/:id
   const { id } = useParams();
 
 
   useEffect(() => {
-
-    // If ID exists, fetch documents
-    // only for that specific decision.
-    // Otherwise, fetch all documents.
 
     const url = id
       ? `http://127.0.0.1:8000/documents/decision/${id}`
@@ -28,9 +23,7 @@ function Documents() {
       .then((response) => {
 
         if (!response.ok) {
-
           throw new Error("Failed to fetch documents");
-
         }
 
         return response.json();
@@ -73,12 +66,15 @@ function Documents() {
           documents.filter(
 
             (document) =>
-
               document.id !== documentId
 
           )
 
         );
+
+      } else {
+
+        alert("Unable to delete document");
 
       }
 
@@ -86,234 +82,448 @@ function Documents() {
 
       console.log(error);
 
+      alert("Server connection failed");
+
     }
+
+  };
+
+
+  const formatFileSize = (bytes) => {
+
+    if (!bytes) {
+      return "0 KB";
+    }
+
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+  };
+
+
+  const formatDate = (date) => {
+
+    return new Date(date).toLocaleString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      }
+    );
 
   };
 
 
   return (
 
-    <div className="container">
+    <div className="documents-page">
 
 
-      <h1>
+      {/* ================================= */}
+      {/* TOP NAVBAR */}
+      {/* ================================= */}
 
-        {id
-          ? `Documents for Decision ${id}`
-          : "All Documents"}
+      <nav className="documents-navbar">
 
-      </h1>
+        <div className="documents-brand">
 
+          <div className="documents-logo">
+            ED
+          </div>
 
-      {/* Navigation Buttons */}
+          <div>
 
-      <div style={{ marginBottom: "20px" }}>
+            <h2>
+              Expert Decision Replay
+            </h2>
 
+            <span>
+              Document Management
+            </span>
 
-        <button
+          </div>
 
-          onClick={() => navigate("/decisions")}
+        </div>
 
-        >
 
-          View Decisions
+        <div className="documents-nav-actions">
 
-        </button>
+          <button
+            onClick={() => navigate("/decisions")}
+            className="nav-secondary-button"
+          >
+            ← Decisions
+          </button>
 
+          <button
+            onClick={() => navigate("/alternatives")}
+            className="nav-secondary-button"
+          >
+            Alternatives
+          </button>
 
-        <button
+          {id && (
 
-          onClick={() => navigate("/alternatives")}
+            <button
+              onClick={() => navigate(`/upload-document/${id}`)}
+              className="upload-document-button"
+            >
+              + Upload Document
+            </button>
 
-          style={{ marginLeft: "10px" }}
+          )}
 
-        >
+        </div>
 
-          View Alternatives
+      </nav>
 
-        </button>
 
+      {/* ================================= */}
+      {/* MAIN CONTENT */}
+      {/* ================================= */}
 
-      </div>
+      <main className="documents-main">
 
 
-      {documents.length === 0 ? (
+        {/* Header */}
 
-        <p>
+        <div className="documents-header">
 
-          {id
+          <div>
 
-            ? "No documents found for this decision."
+            <span className="documents-eyebrow">
+              SUPPORTING EVIDENCE
+            </span>
 
-            : "No documents uploaded yet."}
+            <h1>
+              {id
+                ? `Documents for Decision ${id}`
+                : "All Documents"}
+            </h1>
 
-        </p>
+            <p>
 
-      ) : (
+              {id
+                ? "Review supporting files attached to this decision."
+                : "Manage and review all supporting documents across decisions."}
 
+            </p>
 
-        <table>
+          </div>
 
 
-          <thead>
+          {id && (
 
-            <tr>
+            <button
+              onClick={() => navigate(`/decision/${id}`)}
+              className="back-decision-button"
+            >
+              ← Back to Decision
+            </button>
 
-              <th>ID</th>
+          )}
 
-              <th>File Name</th>
+        </div>
 
-              <th>File Type</th>
 
-              <th>File Size (Bytes)</th>
+        {/* ================================= */}
+        {/* DOCUMENT STAT */}
+        {/* ================================= */}
 
-              <th>Uploaded Date</th>
+        <div className="document-stat-card">
 
-              <th>Actions</th>
+          <div className="document-stat-icon">
+            📄
+          </div>
 
-            </tr>
+          <div>
 
-          </thead>
+            <span>
+              TOTAL DOCUMENTS
+            </span>
 
+            <strong>
+              {documents.length}
+            </strong>
 
-          <tbody>
+          </div>
 
+        </div>
 
-            {documents.map((document) => (
 
+        {/* ================================= */}
+        {/* DOCUMENT CONTENT */}
+        {/* ================================= */}
 
-              <tr key={document.id}>
+        {documents.length === 0 ? (
 
+          <div className="documents-empty-state">
 
-                <td>
+            <div className="empty-document-icon">
+              📂
+            </div>
 
-                  {document.id}
+            <h2>
+              No Documents Found
+            </h2>
 
-                </td>
+            <p>
 
+              {id
+                ? "No supporting documents have been uploaded for this decision yet."
+                : "No documents have been uploaded to the platform yet."}
 
-                <td>
+            </p>
 
-                  {document.file_name}
 
-                </td>
+            {id && (
 
+              <button
+                onClick={() => navigate(`/upload-document/${id}`)}
+                className="upload-empty-button"
+              >
+                + Upload Supporting Document
+              </button>
 
-                <td>
+            )}
 
-                  {document.file_type}
+          </div>
 
-                </td>
+        ) : (
 
+          <div className="documents-table-card">
 
-                <td>
 
-                  {document.file_size}
+            <div className="table-header">
 
-                </td>
+              <div>
 
+                <h2>
+                  Supporting Documents
+                </h2>
 
-                <td>
+                <p>
+                  Files associated with this decision
+                </p>
 
-                  {new Date(
+              </div>
 
-                    document.uploaded_at
+            </div>
 
-                  ).toLocaleString(
 
-                    "en-IN",
+            <div className="table-wrapper">
 
-                    {
+              <table className="documents-table">
 
-                      day: "2-digit",
+                <thead>
 
-                      month: "long",
+                  <tr>
 
-                      year: "numeric",
+                    <th>
+                      DOCUMENT
+                    </th>
 
-                      hour: "numeric",
+                    {!id && (
 
-                      minute: "2-digit",
+                      <th>
+                        DECISION
+                      </th>
 
-                      hour12: true
+                    )}
 
-                    }
+                    <th>
+                      TYPE
+                    </th>
 
-                  )}
+                    <th>
+                      SIZE
+                    </th>
 
-                </td>
+                    <th>
+                      UPLOADED
+                    </th>
 
+                    <th>
+                      ACTIONS
+                    </th>
 
-                <td>
+                  </tr>
 
+                </thead>
 
-                  <a
 
-                    href={`http://127.0.0.1:8000/${document.file_path}`}
+                <tbody>
 
-                    target="_blank"
+                  {documents.map((document) => (
 
-                    rel="noreferrer"
+                    <tr key={document.id}>
 
-                  >
 
-                    <button>
+                      {/* File Name */}
 
-                      View
+                      <td>
 
-                    </button>
+                        <div className="file-info">
 
-                  </a>
+                          <div className="file-icon">
+                            📄
+                          </div>
 
+                          <div>
 
-                  <button
+                            <strong>
+                              {document.file_name}
+                            </strong>
 
-                    onClick={() => {
+                            <span>
+                              Document #{document.id}
+                            </span>
 
-                      if (
+                          </div>
 
-                        window.confirm(
+                        </div>
 
-                          "Are you sure you want to delete this document?"
+                      </td>
 
-                        )
 
-                      ) {
+                      {/* Decision ID */}
 
-                        deleteDocument(
+                      {!id && (
 
-                          document.id
+                        <td>
 
-                        );
+                          <span className="decision-tag">
 
-                      }
+                            Decision {document.decision_id}
 
-                    }}
+                          </span>
 
-                    style={{ marginLeft: "10px" }}
+                        </td>
 
-                  >
+                      )}
 
-                    Delete
 
-                  </button>
+                      {/* File Type */}
 
+                      <td>
 
-                </td>
+                        <span className="file-type">
 
+                          {document.file_type || "Unknown"}
 
-              </tr>
+                        </span>
 
-            ))}
+                      </td>
 
 
-          </tbody>
+                      {/* File Size */}
 
+                      <td>
 
-        </table>
+                        {formatFileSize(
+                          document.file_size
+                        )}
 
-      )}
+                      </td>
 
+
+                      {/* Uploaded Date */}
+
+                      <td>
+
+                        <span className="uploaded-date">
+
+                          {formatDate(
+                            document.uploaded_at
+                          )}
+
+                        </span>
+
+                      </td>
+
+
+                      {/* Actions */}
+
+                      <td>
+
+                        <div className="document-actions">
+
+
+                          <a
+                            href={`http://127.0.0.1:8000/${document.file_path}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+
+                            <button className="view-document-button">
+                              View
+                            </button>
+
+                          </a>
+
+
+                          <button
+
+                            className="delete-document-button"
+
+                            onClick={() => {
+
+                              if (
+
+                                window.confirm(
+
+                                  "Are you sure you want to delete this document?"
+
+                                )
+
+                              ) {
+
+                                deleteDocument(
+                                  document.id
+                                );
+
+                              }
+
+                            }}
+
+                          >
+
+                            Delete
+
+                          </button>
+
+
+                        </div>
+
+                      </td>
+
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        )}
+
+      </main>
 
     </div>
 

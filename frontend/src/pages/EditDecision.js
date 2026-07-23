@@ -16,7 +16,6 @@ function EditDecision() {
     status: ""
   });
 
-
   useEffect(() => {
 
     fetch(`http://127.0.0.1:8000/decisions/${id}`)
@@ -29,12 +28,15 @@ function EditDecision() {
 
       })
 
-      .catch(error => console.log(error));
+      .catch(error => {
 
+        console.log("Error fetching decision:", error);
+
+        alert("Unable to load decision");
+
+      });
 
   }, [id]);
-
-
 
 
   const handleChange = (e) => {
@@ -50,11 +52,35 @@ function EditDecision() {
   };
 
 
-
-
   const handleSubmit = async (e) => {
 
     e.preventDefault();
+
+    if (decision.title.trim() === "") {
+
+      alert("Title cannot be empty");
+
+      return;
+
+    }
+
+    if (decision.problem_statement.trim() === "") {
+
+      alert("Problem Statement is mandatory");
+
+      return;
+
+    }
+
+    if (!token) {
+
+      alert("Please login first");
+
+      navigate("/login");
+
+      return;
+
+    }
 
 
     try {
@@ -79,16 +105,15 @@ function EditDecision() {
       );
 
 
+      if (response.ok) {
 
-      if(response.ok){
+        alert("Decision Updated Successfully");
 
-        alert("Decision Updated");
-
-        navigate("/decisions");
+        navigate(`/decision/${id}`);
 
       }
 
-      else{
+      else {
 
         const errorData = await response.json();
 
@@ -101,10 +126,9 @@ function EditDecision() {
 
       }
 
-
     }
 
-    catch(error){
+    catch (error) {
 
       console.log("Network Error:", error);
 
@@ -112,159 +136,294 @@ function EditDecision() {
 
     }
 
-
   };
-
-
-
 
 
   return (
 
-    <div className="container">
+    <div className="decision-page">
 
 
-      <h1>Edit Decision</h1>
+      {/* ================================= */}
+      {/* PAGE HEADER */}
+      {/* ================================= */}
 
+      <div className="decision-header">
 
+        <div>
 
-      <div style={{ marginBottom:"20px" }}>
+          <h1>Edit Decision</h1>
 
+          <p>
+            Update the decision details and track changes through version history.
+          </p>
 
-        <button onClick={() => navigate("/")}>
-          Create Decision
-        </button>
-
-
-
-        <button
-
-          onClick={() => navigate("/decisions")}
-
-          style={{marginLeft:"10px"}}
-
-        >
-
-          View Decisions
-
-        </button>
-
+        </div>
 
 
         <button
 
-          onClick={() => navigate("/add-alternative")}
+          className="secondary-btn"
 
-          style={{marginLeft:"10px"}}
-
-        >
-
-          Add Alternative
-
-        </button>
-
-
-
-        <button
-
-          onClick={() => navigate("/alternatives")}
-
-          style={{marginLeft:"10px"}}
+          onClick={() => navigate(`/decision/${id}`)}
 
         >
 
-          View Alternatives
+          ← Back to Decision
 
         </button>
+
+      </div>
+
+
+
+      {/* ================================= */}
+      {/* EDIT FORM */}
+      {/* ================================= */}
+
+      <div className="decision-form-card">
+
+
+        <div className="form-card-header">
+
+          <h2>Update Decision Information</h2>
+
+          <p>
+            Modify the details below and save your changes.
+          </p>
+
+        </div>
+
+
+
+        <form onSubmit={handleSubmit}>
+
+
+          {/* ================================= */}
+          {/* TITLE */}
+          {/* ================================= */}
+
+          <div className="form-group">
+
+            <label>
+
+              Decision Title <span>*</span>
+
+            </label>
+
+
+            <input
+
+              type="text"
+
+              name="title"
+
+              placeholder="Enter a clear decision title"
+
+              value={decision.title || ""}
+
+              onChange={handleChange}
+
+            />
+
+          </div>
+
+
+
+          {/* ================================= */}
+          {/* PROBLEM STATEMENT */}
+          {/* ================================= */}
+
+          <div className="form-group">
+
+            <label>
+
+              Problem Statement <span>*</span>
+
+            </label>
+
+
+            <textarea
+
+              name="problem_statement"
+
+              placeholder="Describe the problem or challenge that requires a decision..."
+
+              value={decision.problem_statement || ""}
+
+              onChange={handleChange}
+
+              rows="5"
+
+            />
+
+          </div>
+
+
+
+          {/* ================================= */}
+          {/* DESCRIPTION */}
+          {/* ================================= */}
+
+          <div className="form-group">
+
+            <label>
+
+              Description
+
+            </label>
+
+
+            <textarea
+
+              name="description"
+
+              placeholder="Provide additional context, background, or relevant information..."
+
+              value={decision.description || ""}
+
+              onChange={handleChange}
+
+              rows="6"
+
+            />
+
+          </div>
+
+
+
+          {/* ================================= */}
+          {/* STATUS */}
+          {/* ================================= */}
+
+          <div className="form-group">
+
+            <label>
+
+              Decision Status
+
+            </label>
+
+
+            <select
+
+              name="status"
+
+              value={decision.status || ""}
+
+              onChange={handleChange}
+
+            >
+
+              <option value="Draft">
+                Draft
+              </option>
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="Active">
+                Active
+              </option>
+
+              <option value="Completed">
+                Completed
+              </option>
+
+              <option value="Cancelled">
+                Cancelled
+              </option>
+
+            </select>
+
+          </div>
+
+
+
+          {/* ================================= */}
+          {/* FORM ACTIONS */}
+          {/* ================================= */}
+
+          <div className="form-actions">
+
+
+            <button
+
+              type="button"
+
+              className="cancel-btn"
+
+              onClick={() => navigate(`/decision/${id}`)}
+
+            >
+
+              Cancel
+
+            </button>
+
+
+
+            <button
+
+              type="submit"
+
+              className="submit-btn"
+
+            >
+
+              Update Decision
+
+            </button>
+
+
+          </div>
+
+
+        </form>
 
 
       </div>
 
 
 
+      {/* ================================= */}
+      {/* QUICK NAVIGATION */}
+      {/* ================================= */}
+
+      <div className="quick-navigation">
 
 
-      <div className="form-container">
+        <h3>Decision Management</h3>
 
 
-        <form onSubmit={handleSubmit}>
-
-
-          <label>Title</label>
-
-
-          <input
-
-            name="title"
-
-            value={decision.title || ""}
-
-            onChange={handleChange}
-
-          />
-
-
-
-
-          <label>Problem Statement</label>
-
-
-          <textarea
-
-            name="problem_statement"
-
-            value={decision.problem_statement || ""}
-
-            onChange={handleChange}
-
-          />
-
-
-
-
-          <label>Description</label>
-
-
-          <textarea
-
-            name="description"
-
-            value={decision.description || ""}
-
-            onChange={handleChange}
-
-          />
-
-
-
-
-          <label>Status</label>
-
-
-          <input
-
-            name="status"
-
-            value={decision.status || ""}
-
-            onChange={handleChange}
-
-          />
-
-
+        <div className="quick-nav-buttons">
 
 
           <button
-            type="submit"
-            className="submit-btn"
+
+            onClick={() => navigate("/decisions")}
+
           >
 
-            Update Decision
+            📋 View All Decisions
 
           </button>
 
 
-        </form>
+
+          <button
+
+            onClick={() => navigate(`/decision/${id}/history`)}
+
+          >
+
+            🔄 View Version History
+
+          </button>
+
+
+        </div>
 
 
       </div>

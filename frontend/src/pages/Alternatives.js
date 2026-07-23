@@ -20,7 +20,7 @@ function Alternatives() {
 
       .then(data => {
 
-        // If a Decision ID is provided,
+        // If Decision ID is provided,
         // show only alternatives linked to that decision
         if (id) {
 
@@ -43,7 +43,7 @@ function Alternatives() {
 
       .catch(error => {
 
-        console.log(error);
+        console.log("Error fetching alternatives:", error);
 
       });
 
@@ -70,11 +70,19 @@ function Alternatives() {
           )
         );
 
+        alert("Alternative deleted successfully");
+
+      } else {
+
+        alert("Unable to delete alternative");
+
       }
 
     } catch (error) {
 
-      console.log(error);
+      console.log("Delete Error:", error);
+
+      alert("Server connection failed");
 
     }
 
@@ -83,170 +91,404 @@ function Alternatives() {
 
   return (
 
-    <div className="container">
+    <div className="alternatives-page">
 
 
-      <h1>
-        {id
-          ? `Alternatives for Decision ${id}`
-          : "All Alternatives"
-        }
-      </h1>
+      {/* ================================= */}
+      {/* PAGE HEADER */}
+      {/* ================================= */}
+
+      <div className="alternatives-header">
+
+        <div>
+
+          <span className="eyebrow">
+            DECISION ANALYSIS
+          </span>
+
+          <h1>
+            {id
+              ? `Alternatives for Decision ${id}`
+              : "All Alternatives"
+            }
+          </h1>
+
+          <p>
+
+            {id
+              ? "Review and manage the alternatives considered for this decision."
+              : "Review and manage all available decision alternatives."
+            }
+
+          </p>
+
+        </div>
 
 
-      {/* Navigation Buttons */}
+        <div className="alternatives-header-actions">
 
-      <div style={{ marginBottom: "20px" }}>
+          <button
+            className="secondary-btn"
+            onClick={() => navigate("/decisions")}
+          >
+            ← Back to Decisions
+          </button>
 
+          <button
+            className="primary-action-btn"
+            onClick={() => navigate("/add-alternative")}
+          >
+            + Add Alternative
+          </button>
 
-        <button onClick={() => navigate("/")}>
-          Create Decision
-        </button>
-
-
-        <button
-          onClick={() => navigate("/decisions")}
-          style={{ marginLeft: "10px" }}
-        >
-          View Decisions
-        </button>
-
-
-        <button
-          onClick={() => navigate("/add-alternative")}
-          style={{ marginLeft: "10px" }}
-        >
-          Add Alternative
-        </button>
-
-
-        <button
-          onClick={() => navigate("/alternative-comparison")}
-          style={{ marginLeft: "10px" }}
-        >
-          Compare Alternatives
-        </button>
-
+        </div>
 
       </div>
 
 
+
+      {/* ================================= */}
+      {/* DECISION CONTEXT */}
+      {/* ================================= */}
+
       {id && (
 
-        <button
-          onClick={() => navigate(`/decision/${id}`)}
-          style={{ marginBottom: "20px" }}
-        >
-          Back to Decision {id}
-        </button>
+        <div className="decision-context-card">
+
+          <div className="context-icon">
+            ⚖️
+          </div>
+
+          <div>
+
+            <strong>
+              Decision {id}
+            </strong>
+
+            <span>
+              Showing only alternatives linked to this decision
+            </span>
+
+          </div>
+
+        </div>
 
       )}
 
 
-      <table>
+
+      {/* ================================= */}
+      {/* ALTERNATIVES SUMMARY */}
+      {/* ================================= */}
+
+      <div className="alternatives-summary">
+
+        <div className="summary-card">
+
+          <div className="summary-icon">
+            ⚖️
+          </div>
+
+          <div>
+
+            <span>
+              Total Alternatives
+            </span>
+
+            <strong>
+              {alternatives.length}
+            </strong>
+
+          </div>
+
+        </div>
 
 
-        <thead>
+        <div className="summary-card">
 
-          <tr>
+          <div className="summary-icon blue">
+            📊
+          </div>
 
-            <th>ID</th>
+          <div>
 
-            <th>Alternative Name</th>
+            <span>
+              Comparison
+            </span>
 
-            <th>Cost</th>
+            <strong>
+              Available
+            </strong>
 
-            <th>Feasibility</th>
+          </div>
 
-            <th>Risk Level</th>
+        </div>
 
-            <th>Actions</th>
-
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          {alternatives.length === 0 ? (
-
-            <tr>
-
-              <td colSpan="6">
-                No alternatives found for this decision.
-              </td>
-
-            </tr>
-
-          ) : (
-
-            alternatives.map((alternative) => (
-
-              <tr key={alternative.id}>
-
-                <td>
-                  {alternative.id}
-                </td>
-
-                <td>
-                  {alternative.alternative_name}
-                </td>
-
-                <td>
-                  {alternative.estimated_cost}
-                </td>
-
-                <td>
-                  {alternative.feasibility}
-                </td>
-
-                <td>
-                  {alternative.risk_level}
-                </td>
+      </div>
 
 
-                <td>
 
-                  <button
-                    onClick={() =>
-                      navigate(`/edit-alternative/${alternative.id}`)
-                    }
-                  >
-                    Edit
-                  </button>
+      {/* ================================= */}
+      {/* ALTERNATIVES TABLE CARD */}
+      {/* ================================= */}
+
+      <div className="alternatives-card">
 
 
-                  <button
-                    onClick={() => {
+        <div className="alternatives-card-header">
 
-                      if (
-                        window.confirm(
-                          "Are you sure you want to delete this alternative?"
-                        )
-                      ) {
+          <div>
 
-                        deleteAlternative(alternative.id);
+            <h2>
+              Alternative Options
+            </h2>
 
-                      }
+            <p>
+              Evaluate the available choices before making a final decision.
+            </p>
 
-                    }}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Delete
-                  </button>
+          </div>
 
-                </td>
 
-              </tr>
+          <button
+            className="comparison-btn"
+            onClick={() =>
+              id
+                ? navigate(`/alternative-comparison/${id}`)
+                : navigate("/alternative-comparison")
+            }
+          >
+            ⇄ Compare Alternatives
+          </button>
 
-            ))
+        </div>
 
-          )}
 
-        </tbody>
 
-      </table>
+        {alternatives.length === 0 ? (
+
+          /* ================================= */
+          /* EMPTY STATE */
+          /* ================================= */
+
+          <div className="alternatives-empty-state">
+
+            <div className="empty-alternative-icon">
+              ⚖️
+            </div>
+
+            <h3>
+              No Alternatives Found
+            </h3>
+
+            <p>
+
+              {id
+                ? `No alternatives have been added to Decision ${id} yet.`
+                : "No alternatives have been created yet."
+              }
+
+            </p>
+
+
+            <button
+              className="primary-action-btn"
+              onClick={() => navigate("/add-alternative")}
+            >
+              + Add Your First Alternative
+            </button>
+
+          </div>
+
+        ) : (
+
+          /* ================================= */
+          /* TABLE */
+          /* ================================= */
+
+          <div className="alternatives-table-wrapper">
+
+            <table className="alternatives-table">
+
+              <thead>
+
+                <tr>
+
+                  <th>ID</th>
+
+                  <th>Alternative</th>
+
+                  <th>Estimated Cost</th>
+
+                  <th>Feasibility</th>
+
+                  <th>Risk Level</th>
+
+                  <th>Actions</th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {alternatives.map((alternative) => (
+
+                  <tr key={alternative.id}>
+
+
+                    <td>
+
+                      <span className="alternative-id">
+
+                        #{alternative.id}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <div className="alternative-name">
+
+                        <strong>
+                          {alternative.alternative_name}
+                        </strong>
+
+                      </div>
+
+                    </td>
+
+
+                    <td>
+
+                      <span className="cost-value">
+
+                        {alternative.estimated_cost}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span className="feasibility-badge">
+
+                        {alternative.feasibility}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span
+                        className={`risk-badge risk-${String(
+                          alternative.risk_level
+                        ).toLowerCase()}`}
+                      >
+
+                        {alternative.risk_level}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <div className="alternative-actions">
+
+
+                        <button
+
+                          className="edit-alt-btn"
+
+                          onClick={() =>
+                            navigate(
+                              `/edit-alternative/${alternative.id}`
+                            )
+                          }
+
+                        >
+
+                          Edit
+
+                        </button>
+
+
+
+                        <button
+
+                          className="delete-alt-btn"
+
+                          onClick={() => {
+
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this alternative?"
+                              )
+                            ) {
+
+                              deleteAlternative(
+                                alternative.id
+                              );
+
+                            }
+
+                          }}
+
+                        >
+
+                          Delete
+
+                        </button>
+
+
+                      </div>
+
+                    </td>
+
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        )}
+
+      </div>
+
+
+
+      {/* ================================= */}
+      {/* BACK TO DECISION */}
+      {/* ================================= */}
+
+      {id && (
+
+        <div className="back-to-decision">
+
+          <button
+            onClick={() => navigate(`/decision/${id}`)}
+          >
+
+            ← Back to Decision {id}
+
+          </button>
+
+        </div>
+
+      )}
 
 
     </div>

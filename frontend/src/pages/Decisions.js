@@ -5,9 +5,18 @@ import "./Decision.css";
 function Decisions() {
 
   const [decisions, setDecisions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
+  const userEmail = localStorage.getItem("userEmail") || "User";
+
+
+  /* ========================= */
+  /* FETCH DECISIONS */
+  /* ========================= */
 
   useEffect(() => {
 
@@ -18,17 +27,23 @@ function Decisions() {
       .then((data) => {
 
         setDecisions(data);
+        setLoading(false);
 
       })
 
       .catch((error) => {
 
         console.log(error);
+        setLoading(false);
 
       });
 
   }, []);
 
+
+  /* ========================= */
+  /* DELETE DECISION */
+  /* ========================= */
 
   const deleteDecision = async (id) => {
 
@@ -61,309 +76,695 @@ function Decisions() {
   };
 
 
-  return (
+  /* ========================= */
+  /* LOGOUT */
+  /* ========================= */
 
-    <div className="container">
+  const handleLogout = () => {
 
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
 
-      <h1>All Decisions</h1>
+    navigate("/login");
 
-
-      <div style={{ marginBottom: "20px" }}>
-
-
-        {/* Create Decision */}
-
-        <button onClick={() => navigate("/")}>
-
-          Create Decision
-
-        </button>
+  };
 
 
-        {/* View All Alternatives */}
+  /* ========================= */
+  /* FILTER DECISIONS */
+  /* ========================= */
 
-        <button
+  const filteredDecisions = decisions.filter((decision) => {
 
-          onClick={() => navigate("/alternatives")}
+    const search = searchTerm.toLowerCase();
 
-          style={{ marginLeft: "10px" }}
+    const matchesSearch =
+      decision.title?.toLowerCase().includes(search) ||
+      decision.status?.toLowerCase().includes(search) ||
+      String(decision.id).includes(search);
 
-        >
+    const matchesStatus =
+      statusFilter === "All" ||
+      decision.status === statusFilter;
 
-          View Alternatives
+    return matchesSearch && matchesStatus;
 
-        </button>
+  });
 
 
-        {/* View All Documents */}
+  /* ========================= */
+  /* STATISTICS */
+  /* ========================= */
 
-        <button
+  const totalDecisions = decisions.length;
 
-          onClick={() => navigate("/documents")}
+  const activeDecisions = decisions.filter(
+    (decision) =>
+      decision.status?.toLowerCase() === "active"
+  ).length;
 
-          style={{ marginLeft: "10px" }}
+  const completedDecisions = decisions.filter(
+    (decision) =>
+      decision.status?.toLowerCase() === "completed"
+  ).length;
 
-        >
+  const pendingDecisions = decisions.filter(
+    (decision) =>
+      decision.status?.toLowerCase() === "pending"
+  ).length;
 
-          View Documents
 
-        </button>
+  /* ========================= */
+  /* STATUS CLASS */
+  /* ========================= */
 
+  const getStatusClass = (status) => {
+
+    if (!status) return "status-default";
+
+    const normalizedStatus =
+      status.toLowerCase();
+
+    if (normalizedStatus === "active") {
+      return "status-active";
+    }
+
+    if (normalizedStatus === "completed") {
+      return "status-completed";
+    }
+
+    if (normalizedStatus === "pending") {
+      return "status-pending";
+    }
+
+    if (normalizedStatus === "cancelled") {
+      return "status-cancelled";
+    }
+
+    return "status-default";
+
+  };
+
+
+  /* ========================= */
+  /* LOADING */
+  /* ========================= */
+
+  if (loading) {
+
+    return (
+
+      <div className="decisions-page">
+
+        <div className="loading-screen">
+
+          <div className="loading-spinner"></div>
+
+          <p>
+            Loading decisions...
+          </p>
+
+        </div>
 
       </div>
 
+    );
 
-      <table>
-
-
-        <thead>
-
-          <tr>
-
-            <th>ID</th>
-
-            <th>Title</th>
-
-            <th>Category</th>
-
-            <th>Status</th>
-
-            <th>Created By</th>
-
-            <th>Created Date</th>
-
-            <th>Actions</th>
-
-          </tr>
-
-        </thead>
+  }
 
 
-        <tbody>
+  return (
+
+    <div className="decisions-page">
 
 
-          {decisions.map((decision) => (
+      {/* ========================= */}
+      {/* TOP NAVIGATION */}
+      {/* ========================= */}
+
+      <header className="top-navbar">
+
+        <div className="navbar-brand">
+
+          <div className="navbar-logo">
+            ED
+          </div>
+
+          <div>
+
+            <h2>
+              Expert Decision
+            </h2>
+
+            <span>
+              Replay Platform
+            </span>
+
+          </div>
+
+        </div>
 
 
-            <tr key={decision.id}>
+        <div className="navbar-right">
+
+          <div className="user-info">
+
+            <div className="user-avatar">
+              {userEmail.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="user-details">
+
+              <strong>
+                {userEmail}
+              </strong>
+
+              <span>
+                Decision Manager
+              </span>
+
+            </div>
+
+          </div>
 
 
-              <td>
+          <button
+            className="logout-button"
+            onClick={handleLogout}
+          >
 
-                {decision.id}
+            Logout
 
-              </td>
+          </button>
 
+        </div>
 
-              <td>
-
-                {decision.title}
-
-              </td>
-
-
-              <td>
-
-                {decision.category_id}
-
-              </td>
+      </header>
 
 
-              <td>
+      {/* ========================= */}
+      {/* MAIN CONTENT */}
+      {/* ========================= */}
 
-                {decision.status}
-
-              </td>
-
-
-              <td>
-
-                {decision.created_by}
-
-              </td>
+      <main className="decisions-main">
 
 
-              <td>
+        {/* PAGE HEADER */}
 
-                {new Date(
+        <div className="dashboard-header">
 
-                  decision.created_at
+          <div>
 
-                ).toLocaleString(
+            <span className="eyebrow">
+              DECISION MANAGEMENT
+            </span>
 
-                  "en-GB",
+            <h1>
+              All Decisions
+            </h1>
 
-                  {
+            <p>
+              Review, manage, and track your organization's
+              important decisions.
+            </p>
 
-                    day: "2-digit",
+          </div>
 
-                    month: "2-digit",
 
-                    year: "numeric",
+          <button
+            className="create-button"
+            onClick={() =>
+              navigate("/create-decision")
+            }
+          >
 
-                    hour: "2-digit",
+            <span className="button-icon">
+              +
+            </span>
 
-                    minute: "2-digit"
+            Create Decision
 
+          </button>
+
+        </div>
+
+
+        {/* ========================= */}
+        {/* QUICK NAVIGATION */}
+        {/* ========================= */}
+
+        <div className="quick-actions">
+
+          <button
+            onClick={() =>
+              navigate("/alternatives")
+            }
+          >
+
+            <span className="quick-icon">
+              ⚖
+            </span>
+
+            <span>
+              <strong>
+                Alternatives
+              </strong>
+
+              <small>
+                Compare available options
+              </small>
+            </span>
+
+            <span className="quick-arrow">
+              →
+            </span>
+
+          </button>
+
+
+          <button
+            onClick={() =>
+              navigate("/documents")
+            }
+          >
+
+            <span className="quick-icon">
+              📄
+            </span>
+
+            <span>
+              <strong>
+                Documents
+              </strong>
+
+              <small>
+                View supporting files
+              </small>
+            </span>
+
+            <span className="quick-arrow">
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+
+        {/* ========================= */}
+        {/* STATISTICS */}
+        {/* ========================= */}
+
+        <div className="stats-grid">
+
+
+          <div className="stat-card">
+
+            <div className="stat-icon blue">
+              ◈
+            </div>
+
+            <div>
+
+              <span>
+                Total Decisions
+              </span>
+
+              <strong>
+                {totalDecisions}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div className="stat-card">
+
+            <div className="stat-icon green">
+              ✓
+            </div>
+
+            <div>
+
+              <span>
+                Active
+              </span>
+
+              <strong>
+                {activeDecisions}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div className="stat-card">
+
+            <div className="stat-icon purple">
+              ★
+            </div>
+
+            <div>
+
+              <span>
+                Completed
+              </span>
+
+              <strong>
+                {completedDecisions}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div className="stat-card">
+
+            <div className="stat-icon orange">
+              ◷
+            </div>
+
+            <div>
+
+              <span>
+                Pending
+              </span>
+
+              <strong>
+                {pendingDecisions}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+        {/* ========================= */}
+        {/* DECISION SECTION */}
+        {/* ========================= */}
+
+        <section className="decision-section">
+
+
+          <div className="section-header">
+
+            <div>
+
+              <h2>
+                Decision Records
+              </h2>
+
+              <p>
+                {filteredDecisions.length} decision
+                {filteredDecisions.length !== 1
+                  ? "s"
+                  : ""}{" "}
+                found
+              </p>
+
+            </div>
+
+
+            {/* SEARCH + FILTER */}
+
+            <div className="filters">
+
+              <div className="search-box">
+
+                <span>
+                  🔍
+                </span>
+
+                <input
+                  type="text"
+                  placeholder="Search decisions..."
+                  value={searchTerm}
+                  onChange={(e) =>
+                    setSearchTerm(e.target.value)
                   }
+                />
 
-                )}
+              </div>
 
-              </td>
 
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value)
+                }
+              >
 
-              <td>
+                <option value="All">
+                  All Status
+                </option>
 
+                <option value="Active">
+                  Active
+                </option>
 
-                {/* View Decision */}
+                <option value="Pending">
+                  Pending
+                </option>
 
-                <button
+                <option value="Completed">
+                  Completed
+                </option>
 
-                  onClick={() =>
+                <option value="Cancelled">
+                  Cancelled
+                </option>
 
-                    navigate(
+              </select>
 
-                      `/decision/${decision.id}`
+            </div>
 
-                    )
+          </div>
 
-                  }
 
-                >
+          {/* ========================= */}
+          {/* DECISION CARDS */}
+          {/* ========================= */}
 
-                  View
+          {filteredDecisions.length === 0 ? (
 
-                </button>
+            <div className="empty-state">
 
+              <div className="empty-icon">
+                📋
+              </div>
 
-                {/* Edit Decision */}
+              <h3>
+                No decisions found
+              </h3>
 
-                <button
+              <p>
+                Try changing your search or create
+                a new decision.
+              </p>
 
-                  onClick={() =>
+              <button
+                className="create-button"
+                onClick={() =>
+                  navigate("/create-decision")
+                }
+              >
+                Create Your First Decision
+              </button>
 
-                    navigate(
+            </div>
 
-                      `/edit/${decision.id}`
+          ) : (
 
-                    )
+            <div className="decision-grid">
 
-                  }
+              {filteredDecisions.map(
+                (decision) => (
 
-                  style={{ marginLeft: "10px" }}
+                  <div
+                    className="decision-card"
+                    key={decision.id}
+                  >
 
-                >
 
-                  Edit
+                    {/* CARD HEADER */}
 
-                </button>
+                    <div className="decision-card-header">
 
+                      <div className="decision-number">
+                        Decision #{decision.id}
+                      </div>
 
-                {/* Upload Document */}
+                      <span
+                        className={`status-badge ${getStatusClass(
+                          decision.status
+                        )}`}
+                      >
+                        {decision.status}
+                      </span>
 
-                <button
+                    </div>
+
 
-                  onClick={() =>
+                    {/* CARD CONTENT */}
 
-                    navigate(
+                    <div className="decision-card-body">
+
+                      <h3>
+                        {decision.title}
+                      </h3>
+
+                      <div className="decision-meta">
+
+                        <div>
+                          <span>
+                            Category
+                          </span>
+
+                          <strong>
+                            {decision.category_id}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Created By
+                          </span>
+
+                          <strong>
+                            {decision.created_by}
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div className="created-date">
 
-                      `/upload-document/${decision.id}`
+                        <span>
+                          Created
+                        </span>
 
-                    )
+                        <strong>
+                          {new Date(
+                            decision.created_at
+                          ).toLocaleString(
+                            "en-GB",
+                            {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            }
+                          )}
+                        </strong>
 
-                  }
+                      </div>
 
-                  style={{ marginLeft: "10px" }}
+                    </div>
 
-                >
 
-                  Upload Document
+                    {/* CARD ACTIONS */}
 
-                </button>
+                    <div className="decision-card-actions">
 
 
-                {/* View Documents For This Decision */}
+                      <button
+                        className="view-button"
+                        onClick={() =>
+                          navigate(
+                            `/decision/${decision.id}`
+                          )
+                        }
+                      >
+                        View
+                      </button>
 
-                <button
 
-                  onClick={() =>
+                      <button
+                        className="edit-button"
+                        onClick={() =>
+                          navigate(
+                            `/edit/${decision.id}`
+                          )
+                        }
+                      >
+                        Edit
+                      </button>
 
-                    navigate(
 
-                      `/documents/${decision.id}`
+                      <button
+                        className="document-button"
+                        onClick={() =>
+                          navigate(
+                            `/documents/${decision.id}`
+                          )
+                        }
+                      >
+                        Documents
+                      </button>
 
-                    )
 
-                  }
+                      <button
+                        className="upload-button"
+                        onClick={() =>
+                          navigate(
+                            `/upload-document/${decision.id}`
+                          )
+                        }
+                      >
+                        Upload
+                      </button>
 
-                  style={{ marginLeft: "10px" }}
 
-                >
+                      <button
+                        className="delete-button"
+                        onClick={() => {
 
-                  Documents
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this decision?"
+                            )
+                          ) {
 
-                </button>
+                            deleteDecision(
+                              decision.id
+                            );
 
+                          }
 
-                {/* Delete Decision */}
+                        }}
+                      >
+                        Delete
+                      </button>
 
-                <button
 
-                  onClick={() => {
+                    </div>
 
 
-                    if (
+                  </div>
 
-                      window.confirm(
+                )
+              )}
 
-                        "Are you sure you want to delete this decision?"
+            </div>
 
-                      )
+          )}
 
-                    ) {
+        </section>
 
 
-                      deleteDecision(
-
-                        decision.id
-
-                      );
-
-
-                    }
-
-
-                  }}
-
-                  style={{ marginLeft: "10px" }}
-
-                >
-
-                  Delete
-
-                </button>
-
-
-              </td>
-
-
-            </tr>
-
-          ))}
-
-
-        </tbody>
-
-
-      </table>
-
+      </main>
 
     </div>
 
   );
 
 }
-
 
 export default Decisions;

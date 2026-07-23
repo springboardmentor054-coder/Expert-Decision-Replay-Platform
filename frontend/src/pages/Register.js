@@ -2,25 +2,50 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-function Login() {
+function Register() {
 
     const navigate = useNavigate();
 
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-    const [message, setMessage] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
 
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
 
-    const handleLogin = async (e) => {
+    const handleRegister = async (e) => {
 
         e.preventDefault();
 
         setMessage("");
+
+
+        // Password validation
+
+        if (password !== confirmPassword) {
+
+            setMessage("Passwords do not match");
+
+            return;
+
+        }
+
+
+        if (password.length < 6) {
+
+            setMessage(
+                "Password must contain at least 6 characters"
+            );
+
+            return;
+
+        }
+
 
         setLoading(true);
 
@@ -28,7 +53,7 @@ function Login() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/login",
+                "http://127.0.0.1:8000/auth/register",
                 {
                     method: "POST",
 
@@ -37,9 +62,17 @@ function Login() {
                     },
 
                     body: JSON.stringify({
+
+                        name: name,
+
                         email: email,
-                        password: password
+
+                        password: password,
+
+                        role: "User"
+
                     })
+
                 }
             );
 
@@ -47,40 +80,42 @@ function Login() {
             const data = await response.json();
 
 
-            if (response.ok && data.access_token) {
+            if (response.ok) {
 
-                // Store JWT token
-                localStorage.setItem(
-                    "token",
-                    data.access_token
+                alert(
+                    "Account created successfully! Please login."
                 );
 
+                navigate("/login");
 
-                // Store user email
-                localStorage.setItem(
-                    "userEmail",
-                    email
+            }
+
+            else {
+
+                console.error(
+                    "Registration Error:",
+                    data
                 );
-
-
-                // Redirect to decisions page
-                navigate("/decisions");
-
-
-            } else {
 
                 setMessage(
+
+                    data.detail ||
+
                     data.message ||
-                    "Invalid email or password"
+
+                    "Unable to create account"
+
                 );
 
             }
 
 
-        } catch (error) {
+        }
+
+        catch (error) {
 
             console.error(
-                "Login error:",
+                "Registration error:",
                 error
             );
 
@@ -88,8 +123,9 @@ function Login() {
                 "Unable to connect to the server"
             );
 
+        }
 
-        } finally {
+        finally {
 
             setLoading(false);
 
@@ -133,9 +169,9 @@ function Login() {
 
                     <p className="brand-description">
 
-                        Capture, manage, compare, and replay important
-                        organizational decisions with complete transparency
-                        and historical context.
+                        Create your account and start managing
+                        important organizational decisions with
+                        transparency, context, and historical insight.
 
                     </p>
 
@@ -231,7 +267,7 @@ function Login() {
 
 
             {/* ========================= */}
-            {/* RIGHT LOGIN SECTION */}
+            {/* RIGHT REGISTER SECTION */}
             {/* ========================= */}
 
             <div className="login-section">
@@ -256,28 +292,28 @@ function Login() {
 
 
 
-                    {/* Login Header */}
+                    {/* Header */}
 
                     <div className="login-header">
 
 
                         <p className="welcome-text">
 
-                            Welcome back
+                            Get started
 
                         </p>
 
 
                         <h2>
 
-                            Sign in to your account
+                            Create your account
 
                         </h2>
 
 
                         <p className="login-subtitle">
 
-                            Enter your credentials to continue.
+                            Join the Expert Decision Replay Platform.
 
                         </p>
 
@@ -286,19 +322,63 @@ function Login() {
 
 
 
-                    {/* Login Form */}
+                    {/* Register Form */}
 
-                    <form onSubmit={handleLogin}>
+                    <form onSubmit={handleRegister}>
 
 
-                        {/* ========================= */}
-                        {/* EMAIL */}
-                        {/* ========================= */}
+                        {/* Name */}
 
                         <div className="form-group">
 
+                            <label htmlFor="name">
 
-                            <label htmlFor="email">
+                                Full name
+
+                            </label>
+
+
+                            <div className="input-wrapper">
+
+
+                                <span className="input-icon">
+
+                                    👤
+
+                                </span>
+
+
+                                <input
+
+                                    id="name"
+
+                                    type="text"
+
+                                    placeholder="Enter your full name"
+
+                                    value={name}
+
+                                    onChange={(e) =>
+                                        setName(e.target.value)
+                                    }
+
+                                    required
+
+                                />
+
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        {/* Email */}
+
+                        <div className="form-group">
+
+                            <label htmlFor="register-email">
 
                                 Email address
 
@@ -317,7 +397,7 @@ function Login() {
 
                                 <input
 
-                                    id="email"
+                                    id="register-email"
 
                                     type="email"
 
@@ -341,14 +421,11 @@ function Login() {
 
 
 
-                        {/* ========================= */}
-                        {/* PASSWORD */}
-                        {/* ========================= */}
+                        {/* Password */}
 
                         <div className="form-group">
 
-
-                            <label htmlFor="password">
+                            <label htmlFor="register-password">
 
                                 Password
 
@@ -367,7 +444,7 @@ function Login() {
 
                                 <input
 
-                                    id="password"
+                                    id="register-password"
 
                                     type={
                                         showPassword
@@ -375,7 +452,7 @@ function Login() {
                                             : "password"
                                     }
 
-                                    placeholder="Enter your password"
+                                    placeholder="Create a password"
 
                                     value={password}
 
@@ -416,35 +493,81 @@ function Login() {
 
 
 
-                        {/* ========================= */}
-                        {/* FORGOT PASSWORD */}
-                        {/* ========================= */}
+                        {/* Confirm Password */}
 
-                        <div className="forgot-password-row">
+                        <div className="form-group">
+
+                            <label htmlFor="confirm-password">
+
+                                Confirm password
+
+                            </label>
 
 
-                            <button
+                            <div className="input-wrapper">
 
-                                type="button"
 
-                                onClick={() =>
-                                    navigate("/forgot-password")
-                                }
+                                <span className="input-icon">
 
-                            >
+                                    🔒
 
-                                Forgot password?
+                                </span>
 
-                            </button>
+
+                                <input
+
+                                    id="confirm-password"
+
+                                    type={
+                                        showConfirmPassword
+                                            ? "text"
+                                            : "password"
+                                    }
+
+                                    placeholder="Confirm your password"
+
+                                    value={confirmPassword}
+
+                                    onChange={(e) =>
+                                        setConfirmPassword(
+                                            e.target.value
+                                        )
+                                    }
+
+                                    required
+
+                                />
+
+
+                                <button
+
+                                    type="button"
+
+                                    className="password-toggle"
+
+                                    onClick={() =>
+                                        setShowConfirmPassword(
+                                            !showConfirmPassword
+                                        )
+                                    }
+
+                                >
+
+                                    {showConfirmPassword
+                                        ? "Hide"
+                                        : "Show"}
+
+                                </button>
+
+
+                            </div>
 
 
                         </div>
 
 
 
-                        {/* ========================= */}
-                        {/* LOGIN BUTTON */}
-                        {/* ========================= */}
+                        {/* Register Button */}
 
                         <button
 
@@ -463,7 +586,7 @@ function Login() {
 
                                     <span className="spinner"></span>
 
-                                    Signing in...
+                                    Creating account...
 
                                 </>
 
@@ -471,7 +594,7 @@ function Login() {
 
                                 <>
 
-                                    Sign in
+                                    Create account
 
                                     <span className="arrow">
                                         →
@@ -486,9 +609,7 @@ function Login() {
 
 
 
-                        {/* ========================= */}
-                        {/* ERROR MESSAGE */}
-                        {/* ========================= */}
+                        {/* Error Message */}
 
                         {message && (
 
@@ -509,17 +630,12 @@ function Login() {
 
 
 
-                    {/* ========================= */}
-                    {/* SIGN UP LINK */}
-                    {/* ========================= */}
+                    {/* Login Link */}
 
                     <div className="auth-switch">
 
-
                         <span>
-
-                            Don't have an account?
-
+                            Already have an account?
                         </span>
 
 
@@ -528,40 +644,30 @@ function Login() {
                             type="button"
 
                             onClick={() =>
-                                navigate("/register")
+                                navigate("/login")
                             }
 
                         >
 
-                            Create an account
+                            Sign in
 
                         </button>
-
 
                     </div>
 
 
 
-                    {/* ========================= */}
-                    {/* FOOTER */}
-                    {/* ========================= */}
+                    {/* Footer */}
 
                     <div className="login-footer">
 
-
                         <span>
-
                             Expert Decision Replay Platform
-
                         </span>
-
 
                         <span>
-
                             Secure Decision Management
-
                         </span>
-
 
                     </div>
 
@@ -579,4 +685,4 @@ function Login() {
 }
 
 
-export default Login;
+export default Register;

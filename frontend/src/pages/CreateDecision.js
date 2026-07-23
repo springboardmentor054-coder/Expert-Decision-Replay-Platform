@@ -35,7 +35,6 @@ function CreateDecision() {
       return;
     }
 
-    // Get JWT token from localStorage
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -92,78 +91,151 @@ function CreateDecision() {
 
   return (
 
-    <div className="container">
+    <div className="decision-page">
 
-      <h1>Create Decision</h1>
+      {/* Header */}
 
-      {/* Navigation Buttons */}
-      <div style={{ marginBottom: "20px" }}>
+      <div className="decision-header">
 
-        <button onClick={() => navigate("/decisions")}>
-          View Decisions
-        </button>
+        <div>
+          <h1>Create New Decision</h1>
 
-        <button
-          onClick={() => navigate("/add-alternative")}
-          style={{ marginLeft: "10px" }}
-        >
-          Add Alternative
-        </button>
+          <p>
+            Create and document an important organizational decision.
+          </p>
+        </div>
 
         <button
-          onClick={() => navigate("/alternatives")}
-          style={{ marginLeft: "10px" }}
+          className="secondary-btn"
+          onClick={() => navigate("/decisions")}
         >
-          View Alternatives
+          ← Back to Decisions
         </button>
 
       </div>
 
-      <div className="form-container">
+
+      {/* Main Form */}
+
+      <div className="decision-form-card">
+
+        <div className="form-card-header">
+
+          <h2>Decision Information</h2>
+
+          <p>
+            Provide the details required to create a new decision.
+          </p>
+
+        </div>
+
 
         <form onSubmit={handleSubmit}>
 
+          {/* Title */}
+
           <div className="form-group">
 
-            <label>Title</label>
+            <label>
+              Decision Title <span>*</span>
+            </label>
 
             <input
+              type="text"
               name="title"
+              placeholder="Enter a clear decision title"
               value={decision.title}
               onChange={handleChange}
             />
 
           </div>
 
+
+          {/* Problem Statement */}
+
           <div className="form-group">
 
-            <label>Problem Statement</label>
+            <label>
+              Problem Statement <span>*</span>
+            </label>
 
             <textarea
               name="problem_statement"
+              placeholder="Describe the problem or challenge that requires a decision..."
               value={decision.problem_statement}
               onChange={handleChange}
+              rows="5"
             />
 
           </div>
+
+
+          {/* Description */}
 
           <div className="form-group">
 
-            <label>Description</label>
+            <label>
+              Description
+            </label>
 
             <textarea
               name="description"
+              placeholder="Provide additional context, background, or relevant information..."
               value={decision.description}
               onChange={handleChange}
+              rows="6"
             />
 
           </div>
 
-          <button className="submit-btn">
-            Create
-          </button>
+
+          {/* Form Actions */}
+
+          <div className="form-actions">
+
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={() => navigate("/decisions")}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="submit-btn"
+            >
+              Create Decision
+            </button>
+
+          </div>
 
         </form>
+
+      </div>
+
+
+      {/* Quick Navigation */}
+
+      <div className="quick-navigation">
+
+        <h3>Decision Management</h3>
+
+        <div className="quick-nav-buttons">
+
+          <button
+            onClick={() => navigate("/decisions")}
+          >
+            📋 View All Decisions
+          </button>
+
+          <button
+            onClick={() => navigate("/alternatives")}
+          >
+            ⚖️ View Alternatives
+          </button>
+
+        </div>
 
       </div>
 
