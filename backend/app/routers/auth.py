@@ -61,6 +61,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user: LoginRequest, db: Session = Depends(get_db)):
 
+    # Find user by email
     db_user = db.query(User).filter(User.email == user.email).first()
 
     if not db_user:
@@ -69,14 +70,18 @@ def login(user: LoginRequest, db: Session = Depends(get_db)):
             detail="User not found"
         )
 
+    # Verify password
     if not verify_password(user.password, db_user.password):
         raise HTTPException(
             status_code=401,
             detail="Invalid password"
         )
 
+    # Return logged-in user details
     return {
         "message": "Login Successful",
+        "id": db_user.id,
         "username": db_user.username,
-        "email": db_user.email
+        "email": db_user.email,
+        "role_id": db_user.role_id
     }
