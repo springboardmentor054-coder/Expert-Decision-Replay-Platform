@@ -248,6 +248,26 @@ function Decisions() {
           </div>
 
 
+          {/* ========================= */}
+          {/* NOTIFICATIONS BUTTON */}
+          {/* ========================= */}
+
+          <button
+            className="notifications-button"
+            onClick={() =>
+              navigate("/notifications")
+            }
+          >
+
+            🔔 Notifications
+
+          </button>
+
+
+          {/* ========================= */}
+          {/* LOGOUT BUTTON */}
+          {/* ========================= */}
+
           <button
             className="logout-button"
             onClick={handleLogout}
@@ -262,14 +282,16 @@ function Decisions() {
       </header>
 
 
-      {/* ========================= */}
-      {/* MAIN CONTENT */}
-      {/* ========================= */}
+      {/* ========================= */
+      /* MAIN CONTENT */
+      /* ========================= */}
 
       <main className="decisions-main">
 
 
+        {/* ========================= */}
         {/* PAGE HEADER */}
+        {/* ========================= */}
 
         <div className="dashboard-header">
 
@@ -315,6 +337,9 @@ function Decisions() {
 
         <div className="quick-actions">
 
+
+          {/* ALTERNATIVES */}
+
           <button
             onClick={() =>
               navigate("/alternatives")
@@ -342,6 +367,8 @@ function Decisions() {
           </button>
 
 
+          {/* DOCUMENTS */}
+
           <button
             onClick={() =>
               navigate("/documents")
@@ -367,6 +394,65 @@ function Decisions() {
             </span>
 
           </button>
+
+
+          {/* PENDING APPROVALS */}
+
+          <button
+            onClick={() =>
+              navigate("/approvals")
+            }
+          >
+
+            <span className="quick-icon">
+              ⏳
+            </span>
+
+            <span>
+              <strong>
+                Pending Approvals
+              </strong>
+
+              <small>
+                Review decisions awaiting approval
+              </small>
+            </span>
+
+            <span className="quick-arrow">
+              →
+            </span>
+
+          </button>
+
+
+          {/* APPROVAL HISTORY */}
+
+          <button
+            onClick={() =>
+              navigate("/approval-history")
+            }
+          >
+
+            <span className="quick-icon">
+              ✓
+            </span>
+
+            <span>
+              <strong>
+                Approval History
+              </strong>
+
+              <small>
+                View completed approval records
+              </small>
+            </span>
+
+            <span className="quick-arrow">
+              →
+            </span>
+
+          </button>
+
 
         </div>
 
@@ -591,7 +677,6 @@ function Decisions() {
                     key={decision.id}
                   >
 
-
                     {/* CARD HEADER */}
 
                     <div className="decision-card-header">
@@ -622,6 +707,7 @@ function Decisions() {
                       <div className="decision-meta">
 
                         <div>
+
                           <span>
                             Category
                           </span>
@@ -629,9 +715,11 @@ function Decisions() {
                           <strong>
                             {decision.category_id}
                           </strong>
+
                         </div>
 
                         <div>
+
                           <span>
                             Created By
                           </span>
@@ -639,6 +727,7 @@ function Decisions() {
                           <strong>
                             {decision.created_by}
                           </strong>
+
                         </div>
 
                       </div>

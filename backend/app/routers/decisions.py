@@ -5,6 +5,7 @@ from app.database.connection import SessionLocal
 
 from app.models.decision import Decision
 from app.models.decision_version import DecisionVersion
+from app.models.approval import Approval
 from app.models.user import User
 
 from app.schemas.decision import (
@@ -15,6 +16,8 @@ from app.schemas.decision import (
 
 from app.core.security import get_current_user
 
+from app.utils.notification import create_notification
+
 
 router = APIRouter(
     prefix="/decisions",
@@ -22,19 +25,24 @@ router = APIRouter(
 )
 
 
-# Database dependency
+# ==========================================
+# DATABASE DEPENDENCY
+# ==========================================
+
 def get_db():
+
     db = SessionLocal()
+
     try:
         yield db
+
     finally:
         db.close()
 
 
-
-# ==========================
+# ==========================================
 # CREATE DECISION
-# ==========================
+# ==========================================
 
 @router.post("/", response_model=DecisionResponse)
 def create_decision(
@@ -43,44 +51,161 @@ def create_decision(
     current_user: User = Depends(get_current_user)
 ):
 
+    # ==========================================
+    # CREATE DECISION
+    # ==========================================
+
     new_decision = Decision(
+
         title=decision.title,
-        problem_statement=decision.problem_statement,
-        description=decision.description,
-        category_id=decision.category_id,
-        status=decision.status if decision.status else "Draft",
-        created_by=current_user.id
+
+        problem_statement=
+            decision.problem_statement,
+
+        description=
+            decision.description,
+
+        category_id=
+            decision.category_id,
+
+        # Employee-created decisions
+        # automatically go Under Review
+        status="Under Review",
+
+        created_by=
+            current_user.id
     )
 
+
     db.add(new_decision)
+
     db.commit()
+
     db.refresh(new_decision)
 
 
-    # Create Version 1
+    # ==========================================
+    # CREATE VERSION 1
+    # ==========================================
 
     first_version = DecisionVersion(
-        decision_id=new_decision.id,
+
+        decision_id=
+            new_decision.id,
+
         version_number=1,
-        title=new_decision.title,
-        description=new_decision.description,
-        status=new_decision.status,
-        modified_by=current_user.id,
-        change_summary="Initial version created"
+
+        title=
+            new_decision.title,
+
+        description=
+            new_decision.description,
+
+        status=
+            new_decision.status,
+
+        modified_by=
+            current_user.id,
+
+        change_summary=
+            "Initial version created"
     )
 
+
     db.add(first_version)
+
+
+    # ==========================================
+    # CREATE APPROVAL
+    # ==========================================
+
+    # Find a Reviewer or Manager
+    # who is NOT the decision creator
+
+    reviewer = (
+        db.query(User)
+        .filter(
+            User.role.in_(["Reviewer", "Manager"]),
+            User.id != current_user.id
+        )
+        .order_by(User.id.asc())
+        .first()
+    )
+
+
+    # ==========================================
+    # IF REVIEWER EXISTS
+    # ==========================================
+
+    if reviewer:
+
+        # ==========================================
+        # CREATE APPROVAL
+        # ==========================================
+
+        new_approval = Approval(
+
+            decision_id=
+                new_decision.id,
+
+            reviewer_id=
+                reviewer.id,
+
+            approval_level=
+                "Level 1",
+
+            status=
+                "Pending"
+        )
+
+
+        db.add(new_approval)
+
+
+        # ==========================================
+        # CREATE NOTIFICATION
+        # ==========================================
+
+        create_notification(
+
+            db=db,
+
+            user_id=
+                reviewer.id,
+
+            decision_id=
+                new_decision.id,
+
+            title=
+                "New Decision Submitted",
+
+            message=(
+                f'A new decision "{new_decision.title}" '
+                f'has been submitted for your review.'
+            )
+        )
+
+
+    # ==========================================
+    # SAVE VERSION + APPROVAL + NOTIFICATION
+    # ==========================================
+
     db.commit()
+
+
+    # ==========================================
+    # REFRESH DECISION
+    # ==========================================
+
+    db.refresh(new_decision)
 
 
     return new_decision
 
 
-
-
-# ==========================
+# ==========================================
 # GET ALL DECISIONS
-# ==========================
+# ==========================================
 
 @router.get("/", response_model=list[DecisionResponse])
 def get_decisions(
@@ -90,11 +215,9 @@ def get_decisions(
     return db.query(Decision).all()
 
 
-
-
-# ==========================
+# ==========================================
 # GET SINGLE DECISION
-# ==========================
+# ==========================================
 
 @router.get("/{id}", response_model=DecisionResponse)
 def get_decision(
@@ -104,12 +227,15 @@ def get_decision(
 
     decision = (
         db.query(Decision)
-        .filter(Decision.id == id)
+        .filter(
+            Decision.id == id
+        )
         .first()
     )
 
 
     if not decision:
+
         raise HTTPException(
             status_code=404,
             detail="Decision not found"
@@ -119,11 +245,9 @@ def get_decision(
     return decision
 
 
-
-
-# ==========================
+# ==========================================
 # UPDATE DECISION
-# ==========================
+# ==========================================
 
 @router.put("/{id}", response_model=DecisionResponse)
 def update_decision(
@@ -135,54 +259,74 @@ def update_decision(
 
     decision = (
         db.query(Decision)
-        .filter(Decision.id == id)
+        .filter(
+            Decision.id == id
+        )
         .first()
     )
 
 
     if not decision:
+
         raise HTTPException(
             status_code=404,
             detail="Decision not found"
         )
 
 
-    # Update fields
+    # ==========================================
+    # UPDATE FIELDS
+    # ==========================================
 
     if decision_data.title is not None:
-        decision.title = decision_data.title
+
+        decision.title = (
+            decision_data.title
+        )
 
 
     if decision_data.problem_statement is not None:
-        decision.problem_statement = decision_data.problem_statement
+
+        decision.problem_statement = (
+            decision_data.problem_statement
+        )
 
 
     if decision_data.description is not None:
-        decision.description = decision_data.description
+
+        decision.description = (
+            decision_data.description
+        )
 
 
     if decision_data.category_id is not None:
-        decision.category_id = decision_data.category_id
+
+        decision.category_id = (
+            decision_data.category_id
+        )
 
 
     if decision_data.status is not None:
-        decision.status = decision_data.status
 
+        decision.status = (
+            decision_data.status
+        )
 
 
     db.commit()
+
     db.refresh(decision)
 
 
-
-    # ==========================
+    # ==========================================
     # CREATE NEW VERSION
-    # ==========================
+    # ==========================================
 
     latest_version = (
         db.query(DecisionVersion)
         .filter(
-            DecisionVersion.decision_id == decision.id
+            DecisionVersion.decision_id ==
+            decision.id
         )
         .order_by(
             DecisionVersion.version_number.desc()
@@ -192,36 +336,52 @@ def update_decision(
 
 
     if latest_version:
-        new_version_number = latest_version.version_number + 1
+
+        new_version_number = (
+            latest_version.version_number + 1
+        )
+
     else:
+
         new_version_number = 1
 
 
-
     new_version = DecisionVersion(
-        decision_id=decision.id,
-        version_number=new_version_number,
-        title=decision.title,
-        description=decision.description,
-        status=decision.status,
-        modified_by=current_user.id,
-        change_summary="Decision updated"
+
+        decision_id=
+            decision.id,
+
+        version_number=
+            new_version_number,
+
+        title=
+            decision.title,
+
+        description=
+            decision.description,
+
+        status=
+            decision.status,
+
+        modified_by=
+            current_user.id,
+
+        change_summary=
+            "Decision updated"
     )
 
 
     db.add(new_version)
-    db.commit()
 
+    db.commit()
 
 
     return decision
 
 
-
-
-# ==========================
+# ==========================================
 # DELETE DECISION
-# ==========================
+# ==========================================
 
 @router.delete("/{id}")
 def delete_decision(
@@ -232,12 +392,15 @@ def delete_decision(
 
     decision = (
         db.query(Decision)
-        .filter(Decision.id == id)
+        .filter(
+            Decision.id == id
+        )
         .first()
     )
 
 
     if not decision:
+
         raise HTTPException(
             status_code=404,
             detail="Decision not found"
@@ -245,9 +408,13 @@ def delete_decision(
 
 
     db.delete(decision)
+
     db.commit()
 
 
     return {
-        "message": "Decision deleted successfully"
+
+        "message":
+            "Decision deleted successfully"
+
     }

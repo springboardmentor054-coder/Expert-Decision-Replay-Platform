@@ -1,0 +1,310 @@
+/* ==========================================
+   Notifications Page
+========================================== */
+
+.notifications-page {
+    min-height: 100vh;
+    padding: 40px;
+    background: #f5f7fb;
+}
+
+
+/* ==========================================
+   Main Container
+========================================== */
+
+.notifications-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+
+/* ==========================================
+   Header
+========================================== */
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+
+.notifications-header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #1f2937;
+}
+
+
+.notifications-header p {
+    margin-top: 8px;
+    color: #6b7280;
+    font-size: 16px;
+}
+
+
+/* ==========================================
+   Back Button
+========================================== */
+
+.back-button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #374151;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+.back-button:hover {
+    opacity: 0.9;
+}
+
+
+/* ==========================================
+   Notification List
+========================================== */
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+
+/* ==========================================
+   Notification Card
+========================================== */
+
+.notification-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 25px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+
+.notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ==========================================
+   Unread Notification
+========================================== */
+
+.notification-card.unread {
+    border-left: 5px solid #2563eb;
+    background: #f8fbff;
+}
+
+
+/* ==========================================
+   Content
+========================================== */
+
+.notification-content {
+    flex: 1;
+}
+
+
+.notification-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+
+.notification-title-row h2 {
+    margin: 0;
+    font-size: 19px;
+    color: #111827;
+}
+
+
+.notification-message {
+    margin: 0 0 12px;
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+
+.notification-date {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   Status Badge
+========================================== */
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+.unread-status {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+
+.read-status {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+
+/* ==========================================
+   Action Buttons
+========================================== */
+
+.notification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 140px;
+}
+
+
+.read-button,
+.delete-button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+
+.read-button {
+    background: #2563eb;
+    color: white;
+}
+
+
+.read-button:hover {
+    background: #1d4ed8;
+}
+
+
+.delete-button {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+.delete-button:hover {
+    background: #fecaca;
+}
+
+
+/* ==========================================
+   Loading
+========================================== */
+
+.loading-message {
+    text-align: center;
+    padding: 50px;
+    color: #6b7280;
+}
+
+
+/* ==========================================
+   Empty State
+========================================== */
+
+.empty-notifications {
+    background: white;
+    border-radius: 12px;
+    padding: 60px 30px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+
+.empty-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+}
+
+
+.empty-notifications h2 {
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+
+.empty-notifications p {
+    color: #6b7280;
+}
+
+
+/* ==========================================
+   Error
+========================================== */
+
+.error-message {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+
+/* ==========================================
+   Responsive Design
+========================================== */
+
+@media (max-width: 768px) {
+
+    .notifications-page {
+        padding: 20px;
+    }
+
+
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+
+    .notification-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+
+    .notification-actions {
+        flex-direction: row;
+    }
+
+
+    .read-button,
+    .delete-button {
+        flex: 1;
+    }
+
+}

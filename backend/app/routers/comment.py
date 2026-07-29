@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.connection import SessionLocal
+
 from app.models.comment import Comment
 from app.models.decision import Decision
 from app.models.user import User
+
 from app.core.security import get_current_user
 
 from app.schemas.comment import (
@@ -13,6 +15,8 @@ from app.schemas.comment import (
     CommentResponse
 )
 
+from app.utils.notification import create_notification
+
 
 router = APIRouter(
     prefix="/comments",
@@ -20,17 +24,29 @@ router = APIRouter(
 )
 
 
+# ==========================================
+# DATABASE DEPENDENCY
+# ==========================================
+
 def get_db():
+
     db = SessionLocal()
+
     try:
         yield db
+
     finally:
         db.close()
 
 
+# ==========================================
+# GET ALL COMMENTS
+# ==========================================
 
-# Get all comments
-@router.get("/", response_model=list[CommentResponse])
+@router.get(
+    "/",
+    response_model=list[CommentResponse]
+)
 def get_comments(
     db: Session = Depends(get_db)
 ):
@@ -40,14 +56,23 @@ def get_comments(
     return comments
 
 
+# ==========================================
+# CREATE COMMENT
+# ==========================================
 
-# Create comment
-@router.post("/", response_model=CommentResponse)
+@router.post(
+    "/",
+    response_model=CommentResponse
+)
 def create_comment(
     comment: CommentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+
+    # ==========================================
+    # CHECK DECISION EXISTS
+    # ==========================================
 
     decision = db.query(Decision).filter(
         Decision.id == comment.decision_id
@@ -55,30 +80,82 @@ def create_comment(
 
 
     if not decision:
+
         raise HTTPException(
             status_code=404,
             detail="Decision not found"
         )
 
 
+    # ==========================================
+    # CREATE COMMENT
+    # ==========================================
+
     new_comment = Comment(
-        decision_id=comment.decision_id,
-        user_id=current_user.id,
-        comment=comment.content
+
+        decision_id=
+            comment.decision_id,
+
+        user_id=
+            current_user.id,
+
+        comment=
+            comment.content
     )
 
 
     db.add(new_comment)
+
+
+    # ==========================================
+    # CREATE COMMENT NOTIFICATION
+    # ==========================================
+
+    # Notify the decision creator
+    # only if someone else adds the comment
+
+    if decision.created_by != current_user.id:
+
+        create_notification(
+
+            db=db,
+
+            user_id=
+                decision.created_by,
+
+            decision_id=
+                decision.id,
+
+            title=
+                "New Comment Added",
+
+            message=(
+                f'user{current_user.id} added a new comment '
+                f'on your decision "{decision.title}".'
+            )
+        )
+
+
+    # ==========================================
+    # SAVE COMMENT + NOTIFICATION
+    # ==========================================
+
     db.commit()
+
     db.refresh(new_comment)
 
 
     return new_comment
 
 
+# ==========================================
+# GET SINGLE COMMENT
+# ==========================================
 
-# Get single comment
-@router.get("/{comment_id}", response_model=CommentResponse)
+@router.get(
+    "/{comment_id}",
+    response_model=CommentResponse
+)
 def get_comment(
     comment_id: int,
     db: Session = Depends(get_db)
@@ -90,6 +167,7 @@ def get_comment(
 
 
     if not comment:
+
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
@@ -99,9 +177,14 @@ def get_comment(
     return comment
 
 
+# ==========================================
+# UPDATE OWN COMMENT
+# ==========================================
 
-# Update own comment
-@router.put("/{comment_id}", response_model=CommentResponse)
+@router.put(
+    "/{comment_id}",
+    response_model=CommentResponse
+)
 def update_comment(
     comment_id: int,
     updated_comment: CommentUpdate,
@@ -115,13 +198,19 @@ def update_comment(
 
 
     if not comment:
+
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
         )
 
 
+    # ==========================================
+    # CHECK COMMENT OWNER
+    # ==========================================
+
     if comment.user_id != current_user.id:
+
         raise HTTPException(
             status_code=403,
             detail="You can only edit your own comments"
@@ -132,15 +221,20 @@ def update_comment(
 
 
     db.commit()
+
     db.refresh(comment)
 
 
     return comment
 
 
+# ==========================================
+# DELETE OWN COMMENT
+# ==========================================
 
-# Delete own comment
-@router.delete("/{comment_id}")
+@router.delete(
+    "/{comment_id}"
+)
 def delete_comment(
     comment_id: int,
     db: Session = Depends(get_db),
@@ -153,13 +247,19 @@ def delete_comment(
 
 
     if not comment:
+
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
         )
 
 
+    # ==========================================
+    # CHECK COMMENT OWNER
+    # ==========================================
+
     if comment.user_id != current_user.id:
+
         raise HTTPException(
             status_code=403,
             detail="You can only delete your own comments"
@@ -167,16 +267,22 @@ def delete_comment(
 
 
     db.delete(comment)
+
     db.commit()
 
 
     return {
-        "message": "Comment deleted successfully"
+
+        "message":
+            "Comment deleted successfully"
+
     }
 
 
+# ==========================================
+# GET COMMENTS BY DECISION
+# ==========================================
 
-# Get comments by decision
 @router.get(
     "/decision/{decision_id}",
     response_model=list[CommentResponse]
@@ -192,6 +298,7 @@ def get_comments_by_decision(
 
 
     if not decision:
+
         raise HTTPException(
             status_code=404,
             detail="Decision not found"

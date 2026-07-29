@@ -18,6 +18,12 @@ import UploadDocument from "./pages/UploadDocument";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+import PendingApprovals from "./pages/PendingApprovals";
+import ApprovalDetails from "./pages/ApprovalDetails";
+import ApprovalHistory from "./pages/ApprovalHistory";
+
+import Notifications from "./pages/Notifications";
+
 
 function App() {
 
@@ -160,6 +166,44 @@ function App() {
         <Route
           path="/upload-document/:id"
           element={<UploadDocument />}
+        />
+
+
+        {/* ========================= */}
+        {/* Approval Routes */}
+        {/* ========================= */}
+
+        {/* Pending Approvals */}
+
+        <Route
+          path="/approvals"
+          element={<PendingApprovals />}
+        />
+
+
+        {/* Approval Details */}
+
+        <Route
+          path="/approval/:id"
+          element={<ApprovalDetails />}
+        />
+
+
+        {/* Approval History */}
+
+        <Route
+          path="/approval-history"
+          element={<ApprovalHistory />}
+        />
+
+
+        {/* ========================= */}
+        {/* Notification Routes */}
+        {/* ========================= */}
+
+        <Route
+          path="/notifications"
+          element={<Notifications />}
         />
 
 

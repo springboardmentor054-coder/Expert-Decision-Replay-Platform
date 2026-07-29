@@ -13,6 +13,8 @@ from app.models.document import Document
 from app.models.comment import Comment
 from app.models.meeting_note import MeetingNote
 from app.models.decision_version import DecisionVersion
+from app.models.approval import Approval
+from app.models.notification import Notification
 
 # Routers
 from app.routers.comment import router as comment_router
@@ -23,6 +25,14 @@ from app.routers.decisions import router as decisions_router
 from app.routers.document import router as document_router
 from app.routers.meeting_note import router as meeting_note_router
 from app.routers.decision_version import router as decision_version_router
+from app.routers.approval import (
+    approval_router,
+    decision_approval_router
+)
+from app.routers.notifications import (
+    router as notification_router,
+    user_notification_router
+)
 
 
 app = FastAPI()
@@ -59,6 +69,11 @@ app.include_router(document_router)
 app.include_router(comment_router)
 app.include_router(meeting_note_router)
 app.include_router(decision_version_router)
+app.include_router(approval_router)
+app.include_router(decision_approval_router)
+app.include_router(notification_router)
+app.include_router(user_notification_router)
+
 
 
 @app.get("/")

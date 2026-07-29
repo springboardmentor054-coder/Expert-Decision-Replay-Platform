@@ -77,3 +77,17 @@ class Decision(Base):
         back_populates="decision",
         cascade="all, delete"
     )
+
+    # Relationship with Approvals
+    approvals = relationship(
+        "Approval",
+        back_populates="decision",
+        cascade="all, delete"
+    )
+
+        # Relationship with Notifications
+    notifications = relationship(
+        "Notification",
+        back_populates="decision",
+        cascade="all, delete"
+    )
