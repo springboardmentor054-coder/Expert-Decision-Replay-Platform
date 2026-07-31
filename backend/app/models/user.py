@@ -35,21 +35,33 @@ class User(Base):
         nullable=False
     )
 
+
+    # ==========================================
     # Relationship with Comments
+    # ==========================================
+
     comments = relationship(
         "Comment",
         back_populates="user",
         cascade="all, delete"
     )
 
+
+    # ==========================================
     # Relationship with Decision Versions
+    # ==========================================
+
     decision_versions = relationship(
         "DecisionVersion",
         back_populates="user",
         cascade="all, delete"
     )
 
+
+    # ==========================================
     # Relationship with Approvals
+    # ==========================================
+
     approvals = relationship(
         "Approval",
         back_populates="reviewer",
@@ -57,9 +69,23 @@ class User(Base):
         cascade="all, delete"
     )
 
-        # Relationship with Notifications
+
+    # ==========================================
+    # Relationship with Notifications
+    # ==========================================
+
     notifications = relationship(
         "Notification",
         back_populates="user",
         cascade="all, delete"
+    )
+
+
+    # ==========================================
+    # Relationship with Audit Logs
+    # ==========================================
+
+    audit_logs = relationship(
+        "AuditLog",
+        back_populates="user"
     )

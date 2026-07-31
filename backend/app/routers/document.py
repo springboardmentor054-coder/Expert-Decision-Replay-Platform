@@ -23,6 +23,7 @@ from app.schemas.document import DocumentResponse
 from app.core.security import get_current_user
 
 from app.utils.notification import create_notification
+from app.utils.audit import create_audit_log
 
 
 router = APIRouter(
@@ -328,6 +329,31 @@ def upload_document(
 
 
     # ==========================================
+    # CREATE DOCUMENT AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision.id,
+
+        action_type=
+            "DOCUMENT_UPLOADED",
+
+        description=(
+            f'Document "{file.filename}" '
+            f'was uploaded to decision '
+            f'"{decision.title}".'
+        )
+    )
+
+
+    # ==========================================
     # CREATE DOCUMENT NOTIFICATION
     # ==========================================
 
@@ -359,7 +385,7 @@ def upload_document(
 
 
     # ==========================================
-    # SAVE DOCUMENT + NOTIFICATION
+    # SAVE DOCUMENT + AUDIT LOG + NOTIFICATION
     # ==========================================
 
     db.commit()

@@ -17,6 +17,7 @@ from app.schemas.decision import (
 from app.core.security import get_current_user
 
 from app.utils.notification import create_notification
+from app.utils.audit import create_audit_log
 
 
 router = APIRouter(
@@ -187,7 +188,32 @@ def create_decision(
 
 
     # ==========================================
-    # SAVE VERSION + APPROVAL + NOTIFICATION
+    # CREATE AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            new_decision.id,
+
+        action_type=
+            "DECISION_CREATED",
+
+        description=(
+            f'Decision "{new_decision.title}" '
+            f'was created.'
+        )
+    )
+
+
+    # ==========================================
+    # SAVE VERSION + APPROVAL +
+    # NOTIFICATION + AUDIT LOG
     # ==========================================
 
     db.commit()
@@ -373,6 +399,35 @@ def update_decision(
 
     db.add(new_version)
 
+
+    # ==========================================
+    # CREATE AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision.id,
+
+        action_type=
+            "DECISION_UPDATED",
+
+        description=(
+            f'Decision "{decision.title}" '
+            f'was updated.'
+        )
+    )
+
+
+    # ==========================================
+    # SAVE VERSION + AUDIT LOG
+    # ==========================================
+
     db.commit()
 
 
@@ -406,6 +461,49 @@ def delete_decision(
             detail="Decision not found"
         )
 
+
+    # ==========================================
+    # SAVE INFORMATION FOR AUDIT LOG
+    # ==========================================
+
+    decision_title = decision.title
+    decision_id = decision.id
+
+
+    # ==========================================
+    # CREATE DELETE AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision_id,
+
+        action_type=
+            "DECISION_DELETED",
+
+        description=(
+            f'Decision "{decision_title}" '
+            f'was deleted.'
+        )
+    )
+
+
+    # ==========================================
+    # SAVE AUDIT LOG FIRST
+    # ==========================================
+
+    db.commit()
+
+
+    # ==========================================
+    # DELETE DECISION
+    # ==========================================
 
     db.delete(decision)
 

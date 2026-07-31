@@ -9,6 +9,10 @@ from app.database.connection import SessionLocal
 from app.models.user import User
 
 
+# ==========================================
+# JWT CONFIGURATION
+# ==========================================
+
 SECRET_KEY = "your-secret-key-change-this-later"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
@@ -17,14 +21,24 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 security = HTTPBearer()
 
 
+# ==========================================
+# DATABASE DEPENDENCY
+# ==========================================
+
 def get_db():
+
     db = SessionLocal()
+
     try:
         yield db
+
     finally:
         db.close()
 
 
+# ==========================================
+# CREATE ACCESS TOKEN
+# ==========================================
 
 def create_access_token(data: dict):
 
@@ -49,20 +63,21 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
+# ==========================================
+# GET CURRENT USER
+# ==========================================
 
 def get_current_user(
-    credentials = Depends(security),
+    credentials=Depends(security),
     db: Session = Depends(get_db)
 ):
 
     token = credentials.credentials
 
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials"
     )
-
 
     try:
 
@@ -72,27 +87,42 @@ def get_current_user(
             algorithms=[ALGORITHM]
         )
 
-
         email = payload.get("sub")
-
 
         if email is None:
             raise credentials_exception
-
 
     except JWTError:
 
         raise credentials_exception
 
-
-
     user = db.query(User).filter(
         User.email == email
     ).first()
 
-
     if user is None:
         raise credentials_exception
 
-
     return user
+
+
+# ==========================================
+# GET CURRENT ADMINISTRATOR
+# ==========================================
+
+def get_current_admin(
+    current_user: User = Depends(get_current_user)
+):
+
+    # ==========================================
+    # CHECK ADMINISTRATOR ROLE
+    # ==========================================
+
+    if current_user.role.lower() != "administrator":
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Administrators can access audit logs."
+        )
+
+    return current_user

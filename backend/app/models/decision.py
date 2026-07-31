@@ -91,3 +91,9 @@ class Decision(Base):
         back_populates="decision",
         cascade="all, delete"
     )
+
+        # Relationship with Audit Logs
+    audit_logs = relationship(
+        "AuditLog",
+        back_populates="decision"
+    )

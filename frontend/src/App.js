@@ -24,6 +24,8 @@ import ApprovalHistory from "./pages/ApprovalHistory";
 
 import Notifications from "./pages/Notifications";
 
+import AuditLogs from "./pages/AuditLogs";
+
 
 function App() {
 
@@ -32,7 +34,6 @@ function App() {
     <BrowserRouter>
 
       <Routes>
-
 
         {/* ========================= */}
         {/* Authentication Routes */}
@@ -88,23 +89,15 @@ function App() {
         {/* Alternative Routes */}
         {/* ========================= */}
 
-        {/* All Alternatives */}
-
         <Route
           path="/alternatives"
           element={<Alternatives />}
         />
 
-
-        {/* Decision-Specific Alternatives */}
-
         <Route
           path="/alternatives/:id"
           element={<Alternatives />}
         />
-
-
-        {/* Add Alternative */}
 
         <Route
           path="/add-alternative"
@@ -116,24 +109,15 @@ function App() {
           element={<AddAlternative />}
         />
 
-
-        {/* Edit Alternative */}
-
         <Route
           path="/edit-alternative/:id"
           element={<EditAlternative />}
         />
 
-
-        {/* Compare All Alternatives */}
-
         <Route
           path="/alternative-comparison"
           element={<AlternativeComparison />}
         />
-
-
-        {/* Compare Alternatives for Specific Decision */}
 
         <Route
           path="/alternative-comparison/:id"
@@ -145,23 +129,15 @@ function App() {
         {/* Document Routes */}
         {/* ========================= */}
 
-        {/* All Documents */}
-
         <Route
           path="/documents"
           element={<Documents />}
         />
 
-
-        {/* Decision-Specific Documents */}
-
         <Route
           path="/documents/:id"
           element={<Documents />}
         />
-
-
-        {/* Upload Document for Specific Decision */}
 
         <Route
           path="/upload-document/:id"
@@ -173,23 +149,15 @@ function App() {
         {/* Approval Routes */}
         {/* ========================= */}
 
-        {/* Pending Approvals */}
-
         <Route
           path="/approvals"
           element={<PendingApprovals />}
         />
 
-
-        {/* Approval Details */}
-
         <Route
           path="/approval/:id"
           element={<ApprovalDetails />}
         />
-
-
-        {/* Approval History */}
 
         <Route
           path="/approval-history"
@@ -206,6 +174,15 @@ function App() {
           element={<Notifications />}
         />
 
+
+        {/* ========================= */}
+        {/* Audit Log Routes */}
+        {/* ========================= */}
+
+        <Route
+          path="/audit-logs"
+          element={<AuditLogs />}
+        />
 
       </Routes>
 

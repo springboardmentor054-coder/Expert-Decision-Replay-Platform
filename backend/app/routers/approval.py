@@ -20,6 +20,7 @@ from app.schemas.approval import (
 from app.core.security import get_current_user
 
 from app.utils.notification import create_notification
+from app.utils.audit import create_audit_log
 
 
 # ==========================================
@@ -397,6 +398,31 @@ def approve_decision(
 
 
     # ==========================================
+    # CREATE APPROVAL AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision.id,
+
+        action_type=
+            "DECISION_APPROVED",
+
+        description=(
+            f'Decision "{decision.title}" '
+            f'was approved by User '
+            f'{current_user.id}.'
+        )
+    )
+
+
+    # ==========================================
     # CREATE APPROVAL NOTIFICATION
     # ==========================================
 
@@ -421,7 +447,8 @@ def approve_decision(
 
 
     # ==========================================
-    # SAVE APPROVAL + DECISION + NOTIFICATION
+    # SAVE APPROVAL + DECISION +
+    # AUDIT LOG + NOTIFICATION
     # ==========================================
 
     db.commit()
@@ -519,6 +546,32 @@ def reject_decision(
 
 
     # ==========================================
+    # CREATE REJECTION AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision.id,
+
+        action_type=
+            "DECISION_REJECTED",
+
+        description=(
+            f'Decision "{decision.title}" '
+            f'was rejected by User '
+            f'{current_user.id}. '
+            f'Remarks: {approval_data.remarks}'
+        )
+    )
+
+
+    # ==========================================
     # CREATE REJECTION NOTIFICATION
     # ==========================================
 
@@ -544,7 +597,8 @@ def reject_decision(
 
 
     # ==========================================
-    # SAVE APPROVAL + DECISION + NOTIFICATION
+    # SAVE APPROVAL + DECISION +
+    # AUDIT LOG + NOTIFICATION
     # ==========================================
 
     db.commit()

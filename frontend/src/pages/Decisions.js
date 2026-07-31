@@ -282,9 +282,9 @@ function Decisions() {
       </header>
 
 
-      {/* ========================= */
-      /* MAIN CONTENT */
-      /* ========================= */}
+      {/* ========================= */}
+      {/* MAIN CONTENT */}
+      {/* ========================= */}
 
       <main className="decisions-main">
 
@@ -444,6 +444,37 @@ function Decisions() {
 
               <small>
                 View completed approval records
+              </small>
+            </span>
+
+            <span className="quick-arrow">
+              →
+            </span>
+
+          </button>
+
+
+          {/* ========================= */}
+          {/* AUDIT LOGS */}
+          {/* ========================= */}
+
+          <button
+            onClick={() =>
+              navigate("/audit-logs")
+            }
+          >
+
+            <span className="quick-icon">
+              📝
+            </span>
+
+            <span>
+              <strong>
+                Audit Logs
+              </strong>
+
+              <small>
+                Track user activities and actions
               </small>
             </span>
 

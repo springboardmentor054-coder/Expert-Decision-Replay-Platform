@@ -16,6 +16,7 @@ from app.schemas.comment import (
 )
 
 from app.utils.notification import create_notification
+from app.utils.audit import create_audit_log
 
 
 router = APIRouter(
@@ -108,6 +109,30 @@ def create_comment(
 
 
     # ==========================================
+    # CREATE COMMENT AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+
+        db=db,
+
+        user_id=
+            current_user.id,
+
+        decision_id=
+            decision.id,
+
+        action_type=
+            "COMMENT_ADDED",
+
+        description=(
+            f'User {current_user.id} added a comment '
+            f'on decision "{decision.title}".'
+        )
+    )
+
+
+    # ==========================================
     # CREATE COMMENT NOTIFICATION
     # ==========================================
 
@@ -137,7 +162,7 @@ def create_comment(
 
 
     # ==========================================
-    # SAVE COMMENT + NOTIFICATION
+    # SAVE COMMENT + AUDIT LOG + NOTIFICATION
     # ==========================================
 
     db.commit()
@@ -262,7 +287,9 @@ def delete_comment(
 
         raise HTTPException(
             status_code=403,
-            detail="You can only delete your own comments"
+
+            detail=
+                "You can only delete your own comments"
         )
 
 
