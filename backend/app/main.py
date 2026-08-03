@@ -16,6 +16,7 @@ from app.models.decision_version import DecisionVersion
 from app.models.approval import Approval
 from app.models.notification import Notification
 from app.models.audit_log import AuditLog
+from app.models.team import Team
 
 # Routers
 from app.routers.comment import router as comment_router
@@ -26,6 +27,7 @@ from app.routers.decisions import router as decisions_router
 from app.routers.document import router as document_router
 from app.routers.meeting_note import router as meeting_note_router
 from app.routers.decision_version import router as decision_version_router
+from app.routers.reports import router as reports_router
 
 from app.routers.approval import (
     approval_router,
@@ -82,6 +84,7 @@ app.include_router(approval_router)
 app.include_router(decision_approval_router)
 app.include_router(notification_router)
 app.include_router(user_notification_router)
+app.include_router(reports_router)
 
 # Audit Log Routers
 app.include_router(audit_log_router)

@@ -26,6 +26,8 @@ import Notifications from "./pages/Notifications";
 
 import AuditLogs from "./pages/AuditLogs";
 
+import Reports from "./pages/Reports";
+
 
 function App() {
 
@@ -182,6 +184,16 @@ function App() {
         <Route
           path="/audit-logs"
           element={<AuditLogs />}
+        />
+
+
+        {/* ========================= */}
+        {/* Reports Routes */}
+        {/* ========================= */}
+
+        <Route
+          path="/reports"
+          element={<Reports />}
         />
 
       </Routes>

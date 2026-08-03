@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database.connection import Base
@@ -33,6 +33,21 @@ class User(Base):
     role = Column(
         String,
         nullable=False
+    )
+
+    # ==========================================
+    # Team
+    # ==========================================
+
+    team_id = Column(
+        Integer,
+        ForeignKey("teams.id"),
+        nullable=True
+    )
+
+    team = relationship(
+        "Team",
+        back_populates="users"
     )
 
 

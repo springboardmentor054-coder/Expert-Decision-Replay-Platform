@@ -249,6 +249,22 @@ function Decisions() {
 
 
           {/* ========================= */}
+          {/* REPORTS BUTTON */}
+          {/* ========================= */}
+
+          <button
+            className="reports-nav-button"
+            onClick={() =>
+              navigate("/reports")
+            }
+          >
+
+            📊 Reports
+
+          </button>
+
+
+          {/* ========================= */}
           {/* NOTIFICATIONS BUTTON */}
           {/* ========================= */}
 
