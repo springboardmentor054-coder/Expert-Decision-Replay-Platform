@@ -1,0 +1,32 @@
+:root{
+
+    --primary:#2563eb;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --warning:#f59e0b;
+
+    --background:#f4f6f9;
+
+    --card:#ffffff;
+
+    --text:#1f2937;
+
+    --radius:14px;
+
+}
+
+body{
+
+    background:var(--background);
+
+}
+
+.card{
+
+    border:none;
+
+    border-radius:14px;
+
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+
+}

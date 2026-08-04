@@ -1,25 +1,264 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import Layout from "./components/layout/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// ==========================
+// Public Pages
+// ==========================
+
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+
+// ==========================
+// Dashboard
+// ==========================
+
+import Dashboard from "./pages/dashboard/Dashboard";
+
+// ==========================
+// Decision Module
+// ==========================
+
+import Decisions from "./pages/decision/Decisions";
+import DecisionDetails from "./pages/decision/DecisionDetails";
+import SelectDecision from "./pages/decision/SelectDecision";
+import EditDecision from "./pages/decision/EditDecision";
+import DecisionHistory from "./pages/decision/DecisionHistory";
+
+// ==========================
+// Alternative Module
+// ==========================
+
+import Alternatives from "./pages/alternative/Alternatives";
+
+// ==========================
+// Criteria Module
+// ==========================
+
+import Criteria from "./pages/criteria/Criteria";
+
+// ==========================
+// Score Module
+// ==========================
+
+import Scores from "./pages/score/Scores";
+
+// ==========================
+// Recommendation Module
+// ==========================
+
+import Recommendation from "./pages/recommendation/Recommendation";
+
+// ==========================
+// Collaboration Module
+// ==========================
+
+import Documents from "./pages/document/Documents";
+import Discussions from "./pages/discussion/Discussions";
+
+// ==========================
+// Version History
+// ==========================
+
+import History from "./pages/history/History";
+
+// ==========================
+// Approval Module
+// ==========================
+
+import PendingApprovals from "./pages/approval/PendingApprovals";
+
+// ==========================
+// User Module
+// ==========================
+
+import Users from "./pages/user/Users";
+import Profile from "./pages/profile/Profile";
+
+import ApprovalWorkflow from "./pages/approval/ApprovalWorkflow";
+
+import ApprovalHistory from "./pages/approval/ApprovalHistory";
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+
+    <BrowserRouter>
+
+      <Routes>
+
+        {/* ==========================
+            Public Routes
+        ========================== */}
+
+        <Route
+          path="/"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        {/* ==========================
+            Protected Layout
+        ========================== */}
+
+        <Route element={<Layout />}>
+
+          {/* Dashboard */}
+
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
+
+          {/* Decision */}
+
+          <Route
+            path="/decisions"
+            element={<Decisions />}
+          />
+
+          <Route
+            path="/decisions/:decisionId"
+            element={<DecisionDetails />}
+          />
+
+          <Route
+            path="/select-decision"
+            element={<SelectDecision />}
+          />
+
+          <Route
+            path="/decisions/:decisionId/edit"
+            element={<EditDecision />}
+          />
+
+          <Route
+            path="/decisions/:decisionId/history"
+            element={<DecisionHistory />}
+          />
+
+          {/* Alternatives */}
+
+          <Route
+            path="/alternatives"
+            element={<Alternatives />}
+          />
+
+          {/* Criteria */}
+
+          <Route
+            path="/criteria"
+            element={<Criteria />}
+          />
+
+          {/* Scores */}
+
+          <Route
+            path="/scores"
+            element={<Scores />}
+          />
+
+          {/* Recommendation */}
+
+          <Route
+            path="/recommendation"
+            element={<Recommendation />}
+          />
+
+          {/* Documents */}
+
+          <Route
+            path="/documents"
+            element={<Documents />}
+          />
+
+          {/* Discussion */}
+
+          <Route
+            path="/discussion"
+            element={<Discussions />}
+          />
+
+          {/* Version History */}
+
+          <Route
+            path="/history"
+            element={<History />}
+          />
+
+          {/* Pending Approvals */}
+
+          <Route
+            path="/pending-approvals"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "Reviewer",
+                  "Manager",
+                  "Admin"
+                ]}
+              >
+                <PendingApprovals />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Users */}
+
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute
+                allowedRoles={[
+                  "Admin"
+                ]}
+              >
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Profile */}
+
+          <Route
+            path="/profile"
+            element={<Profile />}
+          />
+         <Route
+    path="/approval-workflow/:approvalId"
+    element={<ApprovalWorkflow />}
+/>
+        </Route>
+
+        <Route
+    path="/approval-history"
+    element={
+        <ProtectedRoute
+            allowedRoles={[
+                "Reviewer",
+                "Manager",
+                "Admin"
+            ]}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+            <ApprovalHistory />
+        </ProtectedRoute>
+    }
+/>
+
+      </Routes>
+
+    </BrowserRouter>
+
   );
+
 }
 
 export default App;

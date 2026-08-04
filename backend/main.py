@@ -1,37 +1,123 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+import os
+import shutil
+from fastapi import UploadFile, File, Form
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi import Depends, HTTPException
+from sqlalchemy import func
+from database import get_db
+from models import Decision, Approval, User
+
+from datetime import datetime
 
 from database import Base, engine, get_db
-from models import User
+from models import (
+    User,
+    Decision,
+    Alternative,
+    Criteria,
+    AlternativeScore,
+    Document,
+    Discussion,
+    DecisionVersion,
+    Approval,
+    Notification
+)
+
 from schemas import (
     UserRegister,
     UserLogin,
     UserUpdate,
-    RoleUpdate
+    RoleUpdate,
+    DecisionCreate,
+    DecisionUpdate,
+    AlternativeCreate,
+    AlternativeUpdate,
+    CriteriaCreate,
+    CriteriaUpdate,
+    AlternativeScoreCreate,
+    AlternativeScoreUpdate,
+    DiscussionCreate,
+    DiscussionUpdate,
+    DecisionVersionCreate,
+    DecisionVersionUpdate,
+    ApprovalCreate,
+    ApprovalUpdate,
+    ApprovalResponse
 )
-from security import hash_password, verify_password
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+from security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    require_role,
+    validate_role
+)
+
+
+# =====================================
+# FastAPI App
+# =====================================
 
 app = FastAPI(
     title="Expert Decision Replay Platform"
 )
+UPLOAD_FOLDER = "uploads"
 
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-# ==========================
+app.mount(
+    "/uploads",
+    StaticFiles(directory=UPLOAD_FOLDER),
+    name="uploads"
+)
+# =====================================
+# CORS
+# =====================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# =====================================
+# Create Tables
+# =====================================
+
+Base.metadata.create_all(bind=engine)
+# =====================================
+# Upload Directory
+# =====================================
+
+UPLOAD_DIR = "uploads"
+
+os.makedirs(
+    UPLOAD_DIR,
+    exist_ok=True
+)
+
+# =====================================
 # Home API
-# ==========================
+# =====================================
+
 @app.get("/")
 def home():
     return {
         "message": "Database Connected Successfully"
     }
 
-
-# ==========================
+# =====================================
 # Register User
-# ==========================
+# =====================================
+
 @app.post("/register")
 def register(
     user: UserRegister,
@@ -64,85 +150,83 @@ def register(
         "user_id": new_user.user_id
     }
 
-
-# ==========================
+# =====================================
 # Login User
-# ==========================
+# =====================================
+
 @app.post("/login")
 def login(
     user: UserLogin,
     db: Session = Depends(get_db)
 ):
+
     db_user = (
         db.query(User)
-        .filter(User.email == user.email)
+        .filter(
+            User.email == user.email
+        )
         .first()
     )
 
+
     if not db_user:
+
         raise HTTPException(
             status_code=401,
             detail="Invalid Email"
         )
 
+
     if not verify_password(
         user.password,
         db_user.password_hash
     ):
+
         raise HTTPException(
             status_code=401,
             detail="Invalid Password"
         )
 
-    return {
-        "message": "Login Successful",
-        "username": db_user.username,
-        "role": db_user.role
-    }
 
-
-# ==========================
-# Get All Users
-# ==========================
-@app.get("/users")
-def get_users(
-    db: Session = Depends(get_db)
-):
-    return db.query(User).all()
-
-
-# ==========================
-# Get User By ID
-# ==========================
-@app.get("/users/{user_id}")
-def get_user(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    user = (
-        db.query(User)
-        .filter(User.user_id == user_id)
-        .first()
+    # Create secure JWT token
+    access_token = create_access_token(
+        db_user.user_id
     )
 
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
 
-    return user
+    return {
 
+        "message":
+            "Login Successful",
 
-# ==========================
+        "access_token":
+            access_token,
+
+        "token_type":
+            "bearer",
+
+        "user_id":
+            db_user.user_id,
+
+        "username":
+            db_user.username,
+
+        "role":
+            db_user.role
+
+    }
+
+# =====================================
 # Update User
-# ==========================
+# =====================================
+
 @app.put("/users/{user_id}")
 def update_user(
     user_id: int,
     user_data: UserUpdate,
     db: Session = Depends(get_db)
 ):
+
     user = (
         db.query(User)
         .filter(User.user_id == user_id)
@@ -164,16 +248,35 @@ def update_user(
     return {
         "message": "User updated successfully"
     }
+# =====================================
+# Get Current Logged-In User
+# =====================================
+
+@app.get("/me")
+def get_me(
+    current_user: User = Depends(
+        get_current_user
+    )
+):
+
+    return {
+        "user_id": current_user.user_id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "role": current_user.role
+    }
 
 
-# ==========================
+# =====================================
 # Delete User
-# ==========================
+# =====================================
+
 @app.delete("/users/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db)
 ):
+
     user = (
         db.query(User)
         .filter(User.user_id == user_id)
@@ -194,15 +297,17 @@ def delete_user(
     }
 
 
-# ==========================
+# =====================================
 # Update User Role
-# ==========================
+# =====================================
+
 @app.put("/users/{user_id}/role")
 def update_role(
     user_id: int,
     role_data: RoleUpdate,
     db: Session = Depends(get_db)
 ):
+
     user = (
         db.query(User)
         .filter(User.user_id == user_id)
@@ -237,3 +342,3163 @@ def update_role(
         "message": "Role updated successfully",
         "role": user.role
     }
+
+# =====================================
+# Create Decision + Initial Version
+# =====================================
+
+@app.post("/decisions")
+def create_decision(
+    decision: DecisionCreate,
+    db: Session = Depends(get_db)
+):
+
+    # Check user exists
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == decision.user_id
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Create decision
+    new_decision = Decision(
+        user_id=decision.user_id,
+        decision_title=decision.decision_title,
+        decision_description=decision.decision_description
+    )
+
+    try:
+
+        db.add(new_decision)
+
+        # Flush so decision_id is generated
+        # before creating Version 1
+        db.flush()
+
+        # Automatically create Version 1
+        initial_version = DecisionVersion(
+            decision_id=new_decision.decision_id,
+            version_number=1,
+            title=new_decision.decision_title,
+            description=new_decision.decision_description,
+            status="Draft",
+            modified_by=decision.user_id,
+            change_summary="Initial decision created"
+        )
+
+        db.add(initial_version)
+
+        # Save decision + Version 1 together
+        db.commit()
+
+        db.refresh(new_decision)
+        db.refresh(initial_version)
+
+    except Exception:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create decision"
+        )
+
+    return {
+        "message":
+            "Decision created successfully",
+
+        "decision_id":
+            new_decision.decision_id,
+
+        "version_number":
+            initial_version.version_number,
+
+        "status":
+            initial_version.status,
+
+        "change_summary":
+            initial_version.change_summary
+    }
+# =====================================
+# Get All Decisions
+# =====================================
+
+@app.get("/decisions")
+def get_decisions(
+    db: Session = Depends(get_db)
+):
+    decisions = (
+        db.query(Decision)
+        .order_by(Decision.decision_id.desc())
+        .all()
+    )
+
+    return decisions
+# =====================================
+# Get Single Decision
+# =====================================
+
+@app.get("/decisions/{decision_id}")
+def get_single_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Get the user who created the decision
+    creator = (
+        db.query(User)
+        .filter(
+            User.user_id == decision.user_id
+        )
+        .first()
+    )
+
+    return {
+        "decision_id": decision.decision_id,
+        "decision_title": decision.decision_title,
+        "decision_description": decision.decision_description,
+        "user_id": decision.user_id,
+        "created_by": (
+            creator.username
+            if creator
+            else f"User ID: {decision.user_id}"
+        )
+    }
+# =====================================
+# Update Decision + Automatic Version
+# =====================================
+
+@app.put("/decisions/{decision_id}")
+def update_decision(
+    decision_id: int,
+    decision_data: DecisionVersionUpdate,
+    db: Session = Depends(get_db)
+):
+
+    # Find decision
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Check modifying user exists
+    user = (
+        db.query(User)
+        .filter(User.user_id == decision_data.modified_by)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Check whether title or description changed
+    if (
+        decision.decision_title == decision_data.decision_title
+        and
+        decision.decision_description == decision_data.decision_description
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="No changes detected in decision"
+        )
+
+    # Find latest version
+    latest_version = (
+        db.query(DecisionVersion)
+        .filter(DecisionVersion.decision_id == decision_id)
+        .order_by(DecisionVersion.version_number.desc())
+        .first()
+    )
+
+    # Automatically calculate next version number
+    next_version = (
+        latest_version.version_number + 1
+        if latest_version
+        else 1
+    )
+
+    # Update current decision
+    decision.decision_title = decision_data.decision_title
+    decision.decision_description = decision_data.decision_description
+
+    # Create version history record
+    new_version = DecisionVersion(
+        decision_id=decision_id,
+        version_number=next_version,
+        title=decision_data.decision_title,
+        description=decision_data.decision_description,
+        status=decision_data.status,
+        modified_by=decision_data.modified_by,
+        change_summary=decision_data.change_summary
+    )
+
+    try:
+        db.add(new_version)
+
+        # One commit updates decision AND creates version
+        db.commit()
+
+        db.refresh(decision)
+        db.refresh(new_version)
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not update decision and create version: {str(e)}"
+        )
+
+    return {
+        "message": "Decision updated and version created successfully",
+        "decision_id": decision.decision_id,
+        "decision_title": decision.decision_title,
+        "decision_description": decision.decision_description,
+        "version_number": new_version.version_number,
+        "status": new_version.status,
+        "modified_by": new_version.modified_by,
+        "modified_at": new_version.modified_at,
+        "change_summary": new_version.change_summary
+    }
+# =====================================
+# Delete Decision
+# =====================================
+
+@app.delete("/decisions/{decision_id}")
+def delete_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    db.delete(decision)
+    db.commit()
+
+    return {
+        "message": "Decision deleted successfully"
+    }
+# =====================================
+# Create Alternative
+# =====================================
+
+@app.post("/alternatives")
+def create_alternative(
+    alternative: AlternativeCreate,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == alternative.decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    new_alternative = Alternative(
+        decision_id=alternative.decision_id,
+        alternative_name=alternative.alternative_name,
+        description=alternative.description,
+        pros=alternative.pros,
+        cons=alternative.cons,
+        estimated_cost=alternative.estimated_cost,
+        feasibility=alternative.feasibility,
+        risk_level=alternative.risk_level
+    )
+
+    db.add(new_alternative)
+    db.commit()
+    db.refresh(new_alternative)
+
+    return {
+        "message": "Alternative created successfully",
+        "alternative_id": new_alternative.alternative_id
+    }
+
+
+@app.get("/alternatives")
+def get_alternatives(
+    db: Session = Depends(get_db)
+):
+    return db.query(Alternative).all()
+
+
+@app.get("/alternatives/{alternative_id}")
+def get_alternative(
+    alternative_id: int,
+    db: Session = Depends(get_db)
+):
+
+    alternative = (
+        db.query(Alternative)
+        .filter(
+            Alternative.alternative_id == alternative_id
+        )
+        .first()
+    )
+
+    if not alternative:
+        raise HTTPException(
+            status_code=404,
+            detail="Alternative not found"
+        )
+
+    return alternative
+# =====================================
+# Update Alternative
+# =====================================
+
+@app.put("/alternatives/{alternative_id}")
+def update_alternative(
+    alternative_id: int,
+    alternative_data: AlternativeUpdate,
+    db: Session = Depends(get_db)
+):
+
+    alternative = (
+        db.query(Alternative)
+        .filter(
+            Alternative.alternative_id == alternative_id
+        )
+        .first()
+    )
+
+    if not alternative:
+        raise HTTPException(
+            status_code=404,
+            detail="Alternative not found"
+        )
+
+    alternative.alternative_name = alternative_data.alternative_name
+    alternative.description = alternative_data.description
+    alternative.pros = alternative_data.pros
+    alternative.cons = alternative_data.cons
+    alternative.estimated_cost = alternative_data.estimated_cost
+    alternative.feasibility = alternative_data.feasibility
+    alternative.risk_level = alternative_data.risk_level
+
+    db.commit()
+    db.refresh(alternative)
+
+    return {
+        "message": "Alternative updated successfully"
+    }
+
+
+# =====================================
+# Delete Alternative
+# =====================================
+
+@app.delete("/alternatives/{alternative_id}")
+def delete_alternative(
+    alternative_id: int,
+    db: Session = Depends(get_db)
+):
+
+    alternative = (
+        db.query(Alternative)
+        .filter(
+            Alternative.alternative_id == alternative_id
+        )
+        .first()
+    )
+
+    if not alternative:
+        raise HTTPException(
+            status_code=404,
+            detail="Alternative not found"
+        )
+
+    db.delete(alternative)
+    db.commit()
+
+    return {
+        "message": "Alternative deleted successfully"
+    }
+
+
+# =====================================
+# Get Alternatives By Decision
+# =====================================
+
+@app.get("/decisions/{decision_id}/alternatives")
+def get_decision_alternatives(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    return (
+        db.query(Alternative)
+        .filter(
+            Alternative.decision_id == decision_id
+        )
+        .all()
+    )
+
+# =====================================
+# Create Criteria
+# =====================================
+
+@app.post("/criteria")
+def create_criteria(
+    criteria: CriteriaCreate,
+    db: Session = Depends(get_db)
+):
+
+    # Check decision exists
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == criteria.decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    new_criteria = Criteria(
+        decision_id=criteria.decision_id,
+        criteria_name=criteria.criteria_name,
+        weight=criteria.weight
+    )
+
+    db.add(new_criteria)
+    db.commit()
+    db.refresh(new_criteria)
+
+    return {
+        "message": "Criteria created successfully",
+        "criteria_id": new_criteria.criteria_id
+    }
+
+# =====================================
+# Get All Criteria
+# =====================================
+
+@app.get("/criteria")
+def get_criteria(
+    db: Session = Depends(get_db)
+):
+    return db.query(Criteria).all()
+
+# =====================================
+# Create Alternative Score
+# =====================================
+
+@app.post("/alternative-scores")
+def create_alternative_score(
+    score: AlternativeScoreCreate,
+    db: Session = Depends(get_db)
+):
+
+    alternative = (
+        db.query(Alternative)
+        .filter(
+            Alternative.alternative_id == score.alternative_id
+        )
+        .first()
+    )
+
+    if not alternative:
+        raise HTTPException(
+            status_code=404,
+            detail="Alternative not found"
+        )
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.criteria_id == score.criteria_id
+        )
+        .first()
+    )
+
+    if not criteria:
+        raise HTTPException(
+            status_code=404,
+            detail="Criteria not found"
+        )
+
+    new_score = AlternativeScore(
+        alternative_id=score.alternative_id,
+        criteria_id=score.criteria_id,
+        score=score.score
+    )
+
+    db.add(new_score)
+    db.commit()
+    db.refresh(new_score)
+
+    return {
+        "message": "Score created successfully",
+        "score_id": new_score.score_id
+    }
+
+
+@app.get("/alternative-scores")
+def get_alternative_scores(
+    db: Session = Depends(get_db)
+):
+    return db.query(AlternativeScore).all()
+
+
+@app.put("/alternative-scores/{score_id}")
+def update_alternative_score(
+    score_id: int,
+    score_data: AlternativeScoreUpdate,
+    db: Session = Depends(get_db)
+):
+
+    score = (
+        db.query(AlternativeScore)
+        .filter(
+            AlternativeScore.score_id == score_id
+        )
+        .first()
+    )
+
+    if not score:
+        raise HTTPException(
+            status_code=404,
+            detail="Score not found"
+        )
+
+    score.score = score_data.score
+
+    db.commit()
+    db.refresh(score)
+
+    return {
+        "message": "Score updated successfully"
+    }
+
+
+@app.delete("/alternative-scores/{score_id}")
+def delete_alternative_score(
+    score_id: int,
+    db: Session = Depends(get_db)
+):
+
+    score = (
+        db.query(AlternativeScore)
+        .filter(
+            AlternativeScore.score_id == score_id
+        )
+        .first()
+    )
+
+    if not score:
+        raise HTTPException(
+            status_code=404,
+            detail="Score not found"
+        )
+
+    db.delete(score)
+    db.commit()
+
+    return {
+        "message": "Score deleted successfully"
+    }
+# ============================================================
+# GET SCORES BY DECISION
+# ============================================================
+
+@app.get("/decisions/{decision_id}/scores")
+def get_decision_scores(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # Check decision exists
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    scores = (
+
+        db.query(
+            AlternativeScore.score_id,
+            Alternative.alternative_name,
+            Criteria.criteria_name,
+            AlternativeScore.alternative_id,
+            AlternativeScore.criteria_id,
+            AlternativeScore.score
+        )
+
+        .join(
+            Alternative,
+            Alternative.alternative_id ==
+            AlternativeScore.alternative_id
+        )
+
+        .join(
+            Criteria,
+            Criteria.criteria_id ==
+            AlternativeScore.criteria_id
+        )
+
+        .filter(
+            Alternative.decision_id == decision_id
+        )
+
+        .order_by(
+            Alternative.alternative_name,
+            Criteria.criteria_name
+        )
+
+        .all()
+
+    )
+
+    return [
+    {
+        "score_id": row.score_id,
+        "alternative_id": row.alternative_id,
+        "criteria_id": row.criteria_id,
+        "alternative_name": row.alternative_name,
+        "criteria_name": row.criteria_name,
+        "score": float(row.score)
+    }
+    for row in scores
+]
+# =====================================
+# Get Single Criteria
+# =====================================
+
+@app.get("/criteria/{criteria_id}")
+def get_criteria_by_id(
+    criteria_id: int,
+    db: Session = Depends(get_db)
+):
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.criteria_id == criteria_id
+        )
+        .first()
+    )
+
+    if not criteria:
+        raise HTTPException(
+            status_code=404,
+            detail="Criteria not found"
+        )
+
+    return criteria
+
+# =====================================
+# Update Criteria
+# =====================================
+
+@app.put("/criteria/{criteria_id}")
+def update_criteria(
+    criteria_id: int,
+    criteria_data: CriteriaUpdate,
+    db: Session = Depends(get_db)
+):
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.criteria_id == criteria_id
+        )
+        .first()
+    )
+
+    if not criteria:
+        raise HTTPException(
+            status_code=404,
+            detail="Criteria not found"
+        )
+
+    criteria.criteria_name = criteria_data.criteria_name
+    criteria.weight = criteria_data.weight
+
+    db.commit()
+    db.refresh(criteria)
+
+    return {
+        "message": "Criteria updated successfully"
+    }
+
+# =====================================
+# Delete Criteria
+# =====================================
+
+@app.delete("/criteria/{criteria_id}")
+def delete_criteria(
+    criteria_id: int,
+    db: Session = Depends(get_db)
+):
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.criteria_id == criteria_id
+        )
+        .first()
+    )
+
+    if not criteria:
+        raise HTTPException(
+            status_code=404,
+            detail="Criteria not found"
+        )
+
+    db.delete(criteria)
+    db.commit()
+
+    return {
+        "message": "Criteria deleted successfully"
+    }
+# ============================================================
+# Recommendation Engine
+# ============================================================
+
+@app.get("/decisions/{decision_id}/recommendation")
+def get_recommendation(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # ----------------------------------------
+    # Check Decision Exists
+    # ----------------------------------------
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    # ----------------------------------------
+    # Get Alternatives
+    # ----------------------------------------
+
+    alternatives = (
+        db.query(Alternative)
+        .filter(
+            Alternative.decision_id == decision_id
+        )
+        .all()
+    )
+
+    if not alternatives:
+        raise HTTPException(
+            status_code=404,
+            detail="No alternatives found."
+        )
+
+    results = []
+
+    criteria_used = 0
+
+    # ----------------------------------------
+    # Calculate Score
+    # ----------------------------------------
+
+    for alt in alternatives:
+
+        scores = (
+
+            db.query(
+                AlternativeScore,
+                Criteria
+            )
+
+            .join(
+                Criteria,
+                AlternativeScore.criteria_id ==
+                Criteria.criteria_id
+            )
+
+            .filter(
+                AlternativeScore.alternative_id ==
+                alt.alternative_id
+            )
+
+            .all()
+
+        )
+
+        total_score = 0
+
+        criteria_used = len(scores)
+
+        for score, criteria in scores:
+
+            total_score += score.score
+                
+
+        results.append({
+
+            "alternative_id": alt.alternative_id,
+
+            "alternative_name": alt.alternative_name,
+
+            "total_score": total_score
+
+        })
+
+    # ----------------------------------------
+    # Sort Highest Score First
+    # ----------------------------------------
+
+    results.sort(
+        key=lambda x: x["total_score"],
+        reverse=True
+    )
+
+    # ----------------------------------------
+    # Ranking
+    # ----------------------------------------
+
+    for index, item in enumerate(results):
+
+        item["rank"] = index + 1
+
+    # ----------------------------------------
+    # Final Response
+    # ----------------------------------------
+
+    return {
+
+        "decision": decision.decision_title,
+
+        "recommended_alternative": results[0],
+
+        "reason":
+        "Highest weighted score based on selected criteria.",
+
+        "criteria_used": criteria_used,
+
+        "total_alternatives": len(alternatives),
+
+        "all_alternatives": results
+
+    }
+# =====================================
+# DOCUMENT MANAGEMENT
+# =====================================
+
+
+# =====================================
+# Upload Document
+# =====================================
+
+@app.post("/decisions/{decision_id}/documents")
+def upload_document(
+    decision_id: int,
+    uploaded_by: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+
+    # Check if decision exists
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Check if user exists
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == uploaded_by
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Get safe filename
+    original_file_name = os.path.basename(
+        file.filename
+    )
+
+    # Create filename for storage
+    stored_file_name = (
+        f"{decision_id}_{original_file_name}"
+    )
+
+    file_path = os.path.join(
+        UPLOAD_DIR,
+        stored_file_name
+    )
+
+    # Prevent overwriting existing files
+    counter = 1
+
+    while os.path.exists(file_path):
+
+        name, extension = os.path.splitext(
+            original_file_name
+        )
+
+        stored_file_name = (
+            f"{decision_id}_{name}_{counter}{extension}"
+        )
+
+        file_path = os.path.join(
+            UPLOAD_DIR,
+            stored_file_name
+        )
+
+        counter += 1
+
+    # Save physical file
+    try:
+
+        with open(file_path, "wb") as buffer:
+
+            shutil.copyfileobj(
+                file.file,
+                buffer
+            )
+
+    except Exception:
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not save file"
+        )
+
+    finally:
+
+        file.file.close()
+
+    # Save file information in database
+    new_document = Document(
+        decision_id=decision_id,
+        file_name=original_file_name,
+        file_path=file_path,
+        file_type=file.content_type,
+        uploaded_by=uploaded_by
+    )
+
+    try:
+
+        db.add(new_document)
+        db.commit()
+        db.refresh(new_document)
+
+    except Exception:
+
+        db.rollback()
+
+        # Remove physical file if DB save fails
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not save document information"
+        )
+
+    return {
+        "message": "File uploaded successfully",
+        "document_id": new_document.document_id,
+        "decision_id": new_document.decision_id,
+        "file_name": new_document.file_name,
+        "file_type": new_document.file_type,
+        "uploaded_by": new_document.uploaded_by,
+        "uploaded_at": new_document.uploaded_at
+    }
+
+
+# =====================================
+# View All Documents For Decision
+# =====================================
+
+@app.get("/decisions/{decision_id}/documents")
+def get_decision_documents(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # Check decision exists
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    documents = (
+        db.query(Document)
+        .filter(
+            Document.decision_id == decision_id
+        )
+        .all()
+    )
+
+    return documents
+
+
+# =====================================
+# View Single Document Information
+# =====================================
+
+@app.get("/documents/{document_id}")
+def get_document(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = (
+        db.query(Document)
+        .filter(
+            Document.document_id == document_id
+        )
+        .first()
+    )
+
+    if not document:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    return document
+
+
+# =====================================
+# Download Document
+# =====================================
+
+@app.get("/documents/{document_id}/download")
+def download_document(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = (
+        db.query(Document)
+        .filter(
+            Document.document_id == document_id
+        )
+        .first()
+    )
+
+    if not document:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    # Check physical file exists
+    if not os.path.exists(
+        document.file_path
+    ):
+
+        raise HTTPException(
+            status_code=404,
+            detail="File not found on server"
+        )
+
+    return FileResponse(
+        path=document.file_path,
+        filename=document.file_name,
+        media_type=(
+            document.file_type
+            or "application/octet-stream"
+        )
+    )
+
+
+# =====================================
+# Delete Document
+# =====================================
+
+@app.delete("/documents/{document_id}")
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = (
+        db.query(Document)
+        .filter(
+            Document.document_id == document_id
+        )
+        .first()
+    )
+
+    if not document:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    file_path = document.file_path
+    file_name = document.file_name
+
+    # Delete database record
+    try:
+
+        db.delete(document)
+        db.commit()
+
+    except Exception:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not delete document"
+        )
+
+    # Delete physical file
+    if os.path.exists(file_path):
+
+        try:
+            os.remove(file_path)
+
+        except OSError:
+
+            return {
+                "message":
+                    "Document record deleted, but physical file could not be removed",
+                "file_name": file_name
+            }
+
+    return {
+        "message": "Document deleted successfully",
+        "file_name": file_name
+    }
+
+# =====================================
+# DISCUSSION MODULE APIs
+# =====================================
+
+# Add Comment or Meeting Note
+@app.post("/decisions/{decision_id}/discussions")
+def create_discussion(
+    decision_id: int,
+    discussion: DiscussionCreate,
+    db: Session = Depends(get_db)
+):
+    # Check decision exists
+    decision = db.query(Decision).filter(
+        Decision.decision_id == decision_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Check user exists
+    user = db.query(User).filter(
+        User.user_id == discussion.user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Validate type
+    if discussion.discussion_type not in ["Comment", "Meeting Note"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Type must be Comment or Meeting Note"
+        )
+
+    new_discussion = Discussion(
+        decision_id=decision_id,
+        user_id=discussion.user_id,
+        comment=discussion.comment,
+        discussion_type=discussion.discussion_type
+    )
+
+    db.add(new_discussion)
+    db.commit()
+    db.refresh(new_discussion)
+
+    return {
+        "message": "Discussion added successfully",
+        "discussion_id": new_discussion.discussion_id,
+        "decision_id": new_discussion.decision_id,
+        "user_id": new_discussion.user_id,
+        "comment": new_discussion.comment,
+        "discussion_type": new_discussion.discussion_type,
+        "created_at": new_discussion.created_at
+    }
+
+
+# View All Discussions of a Decision
+@app.get("/decisions/{decision_id}/discussions")
+def get_discussions(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+    decision = db.query(Decision).filter(
+        Decision.decision_id == decision_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    return db.query(Discussion).filter(
+        Discussion.decision_id == decision_id
+    ).order_by(
+        Discussion.created_at.desc()
+    ).all()
+
+
+# View One Discussion
+@app.get("/discussions/{discussion_id}")
+def get_discussion(
+    discussion_id: int,
+    db: Session = Depends(get_db)
+):
+    discussion = db.query(Discussion).filter(
+        Discussion.discussion_id == discussion_id
+    ).first()
+
+    if not discussion:
+        raise HTTPException(
+            status_code=404,
+            detail="Discussion not found"
+        )
+
+    return discussion
+
+
+# Edit Comment / Meeting Note
+@app.put("/discussions/{discussion_id}")
+def update_discussion(
+    discussion_id: int,
+    data: DiscussionUpdate,
+    db: Session = Depends(get_db)
+):
+    discussion = db.query(Discussion).filter(
+        Discussion.discussion_id == discussion_id
+    ).first()
+
+    if not discussion:
+        raise HTTPException(
+            status_code=404,
+            detail="Discussion not found"
+        )
+
+    if data.discussion_type not in ["Comment", "Meeting Note"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Type must be Comment or Meeting Note"
+        )
+
+    discussion.comment = data.comment
+    discussion.discussion_type = data.discussion_type
+
+    db.commit()
+    db.refresh(discussion)
+
+    return {
+        "message": "Discussion updated successfully",
+        "discussion_id": discussion.discussion_id,
+        "comment": discussion.comment,
+        "discussion_type": discussion.discussion_type
+    }
+
+
+# Delete Discussion
+@app.delete("/discussions/{discussion_id}")
+def delete_discussion(
+    discussion_id: int,
+    db: Session = Depends(get_db)
+):
+    discussion = db.query(Discussion).filter(
+        Discussion.discussion_id == discussion_id
+    ).first()
+
+    if not discussion:
+        raise HTTPException(
+            status_code=404,
+            detail="Discussion not found"
+        )
+
+    db.delete(discussion)
+    db.commit()
+
+    return {
+        "message": "Discussion deleted successfully"
+    }
+
+
+# View Only Meeting Notes
+@app.get("/decisions/{decision_id}/meeting-notes")
+def get_meeting_notes(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+    decision = db.query(Decision).filter(
+        Decision.decision_id == decision_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    return db.query(Discussion).filter(
+        Discussion.decision_id == decision_id,
+        Discussion.discussion_type == "Meeting Note"
+    ).order_by(
+        Discussion.created_at.desc()
+    ).all()
+
+# =====================================
+# DECISION VERSION TRACKING
+# =====================================
+
+
+# =====================================
+# Create Decision Version Manually
+# =====================================
+
+@app.post("/decisions/{decision_id}/versions")
+def create_decision_version(
+    decision_id: int,
+    version_data: DecisionVersionCreate,
+    db: Session = Depends(get_db)
+):
+
+    # Check decision
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Check modifying user
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == version_data.modified_by
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    # Find latest version
+    latest_version = (
+        db.query(DecisionVersion)
+        .filter(
+            DecisionVersion.decision_id == decision_id
+        )
+        .order_by(
+            DecisionVersion.version_number.desc()
+        )
+        .first()
+    )
+
+    if latest_version:
+        next_version = latest_version.version_number + 1
+    else:
+        next_version = 1
+
+    new_version = DecisionVersion(
+        decision_id=decision_id,
+        version_number=next_version,
+        title=decision.decision_title,
+        description=decision.decision_description,
+        status=version_data.status,
+        modified_by=version_data.modified_by,
+        change_summary=version_data.change_summary
+    )
+
+    db.add(new_version)
+    db.commit()
+    db.refresh(new_version)
+
+    return {
+        "message": "Decision version created successfully",
+        "id": new_version.id,
+        "decision_id": new_version.decision_id,
+        "version_number": new_version.version_number,
+        "title": new_version.title,
+        "description": new_version.description,
+        "status": new_version.status,
+        "modified_by": new_version.modified_by,
+        "modified_at": new_version.modified_at,
+        "change_summary": new_version.change_summary
+    }
+
+
+# =====================================
+# Get Version History
+# =====================================
+
+@app.get("/decisions/{decision_id}/versions")
+def get_decision_versions(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    versions = (
+        db.query(DecisionVersion)
+        .filter(
+            DecisionVersion.decision_id == decision_id
+        )
+        .order_by(
+            DecisionVersion.version_number.desc()
+        )
+        .all()
+    )
+
+    return versions
+
+
+# =====================================
+# Get Specific Version
+# =====================================
+
+@app.get(
+    "/decisions/{decision_id}/versions/{version_number}"
+)
+def get_specific_decision_version(
+    decision_id: int,
+    version_number: int,
+    db: Session = Depends(get_db)
+):
+
+    version = (
+        db.query(DecisionVersion)
+        .filter(
+            DecisionVersion.decision_id == decision_id,
+            DecisionVersion.version_number == version_number
+        )
+        .first()
+    )
+
+    if not version:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision version not found"
+        )
+
+
+    return version
+
+
+    # ============================================================
+# Dashboard Statistics
+# ============================================================
+
+@app.get("/dashboard/stats")
+def dashboard_stats(
+    db: Session = Depends(get_db)
+):
+
+    total_decisions = db.query(Decision).count()
+
+    total_alternatives = db.query(Alternative).count()
+
+    total_criteria = db.query(Criteria).count()
+
+    total_users = db.query(User).count()
+
+    total_scores = db.query(AlternativeScore).count()
+
+    return {
+
+        "total_decisions": total_decisions,
+
+        "total_alternatives": total_alternatives,
+
+        "total_criteria": total_criteria,
+
+        "total_users": total_users,
+
+        "total_scores": total_scores
+
+    }
+
+# ============================================================
+# Dashboard Charts
+# ============================================================
+
+@app.get("/dashboard/charts")
+def dashboard_charts(
+    db: Session = Depends(get_db)
+):
+
+    decisions = db.query(Decision).all()
+
+    chart_data = []
+
+    for decision in decisions:
+
+        alternative_count = (
+
+            db.query(Alternative)
+
+            .filter(
+
+                Alternative.decision_id ==
+                decision.decision_id
+
+            )
+
+            .count()
+
+        )
+
+        chart_data.append({
+
+            "decision": decision.decision_title,
+
+            "alternatives": alternative_count
+
+        })
+
+    return chart_data
+
+# ============================================================
+# Latest Recommendation
+# ============================================================
+
+@app.get("/dashboard/latest-recommendation")
+def latest_recommendation(
+    db: Session = Depends(get_db)
+):
+
+    latest_decision = (
+
+        db.query(Decision)
+
+        .order_by(
+            Decision.created_at.desc()
+        )
+
+        .first()
+
+    )
+
+    if not latest_decision:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="No decisions available."
+
+        )
+
+    alternatives = (
+
+        db.query(Alternative)
+
+        .filter(
+            Alternative.decision_id ==
+            latest_decision.decision_id
+        )
+
+        .all()
+
+    )
+
+    best = None
+
+    best_score = -1
+
+    for alt in alternatives:
+
+        scores = (
+
+            db.query(
+                AlternativeScore,
+                Criteria
+            )
+
+            .join(
+                Criteria,
+                AlternativeScore.criteria_id ==
+                Criteria.criteria_id
+            )
+
+            .filter(
+                AlternativeScore.alternative_id ==
+                alt.alternative_id
+            )
+
+            .all()
+
+        )
+
+        total = 0
+
+        for score, criteria in scores:
+
+            total += (
+                score.score *
+                criteria.weight
+            ) / 100
+
+        if total > best_score:
+
+            best_score = total
+
+            best = alt
+
+    if best is None:
+
+        return {
+            "message": "Recommendation not generated yet."
+        }
+
+    return {
+
+        "decision": latest_decision.decision_title,
+
+        "recommended_alternative": best.alternative_name,
+
+        "score": round(best_score, 2)
+
+    }
+
+# ============================================================
+# Recent Activity
+# ============================================================
+
+@app.get("/dashboard/activity")
+def dashboard_activity(
+    db: Session = Depends(get_db)
+):
+
+    recent = (
+
+        db.query(Decision)
+
+        .order_by(
+            Decision.created_at.desc()
+        )
+
+        .limit(5)
+
+        .all()
+
+    )
+
+    activity = []
+
+    for decision in recent:
+
+        activity.append({
+
+            "type": "Decision",
+
+            "title": decision.decision_title,
+
+            "created_at": decision.created_at
+
+        })
+
+    return activity
+# ============================================================
+# Upload Document
+# ============================================================
+
+@app.post("/documents/upload")
+def upload_document(
+    decision_id: int = Form(...),
+    uploaded_by: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+
+    # Check decision exists
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    # Original filename
+    filename = file.filename
+
+    # Absolute path to save file
+    filepath = os.path.abspath(
+        os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
+    )
+
+    # Save file
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    # Save metadata to database
+    document = Document(
+
+        decision_id=decision_id,
+
+        file_name=filename,
+
+        file_path=filepath,
+
+        file_type=file.content_type,
+
+        uploaded_by=uploaded_by
+
+    )
+
+    db.add(document)
+
+    db.commit()
+
+    db.refresh(document)
+
+    return {
+
+        "message": "Document uploaded successfully.",
+
+        "document_id": document.document_id
+
+    }
+# ============================================================
+# Get All Documents
+# ============================================================
+
+@app.get("/documents")
+def get_documents(
+    db: Session = Depends(get_db)
+):
+
+    documents = (
+
+        db.query(
+            Document,
+            Decision,
+            User
+        )
+
+        .join(
+            Decision,
+            Document.decision_id == Decision.decision_id
+        )
+
+        .join(
+            User,
+            Document.uploaded_by == User.user_id
+        )
+
+        .all()
+
+    )
+
+    result = []
+
+    for doc, decision, user in documents:
+
+        result.append({
+
+            "document_id": doc.document_id,
+
+            "decision_id": decision.decision_id,
+
+            "decision_title": decision.decision_title,
+
+            "file_name": doc.file_name,
+
+            "file_type": doc.file_type,
+
+            "file_path": doc.file_path,
+
+            "uploaded_by": user.username,
+
+            "uploaded_at": doc.uploaded_at
+
+        })
+
+    return result
+
+# ============================================================
+# Documents By Decision
+# ============================================================
+
+@app.get("/decisions/{decision_id}/documents")
+def get_documents_by_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    docs = (
+
+        db.query(Document)
+
+        .filter(
+            Document.decision_id == decision_id
+        )
+
+        .all()
+
+    )
+
+    return docs
+# ============================================================
+# Download Document
+# ============================================================
+
+@app.get("/documents/download/{document_id}")
+def download_document(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = (
+
+        db.query(Document)
+
+        .filter(
+            Document.document_id == document_id
+        )
+
+        .first()
+
+    )
+
+    if not document:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Document not found."
+
+        )
+
+    if not os.path.exists(document.file_path):
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="File does not exist."
+
+        )
+
+    return FileResponse(
+
+        path=document.file_path,
+
+        filename=document.file_name,
+
+        media_type=document.file_type
+
+    )
+# ============================================================
+# Delete Document
+# ============================================================
+
+@app.delete("/documents/{document_id}")
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db)
+):
+
+    document = (
+
+        db.query(Document)
+
+        .filter(
+            Document.document_id == document_id
+        )
+
+        .first()
+
+    )
+
+    if not document:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Document not found."
+
+        )
+
+    # Delete physical file
+
+    if os.path.exists(document.file_path):
+
+        os.remove(document.file_path)
+
+    # Delete database record
+
+    db.delete(document)
+
+    db.commit()
+
+    return {
+
+        "message": "Document deleted successfully."
+
+    }
+
+# ============================================================
+# Create Discussion
+# ============================================================
+
+@app.post("/discussions")
+def create_discussion(
+    discussion: DiscussionCreate,
+    db: Session = Depends(get_db)
+):
+
+    new_discussion = Discussion(
+        decision_id=discussion.decision_id,
+        user_id=discussion.user_id,
+        comment=discussion.comment
+    )
+
+    db.add(new_discussion)
+    db.commit()
+    db.refresh(new_discussion)
+
+    return {
+        "message": "Discussion added successfully.",
+        "discussion": new_discussion
+    }
+
+# ============================================================
+# Get All Discussions
+# ============================================================
+
+@app.get("/discussions")
+def get_discussions(
+    db: Session = Depends(get_db)
+):
+
+    discussions = (
+        db.query(
+            Discussion,
+            User,
+            Decision
+        )
+        .join(
+            User,
+            Discussion.user_id == User.user_id
+        )
+        .join(
+            Decision,
+            Discussion.decision_id == Decision.decision_id
+        )
+        .order_by(
+            Discussion.created_at.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for discussion, user, decision in discussions:
+
+        result.append({
+
+            "discussion_id": discussion.discussion_id,
+
+            "decision_id": decision.decision_id,
+
+            "decision_title": decision.decision_title,
+
+            "user_id": user.user_id,
+
+            "username": user.username,
+
+            "comment": discussion.comment,
+
+            "discussion_type": discussion.discussion_type,
+
+            "created_at": discussion.created_at
+
+        })
+
+    return result
+
+# ============================================================
+# Get Discussions by Decision
+# ============================================================
+
+@app.get("/decisions/{decision_id}/discussions")
+def get_discussions_by_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    discussions = (
+        db.query(
+            Discussion,
+            User
+        )
+        .join(
+            User,
+            Discussion.user_id == User.user_id
+        )
+        .filter(
+            Discussion.decision_id == decision_id
+        )
+        .order_by(
+            Discussion.created_at.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for discussion, user in discussions:
+
+        result.append({
+
+            "discussion_id": discussion.discussion_id,
+
+            "username": user.username,
+
+            "comment": discussion.comment,
+
+            "discussion_type": discussion.discussion_type,
+
+            "created_at": discussion.created_at
+
+        })
+
+    return result
+
+# ============================================================
+# Update Discussion
+# ============================================================
+
+@app.put("/discussions/{discussion_id}")
+def update_discussion(
+    discussion_id: int,
+    discussion: DiscussionUpdate,
+    db: Session = Depends(get_db)
+):
+
+    existing = (
+        db.query(Discussion)
+        .filter(
+            Discussion.discussion_id == discussion_id
+        )
+        .first()
+    )
+
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail="Discussion not found."
+        )
+
+    existing.comment = discussion.comment
+
+    db.commit()
+    db.refresh(existing)
+
+    return {
+        "message": "Discussion updated successfully."
+    }
+
+# ============================================================
+# Delete Discussion
+# ============================================================
+
+@app.delete("/discussions/{discussion_id}")
+def delete_discussion(
+    discussion_id: int,
+    db: Session = Depends(get_db)
+):
+
+    discussion = (
+        db.query(Discussion)
+        .filter(
+            Discussion.discussion_id == discussion_id
+        )
+        .first()
+    )
+
+    if not discussion:
+        raise HTTPException(
+            status_code=404,
+            detail="Discussion not found."
+        )
+
+    db.delete(discussion)
+    db.commit()
+
+    return {
+        "message": "Discussion deleted successfully."
+    }
+
+# ============================================================
+# Create Approval
+# ============================================================
+
+@app.post("/approvals", response_model=ApprovalResponse)
+def create_approval(
+    approval: ApprovalCreate,
+    db: Session = Depends(get_db)
+):
+
+    new_approval = Approval(
+
+        decision_id=approval.decision_id,
+
+        reviewer_id=approval.reviewer_id,
+
+        approval_level=approval.approval_level,
+
+        status="Pending"
+
+    )
+
+    db.add(new_approval)
+
+    db.commit()
+
+    db.refresh(new_approval)
+
+    return new_approval
+
+# ============================================================
+# Get All Approvals
+# ============================================================
+
+@app.get("/approvals")
+def get_approvals(
+    db: Session = Depends(get_db)
+):
+
+    approvals = (
+
+        db.query(
+            Approval,
+            Decision,
+            User
+        )
+
+        .join(
+            Decision,
+            Approval.decision_id == Decision.decision_id
+        )
+
+        .join(
+            User,
+            Approval.reviewer_id == User.user_id
+        )
+
+        .all()
+
+    )
+
+    result = []
+
+    for approval, decision, reviewer in approvals:
+
+        result.append({
+
+            "id": approval.id,
+
+            "decision_id": decision.decision_id,
+
+            "decision_title": decision.decision_title,
+
+            "reviewer_id": reviewer.user_id,
+
+            "reviewer_name": reviewer.username,
+
+            "approval_level": approval.approval_level,
+
+            "status": approval.status,
+
+            "remarks": approval.remarks,
+
+            "approved_at": approval.approved_at,
+
+            "created_at": approval.created_at
+
+        })
+
+    return result
+
+# ============================================================
+# Approval History
+# ============================================================
+
+@app.get("/approvals/history")
+def get_approval_history(
+    db: Session = Depends(get_db)
+):
+
+    history = (
+
+        db.query(
+            Approval,
+            Decision,
+            User
+        )
+
+        .join(
+            Decision,
+            Approval.decision_id == Decision.decision_id
+        )
+
+        .outerjoin(
+            User,
+            Approval.reviewer_id == User.user_id
+        )
+
+        .order_by(
+            Approval.created_at.desc()
+        )
+
+        .all()
+
+    )
+
+    result = []
+
+    for approval, decision, user in history:
+
+        result.append({
+
+            "approval_id": approval.id,
+
+            "decision_id": decision.decision_id,
+
+            "decision_title": decision.decision_title,
+
+            "reviewer_name":
+                user.username if user else "-",
+
+            "role":
+                user.role if user else "-",
+
+            "approval_level":
+                approval.approval_level,
+
+            "status":
+                approval.status,
+
+            "remarks":
+                approval.remarks,
+
+            "created_at":
+                approval.created_at,
+
+            "approved_at":
+                approval.approved_at
+
+        })
+
+    return result  
+from datetime import datetime, timezone
+
+# ============================================================
+# Get Approvals for a Decision
+# ============================================================
+
+@app.get("/decisions/{decision_id}/approvals")
+def get_decision_approvals(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    approvals = (
+        db.query(Approval)
+        .filter(
+            Approval.decision_id == decision_id
+        )
+        .all()
+    )
+
+    return approvals
+
+
+# ============================================================
+# Approve Decision (Reviewer & Manager)
+# ============================================================
+
+@app.put("/approvals/{approval_id}/approve")
+def approve_decision(
+    approval_id: int,
+    reviewer_id: int,
+    db: Session = Depends(get_db)
+):
+
+    reviewer = verify_reviewer_manager(reviewer_id, db)
+
+    approval = (
+        db.query(Approval)
+        .filter(Approval.id == approval_id)
+        .first()
+    )
+
+    if not approval:
+        raise HTTPException(
+            status_code=404,
+            detail="Approval not found."
+        )
+
+    if approval.status != "Pending":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Approval already processed. Current status: {approval.status}"
+        )
+
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == approval.decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    if decision.user_id == reviewer.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You cannot approve your own decision."
+        )
+
+    # ==========================================
+    # LEVEL 1 : REVIEWER
+    # ==========================================
+
+    if approval.approval_level == 1:
+
+        if reviewer.role != "Reviewer":
+            raise HTTPException(
+                status_code=403,
+                detail="Only Reviewer can approve Level 1."
+            )
+
+        approval.status = "Approved"
+        approval.approved_at = datetime.now(timezone.utc)
+
+        decision.status = "Pending Manager Approval"
+
+        manager = (
+            db.query(User)
+            .filter(User.role == "Manager")
+            .first()
+        )
+
+        if not manager:
+            raise HTTPException(
+                status_code=404,
+                detail="Manager not found."
+            )
+
+        existing = (
+            db.query(Approval)
+            .filter(
+                Approval.decision_id == decision.decision_id,
+                Approval.approval_level == 2
+            )
+            .first()
+        )
+
+        if not existing:
+
+            managerApproval = Approval(
+                decision_id=decision.decision_id,
+                reviewer_id=manager.user_id,
+                approval_level=2,
+                status="Pending"
+            )
+
+            notification = Notification(
+                user_id=manager.user_id,
+                title="Decision Awaiting Approval",
+                message=f'Decision "{decision.decision_title}" is waiting for your approval.',
+                type="Approval",
+                is_read=False
+            )
+
+            db.add(managerApproval)
+            db.add(notification)
+
+        db.commit()
+
+        return {
+            "message": "Reviewer approved successfully.",
+            "status": decision.status
+        }
+
+    # ==========================================
+    # LEVEL 2 : MANAGER
+    # ==========================================
+
+    elif approval.approval_level == 2:
+
+        if reviewer.role != "Manager":
+            raise HTTPException(
+                status_code=403,
+                detail="Only Manager can approve Level 2."
+            )
+
+        approval.status = "Approved"
+        approval.approved_at = datetime.now(timezone.utc)
+
+        decision.status = "Approved"
+
+        notification = Notification(
+            user_id=decision.user_id,
+            title="Decision Approved",
+            message=f'Your decision "{decision.decision_title}" has been approved.',
+            type="Approval",
+            is_read=False
+        )
+
+        db.add(notification)
+
+        db.commit()
+
+        return {
+            "message": "Decision fully approved.",
+            "status": decision.status
+        }
+
+    raise HTTPException(
+        status_code=400,
+        detail="Invalid approval level."
+    )
+
+
+# ============================================================
+# Reject Decision
+# ============================================================
+
+@app.put("/approvals/{approval_id}/reject")
+def reject_decision(
+    approval_id: int,
+    reviewer_id: int,
+    remarks: str,
+    db: Session = Depends(get_db)
+):
+    reviewer = verify_reviewer_manager(reviewer_id, db)
+
+    approval = (
+        db.query(Approval)
+        .filter(Approval.id == approval_id)
+        .first()
+    )
+
+    if not approval:
+        raise HTTPException(
+            status_code=404,
+            detail="Approval not found."
+        )
+
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == approval.decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    if decision.user_id == reviewer.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You cannot reject your own decision."
+        )
+
+    if not remarks or remarks.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Remarks are mandatory."
+        )
+
+    approval.status = "Rejected"
+    approval.remarks = remarks
+    approval.approved_at = datetime.now(timezone.utc)
+    decision.status = "Rejected"
+
+    # Notify Decision Owner of Rejection
+    notification = Notification(
+        user_id=decision.user_id,
+        title="Decision Rejected",
+        message=f'Your decision "{decision.decision_title}" was rejected. Remarks: {remarks}',
+        type="Approval",
+        is_read=False
+    )
+
+    db.add(notification)
+    db.commit()
+
+    return {
+        "message": "Decision rejected successfully.",
+        "status": decision.status
+    }
+# ============================================================
+# Verify Reviewer / Manager / Admin
+# ============================================================
+
+def verify_reviewer_manager(
+    user_id: int,
+    db: Session
+):
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == user_id
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    if user.role not in [
+        "Reviewer",
+        "Manager",
+        "Admin"
+    ]:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied."
+        )
+
+    return user
+
+
+# ============================================================
+# Submit Decision Endpoint
+# ============================================================
+
+@app.put("/decisions/{decision_id}/submit")
+def submit_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+    # Find Decision
+    decision = db.query(Decision).filter(
+        Decision.decision_id == decision_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Already submitted?
+    if decision.status != "Draft":
+        raise HTTPException(
+            status_code=400,
+            detail="Decision already submitted."
+        )
+
+    # Find Reviewer
+    reviewer = db.query(User).filter(
+        User.role == "Reviewer"
+    ).first()
+
+    if not reviewer:
+        raise HTTPException(
+            status_code=404,
+            detail="Reviewer not found."
+        )
+
+    # Update Decision Status
+    decision.status = "Pending Review"
+
+    # Create Approval Record
+    approval = Approval(
+        decision_id=decision.decision_id,
+        reviewer_id=reviewer.user_id,
+        approval_level=1,
+        status="Pending"
+    )
+
+    # Create Notification Record
+    notification = Notification(
+        user_id=reviewer.user_id,
+        title="New Decision Submitted",
+        message=f'Decision "{decision.decision_title}" requires your approval.',
+        type="Approval",
+        is_read=False
+    )
+
+    # Save to database in a single transaction
+    db.add(approval)
+    db.add(notification)
+    db.commit()
+
+    return {
+        "message": "Decision submitted successfully."
+    }
+
+# =====================================
+# Submit Decision For Approval
+# =====================================
+
+@app.put("/decisions/{decision_id}/submit")
+def submit_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == decision_id)
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    if decision.status != "Draft":
+        raise HTTPException(
+            status_code=400,
+            detail="Only Draft decisions can be submitted."
+        )
+
+    reviewer = (
+        db.query(User)
+        .filter(User.role == "Reviewer")
+        .first()
+    )
+
+    if not reviewer:
+        raise HTTPException(
+            status_code=404,
+            detail="Reviewer not found."
+        )
+
+    decision.status = "Pending Review"
+
+    approval = Approval(
+        decision_id=decision.decision_id,
+        reviewer_id=reviewer.user_id,
+        approval_level=1,
+        status="Pending"
+    )
+
+    db.add(approval)
+    db.commit()
+
+    return {
+        "message": "Decision submitted successfully."
+    }
+
+# ============================================================
+# Approval Details
+# ============================================================
+
+@app.get("/approvals/{approval_id}/details")
+def get_approval_details(
+    approval_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # ==========================================
+    # Approval
+    # ==========================================
+
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == approval_id
+        )
+        .first()
+    )
+
+    if not approval:
+        raise HTTPException(
+            status_code=404,
+            detail="Approval not found."
+        )
+
+    # ==========================================
+    # Decision
+    # ==========================================
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == approval.decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    # ==========================================
+    # Reviewer
+    # ==========================================
+
+    reviewer = (
+        db.query(User)
+        .filter(
+            User.user_id == approval.reviewer_id
+        )
+        .first()
+    )
+
+    # ==========================================
+    # Alternatives
+    # ==========================================
+
+    alternatives = (
+        db.query(Alternative)
+        .filter(
+            Alternative.decision_id == decision.decision_id
+        )
+        .all()
+    )
+
+    # ==========================================
+    # Criteria
+    # ==========================================
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.decision_id == decision.decision_id
+        )
+        .all()
+    )
+
+    # ==========================================
+    # Build Score Matrix & Calculate Totals
+    # ==========================================
+
+    score_matrix = []
+    alternative_results = []
+
+    for alt in alternatives:
+
+        scores = []
+        total_score = 0
+
+        for cri in criteria:
+
+            score = (
+                db.query(AlternativeScore)
+                .filter(
+                    AlternativeScore.alternative_id == alt.alternative_id,
+                    AlternativeScore.criteria_id == cri.criteria_id
+                )
+                .first()
+            )
+
+            score_value = score.score if score else 0
+
+            scores.append({
+
+                "criteria_id": cri.criteria_id,
+
+                "criteria_name": cri.criteria_name,
+
+                "score": score_value
+
+            })
+
+            total_score += score_value
+
+        score_matrix.append({
+
+            "alternative_id": alt.alternative_id,
+
+            "alternative_name": alt.alternative_name,
+
+            "scores": scores
+
+        })
+
+        alternative_results.append({
+
+            "alternative_id": alt.alternative_id,
+
+            "alternative_name": alt.alternative_name,
+
+            "estimated_cost": alt.estimated_cost,
+
+            "risk_level": alt.risk_level,
+
+            "feasibility": alt.feasibility,
+
+            "total_score": total_score
+
+        })
+
+    # ==========================================
+    # Ranking
+    # ==========================================
+
+    alternative_results.sort(
+        key=lambda x: x["total_score"],
+        reverse=True
+    )
+
+    for index, item in enumerate(alternative_results):
+
+        item["rank"] = index + 1
+
+    recommended = (
+        alternative_results[0]
+        if alternative_results
+        else None
+    )
+
+    # ==========================================
+    # Response
+    # ==========================================
+
+    return {
+
+       "approval": {
+
+    "id": approval.id,
+
+    "level": approval.approval_level,
+
+    "status": approval.status
+
+   },
+
+     "reviewer": {
+
+     "id": reviewer.user_id if reviewer else None,
+
+    "name": reviewer.username if reviewer else "",
+
+    "role": reviewer.role if reviewer else ""
+
+   },
+        "decision": {
+
+            "id": decision.decision_id,
+
+            "title": decision.decision_title,
+
+            "description": decision.decision_description,
+
+            "status": decision.status
+
+        },
+
+        "recommended_alternative": recommended,
+
+        "alternatives": alternative_results,
+
+        "criteria": [
+
+            {
+
+                "criteria_id": c.criteria_id,
+
+                "name": c.criteria_name,
+
+                "weight": c.weight
+
+            }
+
+            for c in criteria
+
+        ],
+
+        "score_matrix": score_matrix
+
+    }
+
+ # ============================================================
+# Get User Notifications
+# ============================================================
+
+@app.get("/notifications/{user_id}")
+def get_notifications(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+
+    notifications = (
+
+        db.query(Notification)
+
+        .filter(
+            Notification.user_id == user_id
+        )
+
+        .order_by(
+            Notification.created_at.desc()
+        )
+
+        .all()
+
+    )
+
+    return [
+
+        {
+
+            "notification_id": n.notification_id,
+
+            "title": n.title,
+
+            "message": n.message,
+
+            "type": n.type,
+
+            "is_read": n.is_read,
+
+            "created_at": n.created_at
+
+        }
+
+        for n in notifications
+
+    ]
+
+# ============================================================
+# Mark Notification as Read
+# ============================================================
+
+@app.put("/notifications/{notification_id}/read")
+def mark_notification_read(
+    notification_id: int,
+    db: Session = Depends(get_db)
+):
+
+    notification = (
+        db.query(Notification)
+        .filter(Notification.notification_id == notification_id)
+        .first()
+    )
+
+    if not notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification not found."
+        )
+
+    notification.is_read = True
+
+    db.commit()
+
+    return {
+        "message": "Notification marked as read."
+    }
+
+# ============================================================
+# Delete Notification
+# ============================================================
+
+@app.delete("/notifications/{notification_id}")
+def delete_notification(
+    notification_id: int,
+    db: Session = Depends(get_db)
+):
+
+    notification = (
+        db.query(Notification)
+        .filter(Notification.notification_id == notification_id)
+        .first()
+    )
+
+    if not notification:
+        raise HTTPException(
+            status_code=404,
+            detail="Notification not found."
+        )
+
+    db.delete(notification)
+    db.commit()
+
+    return {
+        "message": "Notification deleted."
+    }
+
+# ============================================================
+# Get Alternatives By Decision
+# ============================================================
+
+@app.get("/decisions/{decision_id}/alternatives")
+def get_decision_alternatives(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    alternatives = (
+        db.query(Alternative)
+        .filter(
+            Alternative.decision_id == decision_id
+        )
+        .all()
+    )
+
+    return alternatives
