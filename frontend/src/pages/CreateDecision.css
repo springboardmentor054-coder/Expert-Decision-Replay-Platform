@@ -1,0 +1,794 @@
+/* ==========================================
+   CREATE DECISION PAGE
+========================================== */
+
+.create-decision-page {
+    min-height: 100vh;
+    background: #f6f8fb;
+    color: #172033;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.create-decision-header {
+    height: 72px;
+    padding: 0 45px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e9f0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+}
+
+
+/* ==========================================
+   BRAND
+========================================== */
+
+.create-decision-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.create-decision-logo {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #172033;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.create-decision-brand h2 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.create-decision-brand span {
+    display: block;
+
+    margin-top: 2px;
+
+    color: #64748b;
+
+    font-size: 11px;
+}
+
+
+/* ==========================================
+   BACK BUTTON
+========================================== */
+
+.back-button {
+    border: 1px solid #d9e0e9;
+
+    background: #ffffff;
+    color: #334155;
+
+    padding: 9px 15px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.back-button:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.back-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================
+   MAIN CONTENT
+========================================== */
+
+.create-decision-main {
+    width: min(900px, calc(100% - 40px));
+
+    margin: 0 auto;
+
+    padding: 42px 0 60px;
+
+    box-sizing: border-box;
+}
+
+
+/* ==========================================
+   PAGE INTRO
+========================================== */
+
+.create-decision-intro {
+    margin-bottom: 25px;
+}
+
+.create-decision-eyebrow {
+    display: inline-block;
+
+    margin-bottom: 8px;
+
+    color: #64748b;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+}
+
+.create-decision-intro h1 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.create-decision-intro p {
+    margin: 9px 0 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* ==========================================
+   FORM CARD
+========================================== */
+
+.create-decision-card {
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 3px 12px rgba(15, 23, 42, 0.04);
+
+    overflow: hidden;
+}
+
+
+/* ==========================================
+   CARD HEADER
+========================================== */
+
+.create-decision-card-header {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 25px 30px;
+
+    border-bottom: 1px solid #eef2f7;
+}
+
+.form-header-icon {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #e8eefc;
+    color: #3157a6;
+
+    font-size: 23px;
+    font-weight: 500;
+}
+
+.create-decision-card-header h2 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.create-decision-card-header p {
+    margin: 5px 0 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   ERROR MESSAGE
+========================================== */
+
+.create-decision-error {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 11px;
+
+    margin: 22px 30px 0;
+
+    padding: 13px 15px;
+
+    border: 1px solid #fecaca;
+
+    border-radius: 9px;
+
+    background: #fef2f2;
+
+    color: #b91c1c;
+}
+
+.create-decision-error span {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.create-decision-error p {
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   FORM
+========================================== */
+
+.create-decision-form {
+    padding: 30px;
+}
+
+
+/* ==========================================
+   FORM GROUP
+========================================== */
+
+.create-form-group {
+    margin-bottom: 25px;
+}
+
+.create-form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #334155;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.create-form-group label span {
+    margin-left: 4px;
+
+    color: #dc2626;
+}
+
+
+/* ==========================================
+   INPUTS
+========================================== */
+
+.create-form-group input,
+.create-form-group textarea,
+.create-form-group select {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d9e0e9;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #172033;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.create-form-group input {
+    height: 45px;
+
+    padding: 0 13px;
+}
+
+.create-form-group textarea {
+    min-height: 110px;
+
+    padding: 12px 13px;
+
+    resize: vertical;
+
+    line-height: 1.5;
+}
+
+.create-form-group select {
+    height: 45px;
+
+    padding: 0 13px;
+
+    cursor: pointer;
+}
+
+
+/* ==========================================
+   INPUT FOCUS
+========================================== */
+
+.create-form-group input:focus,
+.create-form-group textarea:focus,
+.create-form-group select:focus {
+    border-color: #3157a6;
+
+    box-shadow:
+        0 0 0 3px rgba(49, 87, 166, 0.08);
+}
+
+
+/* ==========================================
+   PLACEHOLDER
+========================================== */
+
+.create-form-group input::placeholder,
+.create-form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+
+/* ==========================================
+   DISABLED
+========================================== */
+
+.create-form-group input:disabled,
+.create-form-group textarea:disabled,
+.create-form-group select:disabled {
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
+}
+
+
+/* ==========================================
+   FORM HELP TEXT
+========================================== */
+
+.create-form-group small {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   INFORMATION NOTICE
+========================================== */
+
+.create-decision-info {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-top: 4px;
+    margin-bottom: 28px;
+
+    padding: 15px 16px;
+
+    border: 1px solid #dbe5f5;
+
+    border-radius: 9px;
+
+    background: #f6f9ff;
+}
+
+.info-icon {
+    width: 23px;
+    height: 23px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #3157a6;
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.create-decision-info strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #334155;
+
+    font-size: 12px;
+}
+
+.create-decision-info p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+}
+
+
+/* ==========================================
+   FORM ACTIONS
+========================================== */
+
+.create-form-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding-top: 22px;
+
+    border-top: 1px solid #eef2f7;
+}
+
+
+/* ==========================================
+   CANCEL BUTTON
+========================================== */
+
+.create-cancel-button {
+    border: 1px solid #d9e0e9;
+
+    background: #ffffff;
+
+    color: #475569;
+
+    padding: 11px 19px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.create-cancel-button:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.create-cancel-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================
+   SUBMIT BUTTON
+========================================== */
+
+.create-submit-button {
+    border: none;
+
+    background: #172033;
+
+    color: #ffffff;
+
+    padding: 11px 20px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.create-submit-button:hover {
+    background: #29364d;
+
+    transform: translateY(-1px);
+}
+
+.create-submit-button:disabled {
+    background: #94a3b8;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* ==========================================
+   QUICK NAVIGATION
+========================================== */
+
+.create-quick-navigation {
+    margin-top: 25px;
+
+    padding: 23px 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 3px 12px rgba(15, 23, 42, 0.03);
+}
+
+
+/* ==========================================
+   QUICK NAV HEADER
+========================================== */
+
+.quick-navigation-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    margin-bottom: 18px;
+}
+
+.quick-navigation-icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background: #fff5dc;
+
+    font-size: 18px;
+}
+
+.quick-navigation-header h3 {
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.quick-navigation-header p {
+    margin: 4px 0 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   QUICK NAV BUTTONS
+========================================== */
+
+.quick-navigation-buttons {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 12px;
+}
+
+.quick-navigation-buttons button {
+    min-height: 52px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #334155;
+
+    padding: 12px 14px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.quick-navigation-buttons button:hover {
+    background: #f8fafc;
+
+    border-color: #cbd5e1;
+
+    transform: translateY(-1px);
+}
+
+.quick-navigation-buttons button span {
+    font-size: 16px;
+}
+
+.quick-navigation-buttons button b {
+    margin-left: auto;
+
+    color: #94a3b8;
+
+    font-size: 15px;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 700px) {
+
+    .create-decision-header {
+        height: auto;
+
+        min-height: 72px;
+
+        padding: 15px 20px;
+
+        gap: 15px;
+    }
+
+    .create-decision-header {
+        flex-wrap: wrap;
+    }
+
+    .create-decision-main {
+        width: calc(100% - 30px);
+
+        padding-top: 30px;
+    }
+
+    .create-decision-intro h1 {
+        font-size: 27px;
+    }
+
+    .create-decision-card-header {
+        padding: 22px 20px;
+    }
+
+    .create-decision-form {
+        padding: 22px 20px;
+    }
+
+    .create-decision-error {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .create-form-actions {
+        flex-direction: column-reverse;
+
+        align-items: stretch;
+    }
+
+    .create-cancel-button,
+    .create-submit-button {
+        width: 100%;
+    }
+
+    .quick-navigation-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .create-quick-navigation {
+        padding: 20px;
+    }
+}
+
+
+@media (max-width: 450px) {
+
+    .create-decision-brand h2 {
+        font-size: 14px;
+    }
+
+    .create-decision-brand span {
+        font-size: 10px;
+    }
+
+    .create-decision-logo {
+        width: 38px;
+        height: 38px;
+    }
+
+    .back-button {
+        width: 100%;
+    }
+
+    .create-decision-header {
+        align-items: stretch;
+    }
+
+    .create-decision-intro h1 {
+        font-size: 24px;
+    }
+}

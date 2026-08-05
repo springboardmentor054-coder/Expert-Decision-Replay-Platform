@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./AuditLogs.css";
 
 function AuditLogs() {
@@ -12,13 +12,7 @@ function AuditLogs() {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchAuditLogs();
-    fetchUsers();
-    fetchDecisions();
-  }, []);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8000/audit-logs", {
         headers: {
@@ -35,9 +29,9 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching audit logs:", error);
     }
-  };
+  }, [token]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8000/users", {
         headers: {
@@ -54,9 +48,9 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching users:", error);
     }
-  };
+  }, [token]);
 
-  const fetchDecisions = async () => {
+  const fetchDecisions = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:8000/decisions", {
         headers: {
@@ -73,7 +67,13 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching decisions:", error);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+    fetchUsers();
+    fetchDecisions();
+  }, [fetchAuditLogs, fetchUsers, fetchDecisions]);
 
   const getUserName = (userId) => {
     const user = users.find((user) => user.id === userId);

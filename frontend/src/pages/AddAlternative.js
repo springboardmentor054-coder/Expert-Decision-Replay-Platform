@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./Decision.css";
+import "./AddAlternative.css";
 
 function AddAlternative() {
 

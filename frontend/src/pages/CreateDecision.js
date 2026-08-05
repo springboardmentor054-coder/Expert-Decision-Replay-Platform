@@ -1,248 +1,569 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Decision.css";
+import "./CreateDecision.css";
 
 function CreateDecision() {
+    const navigate = useNavigate();
 
-  const navigate = useNavigate();
-
-  const [decision, setDecision] = useState({
-    title: "",
-    problem_statement: "",
-    description: "",
-    category_id: 1,
-    status: "Draft"
-  });
-
-  const handleChange = (e) => {
-    setDecision({
-      ...decision,
-      [e.target.name]: e.target.value
+    const [decision, setDecision] = useState({
+        title: "",
+        problem_statement: "",
+        description: "",
+        category_id: 1,
+        status: "Draft"
     });
-  };
 
-  const handleSubmit = async (e) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-    e.preventDefault();
+    // ==========================================
+    // HANDLE INPUT CHANGE
+    // ==========================================
 
-    if (decision.title.trim() === "") {
-      alert("Title cannot be empty");
-      return;
-    }
+    const handleChange = (e) => {
+        const { name, value } = e.target;
 
-    if (decision.problem_statement.trim() === "") {
-      alert("Problem Statement is mandatory");
-      return;
-    }
+        setDecision((previous) => ({
+            ...previous,
+            [name]:
+                name === "category_id"
+                    ? Number(value)
+                    : value
+        }));
 
-    const token = localStorage.getItem("token");
+        setError("");
+    };
 
-    if (!token) {
-      alert("Please login first");
-      navigate("/login");
-      return;
-    }
+    // ==========================================
+    // CREATE DECISION
+    // ==========================================
 
-    try {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/decisions",
-        {
-          method: "POST",
+        setError("");
 
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
+        // ------------------------------------------
+        // VALIDATION
+        // ------------------------------------------
 
-          body: JSON.stringify(decision)
+        if (!decision.title.trim()) {
+            setError("Decision title is required.");
+            return;
         }
-      );
 
-      const data = await response.json();
+        if (!decision.problem_statement.trim()) {
+            setError("Problem Statement is required.");
+            return;
+        }
 
-      if (response.ok) {
+        const token = localStorage.getItem("token");
 
-        alert("Decision Created Successfully");
+        if (!token) {
+            setError("Your session has expired. Please login again.");
 
-        navigate("/decisions");
+            setTimeout(() => {
+                navigate("/login");
+            }, 1200);
 
-      } else {
+            return;
+        }
 
-        console.error("Create Decision Error:", data);
+        setIsSubmitting(true);
 
-        alert(
-          data.detail ||
-          data.message ||
-          "Error Creating Decision"
-        );
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:8000/decisions",
+                {
+                    method: "POST",
 
-      }
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
 
-    } catch (error) {
+                    body: JSON.stringify({
+                        title: decision.title.trim(),
+                        problem_statement:
+                            decision.problem_statement.trim(),
+                        description:
+                            decision.description.trim(),
+                        category_id: Number(
+                            decision.category_id
+                        ),
+                        status: "Draft"
+                    })
+                }
+            );
 
-      console.error("Error:", error);
+            // ------------------------------------------
+            // READ RESPONSE SAFELY
+            // ------------------------------------------
 
-      alert("Unable to connect to the server");
+            let data = {};
 
-    }
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
 
-  };
+            console.log(
+                "CREATE DECISION STATUS:",
+                response.status
+            );
 
-  return (
+            console.log(
+                "CREATE DECISION RESPONSE:",
+                data
+            );
 
-    <div className="decision-page">
+            // ------------------------------------------
+            // UNAUTHORIZED
+            // ------------------------------------------
 
-      {/* Header */}
+            if (response.status === 401) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("userEmail");
 
-      <div className="decision-header">
+                setError(
+                    "Your session has expired. Please login again."
+                );
 
-        <div>
-          <h1>Create New Decision</h1>
+                setTimeout(() => {
+                    navigate("/login");
+                }, 1200);
 
-          <p>
-            Create and document an important organizational decision.
-          </p>
+                return;
+            }
+
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            if (response.ok) {
+                alert("Decision Created Successfully!");
+
+                navigate("/decisions");
+
+                return;
+            }
+
+            // ------------------------------------------
+            // BACKEND ERROR
+            // ------------------------------------------
+
+            let errorMessage =
+                "Unable to create decision.";
+
+            if (typeof data.detail === "string") {
+                errorMessage = data.detail;
+            } else if (Array.isArray(data.detail)) {
+                errorMessage = data.detail
+                    .map((item) =>
+                        item?.msg
+                            ? item.msg
+                            : "Invalid input"
+                    )
+                    .join(", ");
+            } else if (data.message) {
+                errorMessage = data.message;
+            }
+
+            setError(errorMessage);
+
+        } catch (error) {
+            console.error(
+                "CREATE DECISION ERROR:",
+                error
+            );
+
+            setError(
+                "Unable to connect to the server. Make sure the backend is running."
+            );
+
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // ==========================================
+    // PAGE
+    // ==========================================
+
+    return (
+        <div className="create-decision-page">
+
+            {/* ==========================================
+                HEADER
+            ========================================== */}
+
+            <header className="create-decision-header">
+
+                <div className="create-decision-brand">
+
+                    <div className="create-decision-logo">
+                        ED
+                    </div>
+
+                    <div>
+                        <h2>
+                            Expert Decision
+                        </h2>
+
+                        <span>
+                            Replay Platform
+                        </span>
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    className="back-button"
+                    onClick={() =>
+                        navigate("/decisions")
+                    }
+                    disabled={isSubmitting}
+                >
+                    ← Back to Decisions
+                </button>
+
+            </header>
+
+
+            {/* ==========================================
+                MAIN CONTENT
+            ========================================== */}
+
+            <main className="create-decision-main">
+
+                {/* ==========================================
+                    PAGE INTRO
+                ========================================== */}
+
+                <div className="create-decision-intro">
+
+                    <div>
+
+                        <span className="create-decision-eyebrow">
+                            DECISION MANAGEMENT
+                        </span>
+
+                        <h1>
+                            Create New Decision
+                        </h1>
+
+                        <p>
+                            Create and document an important
+                            organizational decision.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {/* ==========================================
+                    FORM CARD
+                ========================================== */}
+
+                <div className="create-decision-card">
+
+                    <div className="create-decision-card-header">
+
+                        <div className="form-header-icon">
+                            +
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Decision Information
+                            </h2>
+
+                            <p>
+                                Provide the details required
+                                to create a new decision.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* ==========================================
+                        ERROR MESSAGE
+                    ========================================== */}
+
+                    {error && (
+                        <div className="create-decision-error">
+                            <span>
+                                ⚠
+                            </span>
+
+                            <p>
+                                {error}
+                            </p>
+                        </div>
+                    )}
+
+
+                    {/* ==========================================
+                        FORM
+                    ========================================== */}
+
+                    <form
+                        className="create-decision-form"
+                        onSubmit={handleSubmit}
+                    >
+
+                        {/* TITLE */}
+
+                        <div className="create-form-group">
+
+                            <label htmlFor="title">
+                                Decision Title
+                                <span>*</span>
+                            </label>
+
+                            <input
+                                id="title"
+                                type="text"
+                                name="title"
+                                placeholder="Enter a clear decision title"
+                                value={decision.title}
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                                maxLength={200}
+                            />
+
+                            <small>
+                                Give your decision a short
+                                and meaningful title.
+                            </small>
+
+                        </div>
+
+
+                        {/* PROBLEM STATEMENT */}
+
+                        <div className="create-form-group">
+
+                            <label htmlFor="problem_statement">
+                                Problem Statement
+                                <span>*</span>
+                            </label>
+
+                            <textarea
+                                id="problem_statement"
+                                name="problem_statement"
+                                placeholder="Describe the problem or challenge that requires a decision..."
+                                value={
+                                    decision.problem_statement
+                                }
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                                rows={5}
+                            />
+
+                            <small>
+                                Clearly explain the problem
+                                or challenge being addressed.
+                            </small>
+
+                        </div>
+
+
+                        {/* DESCRIPTION */}
+
+                        <div className="create-form-group">
+
+                            <label htmlFor="description">
+                                Description
+                            </label>
+
+                            <textarea
+                                id="description"
+                                name="description"
+                                placeholder="Provide additional context, background, or relevant information..."
+                                value={
+                                    decision.description
+                                }
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                                rows={6}
+                            />
+
+                            <small>
+                                Add any additional background
+                                or relevant information.
+                            </small>
+
+                        </div>
+
+
+                        {/* CATEGORY */}
+
+                        <div className="create-form-group">
+
+                            <label htmlFor="category_id">
+                                Category
+                            </label>
+
+                            <select
+                                id="category_id"
+                                name="category_id"
+                                value={
+                                    decision.category_id
+                                }
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                            >
+                                <option value={1}>
+                                    Category 1
+                                </option>
+                            </select>
+
+                            <small>
+                                Select the category for
+                                this decision.
+                            </small>
+
+                        </div>
+
+
+                        {/* INFORMATION NOTICE */}
+
+                        <div className="create-decision-info">
+
+                            <div className="info-icon">
+                                i
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Decision status
+                                </strong>
+
+                                <p>
+                                    New decisions are created
+                                    as <b>Draft</b>. You can
+                                    update the decision and
+                                    submit it for review later.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        {/* ACTIONS */}
+
+                        <div className="create-form-actions">
+
+                            <button
+                                type="button"
+                                className="create-cancel-button"
+                                onClick={() =>
+                                    navigate("/decisions")
+                                }
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="submit"
+                                className="create-submit-button"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting
+                                    ? "Creating..."
+                                    : "Create Decision"}
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+                {/* ==========================================
+                    QUICK NAVIGATION
+                ========================================== */}
+
+                <div className="create-quick-navigation">
+
+                    <div className="quick-navigation-header">
+
+                        <div className="quick-navigation-icon">
+                            ⚡
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Decision Management
+                            </h3>
+
+                            <p>
+                                Quickly navigate to other
+                                decision management tools.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="quick-navigation-buttons">
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/decisions")
+                            }
+                        >
+                            <span>
+                                📋
+                            </span>
+
+                            View All Decisions
+
+                            <b>
+                                →
+                            </b>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/alternatives")
+                            }
+                        >
+                            <span>
+                                ⚖️
+                            </span>
+
+                            View Alternatives
+
+                            <b>
+                                →
+                            </b>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </main>
+
         </div>
-
-        <button
-          className="secondary-btn"
-          onClick={() => navigate("/decisions")}
-        >
-          ← Back to Decisions
-        </button>
-
-      </div>
-
-
-      {/* Main Form */}
-
-      <div className="decision-form-card">
-
-        <div className="form-card-header">
-
-          <h2>Decision Information</h2>
-
-          <p>
-            Provide the details required to create a new decision.
-          </p>
-
-        </div>
-
-
-        <form onSubmit={handleSubmit}>
-
-          {/* Title */}
-
-          <div className="form-group">
-
-            <label>
-              Decision Title <span>*</span>
-            </label>
-
-            <input
-              type="text"
-              name="title"
-              placeholder="Enter a clear decision title"
-              value={decision.title}
-              onChange={handleChange}
-            />
-
-          </div>
-
-
-          {/* Problem Statement */}
-
-          <div className="form-group">
-
-            <label>
-              Problem Statement <span>*</span>
-            </label>
-
-            <textarea
-              name="problem_statement"
-              placeholder="Describe the problem or challenge that requires a decision..."
-              value={decision.problem_statement}
-              onChange={handleChange}
-              rows="5"
-            />
-
-          </div>
-
-
-          {/* Description */}
-
-          <div className="form-group">
-
-            <label>
-              Description
-            </label>
-
-            <textarea
-              name="description"
-              placeholder="Provide additional context, background, or relevant information..."
-              value={decision.description}
-              onChange={handleChange}
-              rows="6"
-            />
-
-          </div>
-
-
-          {/* Form Actions */}
-
-          <div className="form-actions">
-
-            <button
-              type="button"
-              className="cancel-btn"
-              onClick={() => navigate("/decisions")}
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="submit-btn"
-            >
-              Create Decision
-            </button>
-
-          </div>
-
-        </form>
-
-      </div>
-
-
-      {/* Quick Navigation */}
-
-      <div className="quick-navigation">
-
-        <h3>Decision Management</h3>
-
-        <div className="quick-nav-buttons">
-
-          <button
-            onClick={() => navigate("/decisions")}
-          >
-            📋 View All Decisions
-          </button>
-
-          <button
-            onClick={() => navigate("/alternatives")}
-          >
-            ⚖️ View Alternatives
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  );
-
+    );
 }
 
 export default CreateDecision;

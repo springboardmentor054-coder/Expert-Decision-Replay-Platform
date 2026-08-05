@@ -18,6 +18,8 @@ import UploadDocument from "./pages/UploadDocument";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+import Dashboard from "./pages/Dashboard";
+
 import PendingApprovals from "./pages/PendingApprovals";
 import ApprovalDetails from "./pages/ApprovalDetails";
 import ApprovalHistory from "./pages/ApprovalHistory";
@@ -38,13 +40,18 @@ function App() {
       <Routes>
 
         {/* ========================= */}
-        {/* Authentication Routes */}
+        {/* HOME / DASHBOARD ROUTE */}
         {/* ========================= */}
 
         <Route
           path="/"
-          element={<Login />}
+          element={<Dashboard />}
         />
+
+
+        {/* ========================= */}
+        {/* AUTHENTICATION ROUTES */}
+        {/* ========================= */}
 
         <Route
           path="/login"
@@ -58,7 +65,17 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Decision Routes */}
+        {/* DASHBOARD ROUTE */}
+        {/* ========================= */}
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+
+        {/* ========================= */}
+        {/* DECISION ROUTES */}
         {/* ========================= */}
 
         <Route
@@ -88,7 +105,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Alternative Routes */}
+        {/* ALTERNATIVE ROUTES */}
         {/* ========================= */}
 
         <Route
@@ -128,7 +145,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Document Routes */}
+        {/* DOCUMENT ROUTES */}
         {/* ========================= */}
 
         <Route
@@ -148,7 +165,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Approval Routes */}
+        {/* APPROVAL ROUTES */}
         {/* ========================= */}
 
         <Route
@@ -168,7 +185,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Notification Routes */}
+        {/* NOTIFICATION ROUTE */}
         {/* ========================= */}
 
         <Route
@@ -178,7 +195,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Audit Log Routes */}
+        {/* AUDIT LOG ROUTE */}
         {/* ========================= */}
 
         <Route
@@ -188,7 +205,7 @@ function App() {
 
 
         {/* ========================= */}
-        {/* Reports Routes */}
+        {/* REPORTS ROUTE */}
         {/* ========================= */}
 
         <Route

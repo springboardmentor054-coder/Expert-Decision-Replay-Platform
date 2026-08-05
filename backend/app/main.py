@@ -28,6 +28,8 @@ from app.routers.document import router as document_router
 from app.routers.meeting_note import router as meeting_note_router
 from app.routers.decision_version import router as decision_version_router
 from app.routers.reports import router as reports_router
+from app.routers.dashboard import router as dashboard_router
+
 
 from app.routers.approval import (
     approval_router,
@@ -85,6 +87,7 @@ app.include_router(decision_approval_router)
 app.include_router(notification_router)
 app.include_router(user_notification_router)
 app.include_router(reports_router)
+app.include_router(dashboard_router)
 
 # Audit Log Routers
 app.include_router(audit_log_router)
