@@ -1,0 +1,36 @@
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.database.connection import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=True)
+    team_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationship with Document
+    documents = relationship(
+        "Document",
+        back_populates="uploader",
+        cascade="all, delete-orphan"
+    )
+
+    comments = relationship(
+    "Comment",
+    back_populates="user",
+    cascade="all, delete-orphan"
+    )
+
+    discussions = relationship(
+    "Discussion",
+    back_populates="user",
+    cascade="all, delete-orphan"
+    )
