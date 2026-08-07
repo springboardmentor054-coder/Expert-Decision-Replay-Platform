@@ -73,36 +73,57 @@ function EditComment() {
 
 
   return (
+  <div className="container">
 
-    <div>
-
-      <h2>Edit Comment</h2>
-
-
-      <form onSubmit={handleSubmit}>
-
-
-        <textarea
-          name="comment"
-          value={comment.comment}
-          onChange={handleChange}
-        />
-
-
-        <br />
-
-
-        <button type="submit">
-          Update Comment
-        </button>
-
-
-      </form>
-
-
+    <div className="page-header">
+      <div>
+        <h1>Edit Comment</h1>
+        <p className="page-subtitle">
+          Update the comment associated with this decision
+        </p>
+      </div>
     </div>
 
-  );
+    <div className="card form-card">
+      <form onSubmit={handleSubmit}>
+
+        <div className="form-group">
+          <label>Comment</label>
+
+          <textarea
+            name="comment"
+            rows="6"
+            placeholder="Write your comment..."
+            value={comment.comment}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-actions">
+
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/comments")}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="create-btn"
+          >
+            Update Comment
+          </button>
+
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+);
 
 }
 

@@ -46,59 +46,80 @@ function AddComment() {
 
 
   return (
+  <div className="container">
 
-    <div>
-
-      <h2>Add Comment</h2>
-
-
-      <form onSubmit={handleSubmit}>
-
-        <input
-          type="number"
-          name="decision_id"
-          placeholder="Decision ID"
-          value={comment.decision_id}
-          onChange={handleChange}
-        />
-
-
-        <br/>
-
-
-        <input
-          type="number"
-          name="user_id"
-          placeholder="User ID"
-          value={comment.user_id}
-          onChange={handleChange}
-        />
-
-
-        <br/>
-
-
-        <textarea
-          name="comment"
-          placeholder="Enter comment"
-          value={comment.comment}
-          onChange={handleChange}
-        />
-
-
-        <br/>
-
-
-        <button type="submit">
-          Add Comment
-        </button>
-
-
-      </form>
-
+    <div className="page-header">
+      <div>
+        <h1>Add Comment</h1>
+        <p className="page-subtitle">
+          Add a comment to an organizational decision
+        </p>
+      </div>
     </div>
 
-  );
+    <div className="card form-card">
+      <form onSubmit={handleSubmit}>
+
+        <div className="form-group">
+          <label>Decision ID</label>
+          <input
+            type="number"
+            name="decision_id"
+            placeholder="Enter decision ID"
+            value={comment.decision_id}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>User ID</label>
+          <input
+            type="number"
+            name="user_id"
+            placeholder="Enter user ID"
+            value={comment.user_id}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Comment</label>
+          <textarea
+            name="comment"
+            rows="5"
+            placeholder="Write your comment..."
+            value={comment.comment}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-actions">
+
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/comments")}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="create-btn"
+          >
+            Add Comment
+          </button>
+
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+);
 
 }
 

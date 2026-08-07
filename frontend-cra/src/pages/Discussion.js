@@ -179,101 +179,81 @@ function Discussion() {
 
 
   return (
+  <div className="container">
 
-    <div>
+    <div className="page-header">
+      <div>
+        <h1>Discussion</h1>
+        <p className="page-subtitle">
+          Collaborate and manage discussions related to decisions
+        </p>
+      </div>
+    </div>
 
+    {/* Add Comment */}
+    <div className="card form-card">
+      <h2>Add Comment</h2>
 
-      <h2>Discussion Page</h2>
+      <div className="form-group">
+        <label>Decision ID</label>
+        <input
+          type="number"
+          placeholder="Enter decision ID"
+          value={decisionId}
+          onChange={(e) => setDecisionId(e.target.value)}
+        />
+      </div>
 
+      <div className="form-group">
+        <label>User ID</label>
+        <input
+          type="number"
+          placeholder="Enter user ID"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+        />
+      </div>
 
+      <div className="form-group">
+        <label>Comment</label>
+        <textarea
+          rows="4"
+          placeholder="Write your comment..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
+      </div>
 
-      <h3>Add Comment</h3>
-
-
-
-      <input
-        type="number"
-        placeholder="Decision ID"
-        value={decisionId}
-        onChange={(e)=>setDecisionId(e.target.value)}
-      />
-
-
-      <br/><br/>
-
-
-
-      <input
-        type="number"
-        placeholder="User ID"
-        value={userId}
-        onChange={(e)=>setUserId(e.target.value)}
-      />
-
-
-      <br/><br/>
-
-
-
-      <textarea
-        placeholder="Enter Comment"
-        value={comment}
-        onChange={(e)=>setComment(e.target.value)}
-      />
-
-
-      <br/><br/>
-
-
-
-      <button onClick={addComment}>
+      <button className="create-btn" onClick={addComment}>
         Add Comment
       </button>
+    </div>
 
+    {/* Error */}
+    {error && (
+      <div className="error-message">
+        {error}
+      </div>
+    )}
 
-      <br/><br/>
+    {/* Edit Comment */}
+    {editId && (
+      <div className="card form-card">
+        <h2>Edit Comment</h2>
 
-
-
-
-      {
-        error &&
-
-        (
-          <p style={{color:"red"}}>
-            {error}
-          </p>
-        )
-      }
-
-
-
-
-
-      {
-        editId &&
-
-        <div>
-
-          <h3>Edit Comment</h3>
-
+        <div className="form-group">
+          <label>Comment</label>
           <textarea
-
+            rows="4"
             value={editText}
-
-            onChange={(e)=>setEditText(e.target.value)}
-
+            onChange={(e) => setEditText(e.target.value)}
           />
+        </div>
 
-          <br/>
-
-          <button onClick={updateComment}>
-            Update
-          </button>
-
-
+        <div className="form-actions">
           <button
-            onClick={()=>{
+            className="cancel-btn"
+            onClick={() => {
               setEditId(null);
               setEditText("");
             }}
@@ -281,223 +261,135 @@ function Discussion() {
             Cancel
           </button>
 
+          <button
+            className="create-btn"
+            onClick={updateComment}
+          >
+            Update Comment
+          </button>
         </div>
+      </div>
+    )}
 
-      }
+    {/* Comments */}
+    <div className="section-heading">
+      <h2>Comment List</h2>
+      <p>Recent discussion and collaboration activity</p>
+    </div>
 
-
-
-
-
-
-      <h3>Comment List</h3>
-
-
-
-
-      {
-        comments.length === 0
-
-        ?
-
-        (
-          <p>No comments found</p>
-        )
-
-        :
-
-        (
-
-          <table border="1">
-
-
+    <div className="card table-card">
+      {comments.length === 0 ? (
+        <p className="empty-state">No comments found.</p>
+      ) : (
+        <div className="table-wrapper">
+          <table>
             <thead>
-
               <tr>
-
                 <th>ID</th>
-
                 <th>Decision ID</th>
-
                 <th>User</th>
-
                 <th>Comment</th>
-
                 <th>Created At</th>
-
                 <th>Updated At</th>
-
-                <th>Action</th>
-
+                <th>Actions</th>
               </tr>
-
             </thead>
 
-
-
-
             <tbody>
-
-
-            {
-              comments.map((item)=>(
-
-
+              {comments.map((item) => (
                 <tr key={item.id}>
-
 
                   <td>{item.id}</td>
 
-
                   <td>{item.decision_id}</td>
 
-
-                  <td>{item.user_name}</td>
-
+                  <td className="decision-title">
+                    {item.user_name}
+                  </td>
 
                   <td>{item.comment}</td>
 
-
                   <td>
-
                     {new Date(item.created_at).toLocaleString()}
-
                   </td>
 
-
                   <td>
-
                     {new Date(item.updated_at).toLocaleString()}
-
                   </td>
-
-
 
                   <td>
+                    <div className="action-buttons">
 
+                      <button
+                        className="edit-btn"
+                        onClick={() => {
+                          setEditId(item.id);
+                          setEditText(item.comment);
+                        }}
+                      >
+                        Edit
+                      </button>
 
-                    <button
+                      <button
+                        className="delete-btn"
+                        onClick={() => deleteComment(item.id)}
+                      >
+                        Delete
+                      </button>
 
-                      onClick={()=>{
-
-                        setEditId(item.id);
-
-                        setEditText(item.comment);
-
-                      }}
-
-                    >
-
-                      Edit
-
-                    </button>
-
-
-
-
-                    <button
-
-                      onClick={()=>deleteComment(item.id)}
-
-                    >
-
-                      Delete
-
-                    </button>
-
-
+                    </div>
                   </td>
-
 
                 </tr>
-
-
-              ))
-            }
-
-
+              ))}
             </tbody>
-
-
           </table>
-
-        )
-
-      }
-
-
-
-
-
-
-
-      <br/>
-
-
-
-
-      <h3>Meeting Notes</h3>
-
-
-
-
-      <label>Meeting Summary</label>
-
-      <br/>
-
-
-      <textarea
-
-        value={meetingSummary}
-
-        onChange={(e)=>setMeetingSummary(e.target.value)}
-
-      />
-
-
-
-      <br/><br/>
-
-
-
-
-      <label>Conclusion</label>
-
-      <br/>
-
-
-      <textarea
-
-        value={conclusion}
-
-        onChange={(e)=>setConclusion(e.target.value)}
-
-      />
-
-
-
-      <br/><br/>
-
-
-
-
-      <label>Next Action</label>
-
-      <br/>
-
-
-      <textarea
-
-        value={nextAction}
-
-        onChange={(e)=>setNextAction(e.target.value)}
-
-      />
-
-
+        </div>
+      )}
     </div>
 
-  );
+    {/* Meeting Notes */}
+    <div className="card form-card meeting-card">
+      <div>
+        <h2>Meeting Notes</h2>
+        <p className="page-subtitle">
+          Capture important outcomes and follow-up actions
+        </p>
+      </div>
+
+      <div className="form-group">
+        <label>Meeting Summary</label>
+        <textarea
+          rows="5"
+          placeholder="Enter meeting summary..."
+          value={meetingSummary}
+          onChange={(e) => setMeetingSummary(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Conclusion</label>
+        <textarea
+          rows="4"
+          placeholder="Enter conclusion..."
+          value={conclusion}
+          onChange={(e) => setConclusion(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Next Action</label>
+        <textarea
+          rows="4"
+          placeholder="Enter next action..."
+          value={nextAction}
+          onChange={(e) => setNextAction(e.target.value)}
+        />
+      </div>
+    </div>
+
+  </div>
+);
 
 }
 

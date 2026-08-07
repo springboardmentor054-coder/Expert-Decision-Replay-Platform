@@ -33,59 +33,104 @@ function DecisionList() {
   };
 
   return (
-    <div>
-      <h2>Decision List</h2>
+  <div className="container">
 
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Created By</th>
-            <th>Created Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+    <div className="page-header">
+      <div>
+        <h1>Decisions</h1>
+        <p className="page-subtitle">
+          Manage and review organizational decisions
+        </p>
+      </div>
 
-        <tbody>
-          {decisions.map((decision) => (
-            <tr key={decision.id}>
-              <td>{decision.title}</td>
-              <td>{decision.category_id}</td>
-              <td>{decision.status}</td>
-              <td>{decision.created_by}</td>
-              <td>{decision.created_at}</td>
-
-              <td>
-                <button
-                  onClick={() =>
-                    navigate(`/edit-decision/${decision.id}`)
-                  }
-                >
-                  Edit
-                </button>
-
-                <button
-                  onClick={() => deleteDecision(decision.id)}
-                >
-                  Delete
-                </button>
-
-                <button
-                  onClick={() =>
-                    navigate(`/decisions/${decision.id}/history`)
-                  }
-                >
-                  View History
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <button
+        className="create-btn"
+        onClick={() => navigate("/create-decision")}
+      >
+        + Create Decision
+      </button>
     </div>
-  );
+
+    <div className="card table-card">
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Created Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {decisions.map((decision) => (
+              <tr key={decision.id}>
+
+                <td className="decision-title">
+                  {decision.title}
+                </td>
+
+                <td>
+                  {decision.category_id}
+                </td>
+
+                <td>
+                  <span className="status-badge">
+                    {decision.status}
+                  </span>
+                </td>
+
+                <td>
+                  {decision.created_by}
+                </td>
+
+                <td>
+                  {decision.created_at}
+                </td>
+
+                <td>
+                  <div className="action-buttons">
+
+                    <button
+                      className="edit-btn"
+                      onClick={() =>
+                        navigate(`/edit-decision/${decision.id}`)
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteDecision(decision.id)}
+                    >
+                      Delete
+                    </button>
+
+                    <button
+                      className="history-btn"
+                      onClick={() =>
+                        navigate(`/decisions/${decision.id}/history`)
+                      }
+                    >
+                      History
+                    </button>
+
+                  </div>
+                </td>
+
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+);
 }
 
 export default DecisionList;

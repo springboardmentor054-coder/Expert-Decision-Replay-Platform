@@ -59,57 +59,77 @@ useEffect(() => {
 
 
   return (
-    <div>
+  <div className="container">
+    <div className="page-header">
+      <div>
+        <h1>Edit Decision</h1>
+        <p className="page-subtitle">
+          Update the details of this organizational decision
+        </p>
+      </div>
+    </div>
 
-      <h2>Edit Decision</h2>
-
+    <div className="card form-card">
       <form onSubmit={handleUpdate}>
 
-        <label>Title</label>
-        <br />
-        <input
-          value={title}
-          onChange={(e)=>setTitle(e.target.value)}
-        />
+        <div className="form-group">
+          <label>Title</label>
+          <input
+            type="text"
+            placeholder="Enter decision title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Problem Statement</label>
+          <textarea
+            rows="4"
+            placeholder="Describe the problem or situation"
+            value={problemStatement}
+            onChange={(e) => setProblemStatement(e.target.value)}
+          />
+        </div>
 
-        <label>Problem Statement</label>
-        <br />
-        <textarea
-          value={problemStatement}
-          onChange={(e)=>setProblemStatement(e.target.value)}
-        />
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            rows="4"
+            placeholder="Provide additional details"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Category ID</label>
+          <input
+            type="number"
+            placeholder="Enter category ID"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          />
+        </div>
 
-        <label>Description</label>
-        <br />
-        <textarea
-          value={description}
-          onChange={(e)=>setDescription(e.target.value)}
-        />
+        <div className="form-actions">
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/decisions")}
+          >
+            Cancel
+          </button>
 
-        <br /><br />
-
-        <label>Category ID</label>
-        <br />
-        <input
-          type="number"
-          value={categoryId}
-          onChange={(e)=>setCategoryId(e.target.value)}
-        />
-
-        <br /><br />
-
-        <button type="submit">
-          Update Decision
-        </button>
+          <button type="submit" className="create-btn">
+            Update Decision
+          </button>
+        </div>
 
       </form>
-
     </div>
-  );
+  </div>
+);
 }
 
 export default EditDecision;

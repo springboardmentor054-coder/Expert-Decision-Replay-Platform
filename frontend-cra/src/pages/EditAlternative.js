@@ -90,129 +90,135 @@ function EditAlternative() {
 
 
   return (
+  <div className="container">
 
-    <div>
-
-      <h2>Edit Alternative</h2>
-
-
-      <form onSubmit={handleSubmit}>
-
-
-        <label>Decision ID</label>
-        <br/>
-        <input
-          name="decision_id"
-          value={alternative.decision_id}
-          onChange={handleChange}
-          required
-        />
-
-        <br/><br/>
-
-
-        <label>Alternative Name</label>
-        <br/>
-        <input
-          name="alternative_name"
-          value={alternative.alternative_name}
-          onChange={handleChange}
-          required
-        />
-
-        <br/><br/>
-
-
-        <label>Description</label>
-        <br/>
-        <textarea
-          name="description"
-          value={alternative.description}
-          onChange={handleChange}
-        />
-
-        <br/><br/>
-
-
-        <label>Pros</label>
-        <br/>
-        <textarea
-          name="pros"
-          value={alternative.pros}
-          onChange={handleChange}
-        />
-
-        <br/><br/>
-
-
-        <label>Cons</label>
-        <br/>
-        <textarea
-          name="cons"
-          value={alternative.cons}
-          onChange={handleChange}
-        />
-
-        <br/><br/>
-
-
-        <label>Estimated Cost</label>
-        <br/>
-        <input
-          type="number"
-          name="estimated_cost"
-          value={alternative.estimated_cost}
-          onChange={handleChange}
-          required
-        />
-
-        <br/><br/>
-
-
-        <label>Feasibility</label>
-        <br/>
-        <input
-          name="feasibility"
-          value={alternative.feasibility}
-          onChange={handleChange}
-          required
-        />
-
-        <br/><br/>
-
-
-        <label>Risk Level</label>
-        <br/>
-
-        <select
-          name="risk_level"
-          value={alternative.risk_level}
-          onChange={handleChange}
-          required
-        >
-
-          <option value="">Select</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-
-        </select>
-
-
-        <br/><br/>
-
-
-        <button type="submit">
-          Update Alternative
-        </button>
-
-
-      </form>
-
-
+    <div className="page-header">
+      <div>
+        <h1>Edit Alternative</h1>
+        <p className="page-subtitle">
+          Update the details and evaluation of this alternative
+        </p>
+      </div>
     </div>
 
-  );
+    <div className="card form-card">
+      <form onSubmit={handleSubmit}>
+
+        <div className="form-group">
+          <label>Decision ID</label>
+          <input
+            type="number"
+            name="decision_id"
+            placeholder="Enter decision ID"
+            value={alternative.decision_id}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Alternative Name</label>
+          <input
+            type="text"
+            name="alternative_name"
+            placeholder="Enter alternative name"
+            value={alternative.alternative_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            rows="4"
+            name="description"
+            placeholder="Describe the alternative"
+            value={alternative.description}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Pros</label>
+          <textarea
+            rows="3"
+            name="pros"
+            placeholder="Enter the advantages"
+            value={alternative.pros}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Cons</label>
+          <textarea
+            rows="3"
+            name="cons"
+            placeholder="Enter the disadvantages"
+            value={alternative.cons}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Estimated Cost</label>
+          <input
+            type="number"
+            name="estimated_cost"
+            placeholder="Enter estimated cost"
+            value={alternative.estimated_cost}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Feasibility</label>
+          <input
+            type="text"
+            name="feasibility"
+            placeholder="Example: High, Medium, Low"
+            value={alternative.feasibility}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Risk Level</label>
+          <select
+            name="risk_level"
+            value={alternative.risk_level}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Risk Level</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+
+        <div className="form-actions">
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/alternatives")}
+          >
+            Cancel
+          </button>
+
+          <button type="submit" className="create-btn">
+            Update Alternative
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+);
 
 }
 

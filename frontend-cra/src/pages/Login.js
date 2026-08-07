@@ -35,32 +35,37 @@ function Login() {
 
 
   return (
-    <div>
-      <h1>Login Page</h1>
+  <div className="login-page">
+    <div className="login-card">
+      <div className="login-header">
+        <h1>Expert Decision</h1>
+        <p>Sign in to continue</p>
+      </div>
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e)=>setEmail(e.target.value)}
-      />
+      <div className="login-form">
+        <label>Email</label>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <br/>
+        <label>Password</label>
+        <input
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e)=>setPassword(e.target.value)}
-      />
-
-      <br/>
-
-      <button onClick={handleLogin}>
-        Login
-      </button>
-
+        <button onClick={handleLogin}>
+          Login
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default Login;

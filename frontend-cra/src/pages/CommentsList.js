@@ -42,73 +42,80 @@ function CommentsList() {
 
 
   return (
-    <div>
+  <div className="container">
 
-      <h2>Comments</h2>
+    <div className="page-header">
+      <div>
+        <h1>Comments</h1>
+        <p className="page-subtitle">
+          Review and manage comments related to decisions
+        </p>
+      </div>
 
-      <Link to="/comments/add">
-        Add Comment
+      <Link to="/comments/add" className="create-btn">
+        + Add Comment
       </Link>
-
-
-      <table border="1">
-
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Decision ID</th>
-            <th>User</th>
-            <th>Comment</th>
-            <th>Created At</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-
-        <tbody>
-
-        {
-          comments.map((c) => (
-
-            <tr key={c.id}>
-
-              <td>{c.id}</td>
-
-              <td>{c.decision_id}</td>
-
-              <td>{c.user_name}</td>
-
-              <td>{c.comment}</td>
-
-              <td>{c.created_at}</td>
-
-              <td>
-
-                <Link to={`/comments/edit/${c.id}`}>
-                  Edit
-                </Link>
-
-
-                <button
-                  onClick={() => handleDelete(c.id)}
-                >
-                  Delete
-                </button>
-
-              </td>
-
-            </tr>
-
-          ))
-        }
-
-        </tbody>
-
-      </table>
-
-
     </div>
-  );
+
+    <div className="card table-card">
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Decision ID</th>
+              <th>User</th>
+              <th>Comment</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {comments.map((c) => (
+              <tr key={c.id}>
+
+                <td>{c.id}</td>
+
+                <td>{c.decision_id}</td>
+
+                <td className="decision-title">
+                  {c.user_name}
+                </td>
+
+                <td>{c.comment}</td>
+
+                <td>{c.created_at}</td>
+
+                <td>
+                  <div className="action-buttons">
+
+                    <Link
+                      to={`/comments/edit/${c.id}`}
+                      className="edit-btn"
+                    >
+                      Edit
+                    </Link>
+
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDelete(c.id)}
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+                </td>
+
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+);
 }
 
 

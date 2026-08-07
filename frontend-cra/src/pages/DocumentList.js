@@ -60,45 +60,40 @@ function DocumentList() {
 
 
   return (
-
-    <div>
-
-      <h2>Documents List</h2>
-
-
-      <Link to="/upload-document">
-        Upload New Document
-      </Link>
-
-
-      <br />
-      <br />
-
-
-      {
-        error &&
-        <p style={{ color: "red" }}>
-          {error}
+  <div className="container">
+    <div className="page-header">
+      <div>
+        <h1>Documents</h1>
+        <p className="page-subtitle">
+          Manage documents associated with organizational decisions
         </p>
-      }
+      </div>
 
+      <Link to="/upload-document" className="primary-link">
+        + Upload Document
+      </Link>
+    </div>
 
+    {error && (
+      <div className="error">
+        {error}
+      </div>
+    )}
 
-      {
-        documents.length === 0 ?
+    {documents.length === 0 ? (
+      <div className="card empty-state">
+        <h3>No documents found</h3>
+        <p>Upload a document to get started.</p>
 
-        (
-          <p>No documents found</p>
-        )
-
-        :
-
-        (
-
-          <table border="1">
-
+        <Link to="/upload-document" className="primary-link">
+          Upload Document
+        </Link>
+      </div>
+    ) : (
+      <div className="card table-card">
+        <div className="table-wrapper">
+          <table>
             <thead>
-
               <tr>
                 <th>ID</th>
                 <th>Decision ID</th>
@@ -107,99 +102,57 @@ function DocumentList() {
                 <th>File Type</th>
                 <th>File Size</th>
                 <th>Uploaded At</th>
-                <th>Action</th>
+                <th>Actions</th>
               </tr>
-
             </thead>
 
-
-
             <tbody>
+              {documents.map((doc) => (
+                <tr key={doc.id}>
+                  <td>{doc.id}</td>
 
+                  <td>{doc.decision_id}</td>
 
-              {
-                documents.map((doc) => (
+                  <td>{doc.uploaded_by}</td>
 
-                  <tr key={doc.id}>
+                  <td className="file-name">
+                    {doc.file_name}
+                  </td>
 
+                  <td>{doc.file_type}</td>
 
-                    <td>
-                      {doc.id}
-                    </td>
+                  <td>{doc.file_size} bytes</td>
 
+                  <td>{doc.created_at}</td>
 
-                    <td>
-                      {doc.decision_id}
-                    </td>
-
-
-                    <td>
-                      {doc.uploaded_by}
-                    </td>
-
-
-                    <td>
-                      {doc.file_name}
-                    </td>
-
-
-                    <td>
-                      {doc.file_type}
-                    </td>
-
-
-                    <td>
-                      {doc.file_size} bytes
-                    </td>
-
-
-                    <td>
-                      {doc.created_at}
-                    </td>
-
-
-                    <td>
-
-
+                  <td>
+                    <div className="action-buttons">
                       <a
                         href={`http://127.0.0.1:8000/uploads/${doc.file_name}`}
                         target="_blank"
                         rel="noreferrer"
+                        className="view-btn"
                       >
                         View
                       </a>
 
-
                       <button
                         onClick={() => deleteDocument(doc.id)}
-                        style={{ marginLeft: "10px" }}
+                        className="delete-btn"
                       >
                         Delete
                       </button>
-
-
-                    </td>
-
-
-                  </tr>
-
-                ))
-              }
-
-
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
-
-
           </table>
-
-        )
-
-      }
-
-
-    </div>
-
-  );
+        </div>
+      </div>
+    )}
+  </div>
+);
 
 }
 

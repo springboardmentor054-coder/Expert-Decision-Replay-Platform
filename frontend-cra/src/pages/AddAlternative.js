@@ -58,106 +58,127 @@ function AddAlternative() {
   };
 
   return (
-    <div>
+  <div className="container">
 
-      <h2>Add Alternative</h2>
+    <div className="page-header">
+      <div>
+        <h1>Add Alternative</h1>
+        <p className="page-subtitle">
+          Define and evaluate an alternative for a decision
+        </p>
+      </div>
+    </div>
 
+    <div className="card form-card">
       <form onSubmit={handleSubmit}>
 
-        <label>Decision ID</label>
-        <br />
-        <input
-          type="number"
-          value={decisionId}
-          onChange={(e) => setDecisionId(e.target.value)}
-          required
-        />
+        <div className="form-group">
+          <label>Decision ID</label>
+          <input
+            type="number"
+            placeholder="Enter decision ID"
+            value={decisionId}
+            onChange={(e) => setDecisionId(e.target.value)}
+            required
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Alternative Name</label>
+          <input
+            type="text"
+            placeholder="Enter alternative name"
+            value={alternativeName}
+            onChange={(e) => setAlternativeName(e.target.value)}
+            required
+          />
+        </div>
 
-        <label>Alternative Name</label>
-        <br />
-        <input
-          type="text"
-          value={alternativeName}
-          onChange={(e) => setAlternativeName(e.target.value)}
-          required
-        />
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            rows="4"
+            placeholder="Describe the alternative"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Pros</label>
+          <textarea
+            rows="3"
+            placeholder="Enter the advantages"
+            value={pros}
+            onChange={(e) => setPros(e.target.value)}
+          />
+        </div>
 
-        <label>Description</label>
-        <br />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <div className="form-group">
+          <label>Cons</label>
+          <textarea
+            rows="3"
+            placeholder="Enter the disadvantages"
+            value={cons}
+            onChange={(e) => setCons(e.target.value)}
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Estimated Cost</label>
+          <input
+            type="number"
+            placeholder="Enter estimated cost"
+            value={estimatedCost}
+            onChange={(e) => setEstimatedCost(e.target.value)}
+            required
+          />
+        </div>
 
-        <label>Pros</label>
-        <br />
-        <textarea
-          value={pros}
-          onChange={(e) => setPros(e.target.value)}
-        />
+        <div className="form-group">
+          <label>Feasibility</label>
+          <input
+            type="text"
+            placeholder="Example: High, Medium, Low"
+            value={feasibility}
+            onChange={(e) => setFeasibility(e.target.value)}
+            required
+          />
+        </div>
 
-        <br /><br />
+        <div className="form-group">
+          <label>Risk Level</label>
+          <select
+            value={riskLevel}
+            onChange={(e) => setRiskLevel(e.target.value)}
+            required
+          >
+            <option value="">Select Risk Level</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
 
-        <label>Cons</label>
-        <br />
-        <textarea
-          value={cons}
-          onChange={(e) => setCons(e.target.value)}
-        />
+        <div className="form-actions">
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/alternatives")}
+          >
+            Cancel
+          </button>
 
-        <br /><br />
-
-        <label>Estimated Cost</label>
-        <br />
-        <input
-          type="number"
-          value={estimatedCost}
-          onChange={(e) => setEstimatedCost(e.target.value)}
-          required
-        />
-
-        <br /><br />
-
-        <label>Feasibility</label>
-        <br />
-        <input
-          type="text"
-          value={feasibility}
-          onChange={(e) => setFeasibility(e.target.value)}
-          required
-        />
-
-        <br /><br />
-
-        <label>Risk Level</label>
-        <br />
-        <select
-          value={riskLevel}
-          onChange={(e) => setRiskLevel(e.target.value)}
-          required
-        >
-          <option value="">Select Risk Level</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-
-        <br /><br />
-
-        <button type="submit">
-          Add Alternative
-        </button>
+          <button type="submit" className="create-btn">
+            Add Alternative
+          </button>
+        </div>
 
       </form>
-
     </div>
-  );
+
+  </div>
+);
 }
 
 export default AddAlternative;

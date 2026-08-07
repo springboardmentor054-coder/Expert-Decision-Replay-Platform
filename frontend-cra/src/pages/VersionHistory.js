@@ -22,40 +22,76 @@ function VersionHistory() {
   };
 
   return (
-    <div>
-      <h2>Decision Version History</h2>
+  <div className="container">
 
-      <table border="1" cellPadding="8">
-        <thead>
-          <tr>
-            <th>Version Number</th>
-            <th>Modified By</th>
-            <th>Modified Date</th>
-            <th>Status</th>
-            <th>Change Summary</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {versions.length > 0 ? (
-            versions.map((version) => (
-              <tr key={version.id}>
-                <td>{version.version_number}</td>
-                <td>{version.modified_by}</td>
-                <td>{new Date(version.modified_at).toLocaleString()}</td>
-                <td>{version.status}</td>
-                <td>{version.change_summary}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5">No version history found.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="page-header">
+      <div>
+        <h1>Version History</h1>
+        <p className="page-subtitle">
+          Track changes and previous versions of this decision
+        </p>
+      </div>
     </div>
-  );
+
+    <div className="card table-card">
+      <div className="table-wrapper">
+
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Modified By</th>
+              <th>Modified Date</th>
+              <th>Status</th>
+              <th>Change Summary</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {versions.length > 0 ? (
+              versions.map((version) => (
+                <tr key={version.id}>
+
+                  <td>
+                    <span className="version-badge">
+                      v{version.version_number}
+                    </span>
+                  </td>
+
+                  <td>{version.modified_by}</td>
+
+                  <td>
+                    {new Date(
+                      version.modified_at
+                    ).toLocaleString()}
+                  </td>
+
+                  <td>
+                    <span className="status-badge">
+                      {version.status}
+                    </span>
+                  </td>
+
+                  <td>{version.change_summary}</td>
+
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="empty-state">
+                  No version history found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+);
 }
 
 export default VersionHistory;

@@ -46,64 +46,77 @@ function CreateDecision() {
 
 
   return (
-    <div>
+  <div className="container">
+    <div className="page-header">
+      <div>
+        <h1>Create Decision</h1>
+        <p className="page-subtitle">
+          Record a new organizational decision
+        </p>
+      </div>
+    </div>
 
-      <h2>Create Decision</h2>
-
+    <div className="card form-card">
       <form onSubmit={handleSubmit}>
 
-        <div>
+        <div className="form-group">
           <label>Title</label>
-          <br />
           <input
             type="text"
+            placeholder="Enter decision title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-
-        <div>
+        <div className="form-group">
           <label>Problem Statement</label>
-          <br />
           <textarea
+            rows="4"
+            placeholder="Describe the problem or situation that requires a decision"
             value={problemStatement}
             onChange={(e) => setProblemStatement(e.target.value)}
           />
         </div>
 
-
-        <div>
+        <div className="form-group">
           <label>Description</label>
-          <br />
           <textarea
+            rows="4"
+            placeholder="Provide additional details about the decision"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
 
-
-        <div>
+        <div className="form-group">
           <label>Category ID</label>
-          <br />
           <input
             type="number"
+            placeholder="Enter category ID"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
           />
         </div>
 
+        <div className="form-actions">
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/decisions")}
+          >
+            Cancel
+          </button>
 
-        <br />
-
-        <button type="submit">
-          Create Decision
-        </button>
+          <button type="submit" className="create-btn">
+            Create Decision
+          </button>
+        </div>
 
       </form>
-
     </div>
-  );
+  </div>
+);
 }
 
 export default CreateDecision;
