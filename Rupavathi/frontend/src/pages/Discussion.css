@@ -1,0 +1,258 @@
+.discussion-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+  max-width: 860px;
+}
+
+.discussion-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.discussion-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.discussion-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.discussion-panel h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 14px;
+}
+
+.discussion-form-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.discussion-add-comment textarea {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-strong);
+  resize: vertical;
+  outline: none;
+}
+
+.discussion-add-comment textarea:focus {
+  border-color: #173528;
+  box-shadow: 0 0 0 3px rgba(23, 53, 40, 0.08);
+}
+
+.discussion-add-comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.discussion-submit-btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: none;
+  background: #173528;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.discussion-submit-btn:disabled {
+  opacity: 0.6;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+}
+
+.comment-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #173528;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.comment-author {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #173528;
+}
+
+.comment-date {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.comment-date-edited {
+  font-size: 11.5px;
+  color: #bbbbbb;
+  font-style: italic;
+}
+
+.comment-text {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  line-height: 1.6;
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.comment-action-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.comment-action-link:hover {
+  color: #173528;
+  text-decoration: underline;
+}
+
+.comment-action-link-danger:hover {
+  color: #c0392b;
+}
+
+.comment-edit-textarea {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-strong);
+  resize: vertical;
+  outline: none;
+  margin-top: 4px;
+}
+
+.discussion-empty,
+.discussion-loading {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.meeting-notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.meeting-notes-field label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.meeting-notes-field textarea {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-strong);
+  resize: vertical;
+  outline: none;
+}
+
+.meeting-notes-field textarea:focus {
+  border-color: #173528;
+  box-shadow: 0 0 0 3px rgba(23, 53, 40, 0.08);
+}
+
+.meeting-note-entry {
+  border-bottom: 1px solid var(--surface-alt);
+  padding: 14px 0;
+}
+
+.meeting-note-entry:last-child {
+  border-bottom: none;
+}
+
+.meeting-note-entry-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+
+.meeting-note-entry-row {
+  margin-bottom: 8px;
+}
+
+.meeting-note-entry-row:last-child {
+  margin-bottom: 0;
+}
+
+.meeting-note-entry-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.meeting-note-entry-value {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}

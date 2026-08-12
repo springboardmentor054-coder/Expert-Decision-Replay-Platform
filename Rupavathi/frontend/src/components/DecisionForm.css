@@ -1,0 +1,103 @@
+.decision-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Inter', sans-serif;
+  max-width: 640px;
+}
+
+.decision-form-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.decision-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.decision-form-field label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.decision-form-field .required {
+  color: #c0392b;
+}
+
+.decision-form-field input,
+.decision-form-field textarea {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-strong);
+  background: var(--surface);
+  outline: none;
+}
+
+.decision-form-field input:focus,
+.decision-form-field textarea:focus {
+  border-color: #173528;
+}
+
+.decision-form-field textarea {
+  resize: vertical;
+}
+
+.decision-form-field-error {
+  color: #c0392b;
+  font-size: 12.5px;
+}
+
+.decision-form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.decision-form-hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.decision-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.decision-form-submit {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 10px;
+  border: none;
+  background: #173528;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.decision-form-submit:disabled {
+  opacity: 0.6;
+}
+
+.decision-form-cancel {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}

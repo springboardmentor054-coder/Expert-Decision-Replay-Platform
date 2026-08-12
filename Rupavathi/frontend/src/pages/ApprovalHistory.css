@@ -1,0 +1,88 @@
+.approval-history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.approval-history-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.approval-history-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.approval-history-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 8px 24px 16px;
+  overflow-x: auto;
+}
+
+.approval-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.approval-history-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.approval-history-table td {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--surface-alt);
+}
+
+.approval-history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.approval-history-title {
+  font-weight: 600;
+  color: #173528;
+}
+
+.approval-history-title:hover {
+  text-decoration: underline;
+}
+
+.approval-history-remarks {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-body);
+}
+
+.approval-history-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.approval-history-empty {
+  padding: 40px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}

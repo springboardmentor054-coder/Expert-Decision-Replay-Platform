@@ -1,0 +1,37 @@
+.reports-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 4px;
+}
+
+.reports-subnav-link {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+
+.reports-subnav-link:hover {
+  color: #173528;
+  background: rgba(23, 53, 40, 0.04);
+}
+
+.reports-subnav-link-active {
+  color: #173528;
+}
+
+.reports-subnav-link-active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -5px;
+  height: 2px;
+  background: #173528;
+}

@@ -1,0 +1,248 @@
+.reports-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.reports-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.reports-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.reports-section {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reports-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.reports-section-header h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.reports-section-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.reports-export-group {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.reports-export-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #173528;
+  background: var(--surface);
+  border: 1px solid #173528;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.reports-export-btn:hover:not(:disabled) {
+  background: rgba(23, 53, 40, 0.06);
+}
+
+.reports-export-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reports-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reports-search {
+  flex: 1;
+  min-width: 200px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  color: var(--text-strong);
+  padding: 9px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  outline: none;
+}
+
+.reports-search:focus {
+  border-color: #173528;
+}
+
+.reports-toolbar .custom-select {
+  width: 200px;
+}
+
+.reports-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reports-summary-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(23, 53, 40, 0.05);
+  border-radius: 12px;
+  padding: 12px 18px;
+  min-width: 130px;
+}
+
+.reports-summary-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: #173528;
+}
+
+.reports-summary-label {
+  font-size: 12px;
+  color: #666666;
+}
+
+.reports-summary-pill-approved {
+  background: rgba(31, 138, 76, 0.08);
+}
+
+.reports-summary-pill-approved .reports-summary-value {
+  color: #1f8a4c;
+}
+
+.reports-summary-pill-rejected {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.reports-summary-pill-rejected .reports-summary-value {
+  color: #c0392b;
+}
+
+.reports-summary-pill-pending {
+  background: rgba(216, 176, 122, 0.16);
+}
+
+.reports-summary-pill-pending .reports-summary-value {
+  color: #9a7b4f;
+}
+
+.reports-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.reports-empty {
+  padding: 32px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.reports-table-wrap {
+  overflow-x: auto;
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.reports-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.reports-table td {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--surface-alt);
+}
+
+.reports-table tr:last-child td {
+  border-bottom: none;
+}
+
+.reports-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 6px;
+}
+
+.reports-page-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #173528;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.reports-page-btn:hover:not(:disabled) {
+  border-color: #173528;
+  background: rgba(23, 53, 40, 0.05);
+}
+
+.reports-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reports-page-status {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .reports-section {
+    padding: 18px;
+  }
+
+  .reports-summary-pill {
+    min-width: 0;
+    flex: 1 1 calc(50% - 6px);
+  }
+}

@@ -17,6 +17,12 @@ Rupavathi/frontend/node_modules/
 # Environment files
 .env
 
+# Claude Code project instructions (local-only, not pushed)
+Rupavathi/CLAUDE.md
+
+# Uploaded documents
+Rupavathi/backend/uploads/
+
 # VS Code
 .vscode/
 

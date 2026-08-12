@@ -52,6 +52,7 @@
 
 body {
   margin: 0;
+  background: var(--app-bg);
 }
 
 #root {
@@ -108,4 +109,71 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* Avatar image — fills whatever circular container it's placed in */
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+/* ==========================================================================
+   EDRP theme tokens — consumed across page & component CSS
+   ========================================================================== */
+html {
+  --app-bg: #f7f6f4;
+  --surface: #ffffff;
+  --surface-alt: #f2f1ef;
+  --border-color: #e6e6e6;
+  --text-strong: #222222;
+  --text-body: #444444;
+  --text-muted: #777777;
+  --text-faint: #999999;
+}
+
+/* Density preference */
+html[data-density='compact'] [class$='-panel'],
+html[data-density='compact'] [class$='-card']:not(.dashboard-quick-action-btn) {
+  padding: 16px !important;
+}
+html[data-density='compact'] [class*='-table-row'],
+html[data-density='compact'] [class*='-list-item'],
+html[data-density='compact'] [class*='-account-row'],
+html[data-density='compact'] [class*='-metric-row'],
+html[data-density='compact'] [class*='-overview-row'] {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* Font size preference */
+html[data-font-size='small'] #root {
+  zoom: 0.9;
+}
+html[data-font-size='large'] #root {
+  zoom: 1.15;
+}
+
+/* Font family preference */
+html[data-font-family='poppins'] #root,
+html[data-font-family='poppins'] #root * {
+  font-family: 'Poppins', sans-serif !important;
+}
+html[data-font-family='roboto'] #root,
+html[data-font-family='roboto'] #root * {
+  font-family: 'Roboto', sans-serif !important;
+}
+html[data-font-family='serif'] #root,
+html[data-font-family='serif'] #root * {
+  font-family: 'Lora', Georgia, serif !important;
+}
+html[data-font-family='system'] #root,
+html[data-font-family='system'] #root * {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+html[data-font-family='mono'] #root,
+html[data-font-family='mono'] #root * {
+  font-family: 'Consolas', 'Courier New', monospace !important;
 }

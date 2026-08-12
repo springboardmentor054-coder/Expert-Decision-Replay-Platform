@@ -1,0 +1,29 @@
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.role-badge-admin {
+  background: #173528;
+  color: #ffffff;
+  border: 1px solid #D8B07A;
+}
+
+.role-badge-reviewer {
+  background: rgba(23, 53, 40, 0.1);
+  color: #173528;
+}
+
+.role-badge-approver {
+  background: rgba(216, 176, 122, 0.18);
+  color: #9a7b4f;
+}
+
+.role-badge-member {
+  background: rgba(119, 119, 119, 0.12);
+  color: #666666;
+}

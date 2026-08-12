@@ -1,0 +1,90 @@
+.version-history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.version-history-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.version-history-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.version-history-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 8px 24px 16px;
+  overflow-x: auto;
+}
+
+.version-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.version-history-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.version-history-table td {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--surface-alt);
+  vertical-align: top;
+}
+
+.version-history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.version-history-number {
+  font-weight: 700;
+  color: #173528;
+}
+
+.version-history-latest-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: rgba(23, 53, 40, 0.1);
+  color: #173528;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.version-history-empty,
+.version-history-loading {
+  padding: 40px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.version-history-form-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}

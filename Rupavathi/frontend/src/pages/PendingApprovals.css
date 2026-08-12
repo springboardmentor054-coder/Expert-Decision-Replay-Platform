@@ -1,0 +1,86 @@
+.pending-approvals-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.pending-approvals-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pending-approvals-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.pending-approvals-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 8px 24px 16px;
+  overflow-x: auto;
+}
+
+.pending-approvals-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+.pending-approvals-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.pending-approvals-table td {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--surface-alt);
+}
+
+.pending-approvals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pending-approvals-title {
+  font-weight: 600;
+  color: #173528;
+}
+
+.pending-approvals-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #173528;
+}
+
+.pending-approvals-link:hover {
+  text-decoration: underline;
+}
+
+.pending-approvals-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.pending-approvals-empty {
+  padding: 40px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}

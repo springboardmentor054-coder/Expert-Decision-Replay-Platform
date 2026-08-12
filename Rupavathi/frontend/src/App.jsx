@@ -1,181 +1,116 @@
-import { useState } from "react";
-import "./App.css";
-
-const API_BASE = "http://127.0.0.1:8000";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { PreferencesProvider } from './context/PreferencesContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './layouts/DashboardLayout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import DecisionList from './pages/DecisionList';
+import CreateDecision from './pages/CreateDecision';
+import DecisionEdit from './pages/DecisionEdit';
+import DecisionDetail from './pages/DecisionDetail';
+import AlternativesView from './pages/AlternativesView';
+import AddAlternative from './pages/AddAlternative';
+import EditAlternative from './pages/EditAlternative';
+import AlternativesCompare from './pages/AlternativesCompare';
+import DocumentsView from './pages/DocumentsView';
+import UploadDocument from './pages/UploadDocument';
+import Discussion from './pages/Discussion';
+import VersionHistory from './pages/VersionHistory';
+import GlobalAlternatives from './pages/GlobalAlternatives';
+import GlobalDocuments from './pages/GlobalDocuments';
+import GlobalDiscussions from './pages/GlobalDiscussions';
+import GlobalVersionHistory from './pages/GlobalVersionHistory';
+import MyDecisions from './pages/MyDecisions';
+import DraftedDecisions from './pages/DraftedDecisions';
+import Reviews from './pages/Reviews';
+import Users from './pages/Users';
+import Notifications from './pages/Notifications';
+import AccessLog from './pages/AccessLog';
+import AuditLogs from './pages/AuditLogs';
+import ReportsLayout from './layouts/ReportsLayout';
+import DecisionReport from './pages/reports/DecisionReport';
+import ApprovalReport from './pages/reports/ApprovalReport';
+import TeamReport from './pages/reports/TeamReport';
+import AuditReport from './pages/reports/AuditReport';
+import Permissions from './pages/Permissions';
+import PendingApprovals from './pages/PendingApprovals';
+import ApprovalDetail from './pages/ApprovalDetail';
+import ApprovalHistory from './pages/ApprovalHistory';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import ForgotPassword from './pages/ForgotPassword';
+import Register from './pages/Register';
+import NotFound from './pages/NotFound';
 
 function App() {
-  const [mode, setMode] = useState("login");
-
-  // register form
-  const [fullName, setFullName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [role, setRole] = useState("employee");
-
-  // login form
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-
-  const [message, setMessage] = useState("");
-  const [token, setToken] = useState("");
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setMessage("");
-
-    try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          full_name: fullName,
-          email: regEmail,
-          password: regPassword,
-          role: role,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.detail || "Registration failed");
-        return;
-      }
-
-      setMessage("Registration successful ✅");
-      setFullName("");
-      setRegEmail("");
-      setRegPassword("");
-      setRole("employee");
-      setMode("login");
-    } catch (error) {
-      setMessage("Server error while registering");
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage("");
-
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: loginEmail,
-          password: loginPassword,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.detail || "Login failed");
-        return;
-      }
-
-      setToken(data.access_token);
-      setMessage(`Login successful ✅ Welcome ${data.user.full_name}`);
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setLoginEmail("");
-      setLoginPassword("");
-    } catch (error) {
-      setMessage("Server error while login");
-    }
-  };
-
   return (
-    <div className="app-container">
-      <div className="card">
-        <h1>Expert Decision Replay Platform</h1>
-        <p className="subtitle">Milestone 1 - Authentication UI</p>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
+    <PreferencesProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<Register />} />
 
-        <div className="toggle-buttons">
-          <button
-            className={mode === "login" ? "active" : ""}
-            onClick={() => setMode("login")}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
           >
-            Login
-          </button>
-          <button
-            className={mode === "register" ? "active" : ""}
-            onClick={() => setMode("register")}
-          >
-            Register
-          </button>
-        </div>
+            <Route index element={<Dashboard />} />
+            <Route path="decisions" element={<DecisionList />} />
+            <Route path="decisions/new" element={<CreateDecision />} />
+            <Route path="decisions/:id" element={<DecisionDetail />} />
+            <Route path="decisions/:id/edit" element={<DecisionEdit />} />
+            <Route path="decisions/:decisionId/alternatives" element={<AlternativesView />} />
+            <Route path="decisions/:decisionId/alternatives/new" element={<AddAlternative />} />
+            <Route path="decisions/:decisionId/alternatives/compare" element={<AlternativesCompare />} />
+            <Route path="decisions/:decisionId/alternatives/:altId/edit" element={<EditAlternative />} />
+            <Route path="decisions/:decisionId/documents" element={<DocumentsView />} />
+            <Route path="decisions/:decisionId/documents/upload" element={<UploadDocument />} />
+            <Route path="decisions/:decisionId/discussion" element={<Discussion />} />
+            <Route path="decisions/:decisionId/versions" element={<VersionHistory />} />
+            <Route path="alternatives" element={<GlobalAlternatives />} />
+            <Route path="documents" element={<GlobalDocuments />} />
+            <Route path="documents/upload" element={<UploadDocument />} />
+            <Route path="discussions" element={<GlobalDiscussions />} />
+            <Route path="version-history" element={<GlobalVersionHistory />} />
+            <Route path="my-decisions" element={<MyDecisions />} />
+            <Route path="drafted-decisions" element={<DraftedDecisions />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="users" element={<Users />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="access-log" element={<AccessLog />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
+            <Route path="reports" element={<ReportsLayout />}>
+              <Route index element={<Navigate to="decisions" replace />} />
+              <Route path="decisions" element={<DecisionReport />} />
+              <Route path="approvals" element={<ApprovalReport />} />
+              <Route path="teams" element={<TeamReport />} />
+              <Route path="audit" element={<AuditReport />} />
+            </Route>
+            <Route path="approvals" element={<PendingApprovals />} />
+            <Route path="approvals/:id" element={<ApprovalDetail />} />
+            <Route path="approval-history" element={<ApprovalHistory />} />
+            <Route path="permissions" element={<Permissions />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
-        {mode === "register" ? (
-          <form onSubmit={handleRegister} className="form">
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-
-            <input
-              type="email"
-              placeholder="Email"
-              value={regEmail}
-              onChange={(e) => setRegEmail(e.target.value)}
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              required
-            />
-
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="employee">Employee</option>
-              <option value="admin">Admin</option>
-              <option value="reviewer">Reviewer</option>
-            </select>
-
-            <button type="submit">Register</button>
-          </form>
-        ) : (
-          <form onSubmit={handleLogin} className="form">
-            <input
-              type="email"
-              placeholder="Email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              required
-            />
-
-            <button type="submit">Login</button>
-          </form>
-        )}
-
-        {message && <p className="message">{message}</p>}
-
-        {token && (
-          <div className="token-box">
-            <h3>JWT Token</h3>
-            <p>{token}</p>
-          </div>
-        )}
-      </div>
-    </div>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
+    </ToastProvider>
+    </PreferencesProvider>
+    </GoogleOAuthProvider>
   );
 }
 

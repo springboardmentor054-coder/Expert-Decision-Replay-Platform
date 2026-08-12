@@ -1,0 +1,37 @@
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--app-bg);
+  padding: 4px;
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filter-tab:hover {
+  color: var(--text-strong);
+}
+
+.filter-tab-active {
+  background: var(--surface);
+  color: #173528;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+  .filter-tabs {
+    overflow-x: auto;
+    width: 100%;
+  }
+}

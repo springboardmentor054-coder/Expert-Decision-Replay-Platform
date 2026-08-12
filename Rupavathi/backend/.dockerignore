@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.env.example
+uploads/
+decision_replay.db
+*.db
+.git
+.gitignore

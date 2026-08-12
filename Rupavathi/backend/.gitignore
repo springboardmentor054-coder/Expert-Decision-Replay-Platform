@@ -1,0 +1,13 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Uploaded files
+uploads/
+
+# Stray local DB file
+decision_replay.db

@@ -1,0 +1,231 @@
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.users-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.users-page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.users-page-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.invite-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: none;
+  background: #173528;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.invite-user-btn:hover {
+  background: #10261c;
+  transform: translateY(-1px);
+}
+
+.invite-user-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.users-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.users-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  width: 280px;
+}
+
+.users-search svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.users-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13.5px;
+  width: 100%;
+  color: var(--text-strong);
+}
+
+.users-search input::placeholder {
+  color: #a8a8a8;
+}
+
+.users-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 8px 24px 16px;
+}
+
+.users-full-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.users-full-table-head,
+.users-full-table-row {
+  display: grid;
+  grid-template-columns: 1fr 170px 120px 120px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+}
+
+.users-full-table-head {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.users-full-table-row {
+  font-size: 13.5px;
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--surface-alt);
+}
+
+.users-full-table-row:last-child {
+  border-bottom: none;
+}
+
+.users-member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.users-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(23, 53, 40, 0.08);
+  color: #173528;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.users-member-name {
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-member-email {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-joined-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.users-empty {
+  padding: 40px 8px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.users-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1024px) {
+  .users-search {
+    width: 220px;
+  }
+
+  .users-full-table-head,
+  .users-full-table-row {
+    grid-template-columns: 1fr 140px 100px;
+  }
+
+  .users-joined-date {
+    display: none;
+  }
+
+  .users-full-table-head span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .users-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .users-search {
+    width: 100%;
+  }
+
+  .users-full-table-head {
+    display: none;
+  }
+
+  .users-full-table-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

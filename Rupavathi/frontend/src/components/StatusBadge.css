@@ -1,0 +1,58 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge-approved {
+  background: rgba(23, 53, 40, 0.1);
+  color: #173528;
+}
+
+.status-badge-pending {
+  background: rgba(216, 176, 122, 0.18);
+  color: #9a7b4f;
+}
+
+.status-badge-rejected {
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+}
+
+.status-badge-draft {
+  background: rgba(119, 119, 119, 0.12);
+  color: var(--text-body);
+}
+
+.status-badge-under-review {
+  background: rgba(216, 176, 122, 0.18);
+  color: #9a7b4f;
+}
+
+.status-badge-active {
+  background: rgba(23, 53, 40, 0.1);
+  color: #173528;
+}
+
+.status-badge-inactive {
+  background: rgba(119, 119, 119, 0.12);
+  color: var(--text-muted);
+}
+
+.status-badge-low {
+  background: rgba(23, 53, 40, 0.1);
+  color: #173528;
+}
+
+.status-badge-medium {
+  background: rgba(216, 176, 122, 0.18);
+  color: #9a7b4f;
+}
+
+.status-badge-high {
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+}
