@@ -1,0 +1,102 @@
+======================================================================
+SECTION 1: AUTHENTICATION
+======================================================================
+[PASS] Auth :: Register with valid data succeeds
+[PASS] Auth :: Register with duplicate email is rejected
+[PASS] Auth :: Register with weak password is rejected
+[PASS] Auth :: Register with empty fields is rejected
+[PASS] Auth :: Login with correct credentials succeeds
+[PASS] Auth :: Login with wrong password returns proper error (401)
+[PASS] Auth :: Login with non-existent email returns proper error (401)
+[PASS] Auth :: Login with malformed email is rejected (422)
+[PASS] Auth :: Login with empty fields is rejected (422)
+[PASS] Auth :: Protected endpoint without token is rejected
+[PASS] Auth :: Protected endpoint with invalid token is rejected
+[PASS] Auth :: Protected endpoint with valid token succeeds
+
+======================================================================
+SECTION 2: USER MANAGEMENT
+======================================================================
+[PASS] Users :: Create user with Approver role succeeds
+[PASS] Users :: Create user with Team Member role succeeds
+[PASS] Users :: Update user info succeeds
+[PASS] Users :: Non-admin creating a role is denied (403)
+[PASS] Users :: Admin creating a role succeeds
+[PASS] Users :: Changing another user's password is denied (403)
+
+======================================================================
+SECTION 3: DECISION MANAGEMENT
+======================================================================
+[PASS] Decisions :: Category list is available for decision creation
+[PASS] Decisions :: Create decision with valid data succeeds
+[PASS] Decisions :: Create decision missing required title fails validation (422)
+[PASS] Decisions :: Create decision with empty title fails validation (422)
+[PASS] Decisions :: Create decision without auth is rejected
+[PASS] Decisions :: View decision by id succeeds
+[PASS] Decisions :: Another authenticated user CAN view the decision (org-wide visibility by design)
+[PASS] Decisions :: Update decision succeeds
+[PASS] Decisions :: Status change to 'Under Review' succeeds
+[PASS] Decisions :: Viewing non-existent decision returns 404
+
+======================================================================
+SECTION 4: ALTERNATIVES
+======================================================================
+[PASS] Alternatives :: Create alternative with valid data succeeds
+[PASS] Alternatives :: Create alternative missing required risk_level fails (422)
+[PASS] Alternatives :: Create alternative with invalid risk_level enum fails (422)
+[PASS] Alternatives :: Create second alternative for comparison succeeds
+[PASS] Alternatives :: Update alternative succeeds
+[PASS] Alternatives :: List alternatives for a decision returns both created alternatives
+[PASS] Alternatives :: Delete alternative succeeds
+
+======================================================================
+SECTION 5: DOCUMENTS
+======================================================================
+[PASS] Documents :: Upload valid document succeeds
+[PASS] Documents :: Upload invalid file type (.exe) is rejected (400)
+[PASS] Documents :: Upload oversized file (>10MB) is rejected (400)
+[PASS] Documents :: Upload empty file is rejected (400)
+[PASS] Documents :: View document metadata succeeds
+[PASS] Documents :: Download document succeeds
+[PASS] Documents :: Download non-existent document returns 404
+[PASS] Documents :: Delete document succeeds
+
+======================================================================
+SECTION 6: DISCUSSIONS (COMMENTS)
+======================================================================
+[PASS] Discussions :: Add comment succeeds
+[PASS] Discussions :: Add empty comment fails validation (422)
+[PASS] Discussions :: View comments for decision succeeds
+[PASS] Discussions :: Edit own comment succeeds
+[PASS] Discussions :: Delete comment succeeds
+
+======================================================================
+SECTION 7: VERSION TRACKING
+======================================================================
+[PASS] Versions :: Edit decision title succeeds
+[PASS] Versions :: Editing a decision creates a new version record
+
+======================================================================
+SECTION 8: APPROVALS WORKFLOW
+======================================================================
+[PASS] Approvals :: Approval record auto-created on submit-for-review
+[PASS] Approvals :: Non-approver approving is denied (403)
+[PASS] Approvals :: Approver approving succeeds
+[PASS] Approvals :: Decision status becomes 'Approved' after approval
+[PASS] Approvals :: Reject without remarks is rejected (validation)
+[PASS] Approvals :: Reject with remarks succeeds
+
+======================================================================
+CLEANUP
+======================================================================
+  deleted decision 31: status=200
+  deleted decision 32: status=200
+  deleted role 12: status=200
+  deleted user 57: status=200
+  deleted user 58: status=200
+  deleted user 56: status=200
+
+======================================================================
+SUMMARY
+======================================================================
+Total: 56  Passed: 56  Failed: 0
