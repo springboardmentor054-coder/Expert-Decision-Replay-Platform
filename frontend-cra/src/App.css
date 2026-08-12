@@ -780,3 +780,54 @@ a:hover {
   font-weight: 600;
   font-size: 13px;
 }
+.approve-btn {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+.reject-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+.approve-btn:hover,
+.reject-btn:hover {
+  opacity: 0.85;
+}
+
+.login-header small {
+  display: block;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.signup-link {
+  text-align: center;
+  margin-top: 18px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.signup-link span {
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signup-link span:hover {
+  text-decoration: underline;
+}

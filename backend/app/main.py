@@ -12,6 +12,11 @@ from app.routers import documents
 from app.routers import comments
 from app.routers import discussion
 from app.routers import decision_versions
+from app.routers import approval
+from app.routers import notification
+from app.routers import audit_log
+from app.routers import dashboard
+from app.routers import reports
 
 # Models
 from app.models import user, role
@@ -20,6 +25,8 @@ import app.models.alternative
 import app.models.document
 import app.models.comment
 import app.models.decision_version
+from app.models.notification import Notification
+import app.models.audit_log
 
 # Database
 from app.database.connection import Base, engine
@@ -55,6 +62,12 @@ app.include_router(documents.router)
 app.include_router(comments.router)
 app.include_router(discussion.router)
 app.include_router(decision_versions.router)
+app.include_router(approval.router)
+app.include_router(notification.router)
+app.include_router(audit_log.router)
+app.include_router(dashboard.router)
+app.include_router(reports.router)
+
 
 @app.get("/")
 def home():

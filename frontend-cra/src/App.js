@@ -1,4 +1,13 @@
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+  useNavigate,
+  Navigate,
+  Outlet
+} from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/register";
@@ -23,14 +32,41 @@ import AddComment from "./pages/AddComment";
 import EditComment from "./pages/EditComment";
 
 import VersionHistory from "./pages/VersionHistory";
+import Notifications from "./pages/Notifications";
+import AuditLogs from "./pages/AuditLogs";
+import Dashboard from "./pages/Dashboard";
+import Reports from "./pages/Reports";
 
+
+/* =========================
+   PROTECTED ROUTE
+========================= */
+
+function ProtectedRoute() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+}
+
+
+/* =========================
+   NAVBAR
+========================= */
 
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
   // Don't show navbar on Login/Register pages
-  if (location.pathname === "/" || location.pathname === "/login" || location.pathname === "/register") {
+  if (
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/register"
+  ) {
     return null;
   }
 
@@ -48,23 +84,45 @@ function Navbar() {
         </Link>
       </div>
 
+      <Link to="/dashboard">Dashboard</Link>
+
       <div className="navbar-links">
+
         <Link to="/decisions">Decisions</Link>
+
         <Link to="/alternatives">Alternatives</Link>
+
         <Link to="/comparison">Comparison</Link>
+
         <Link to="/documents">Documents</Link>
+
         <Link to="/discussion">Discussion</Link>
+
         <Link to="/comments">Comments</Link>
 
-        <button className="logout-btn" onClick={handleLogout}>
+        <Link to="/notifications">Notifications</Link>
+
+        <Link to="/audit-logs">Audit Logs</Link>
+
+        <Link to="/reports">Reports</Link>
+
+        <button
+          className="logout-btn"
+          onClick={handleLogout}
+        >
           Logout
         </button>
+
       </div>
 
     </nav>
   );
 }
 
+
+/* =========================
+   APP
+========================= */
 
 function App() {
   return (
@@ -74,36 +132,160 @@ function App() {
 
       <Routes>
 
-        {/* Authentication */}
+        {/* =========================
+            PUBLIC ROUTES
+        ========================= */}
+
         <Route path="/" element={<Login />} />
+
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
 
-        {/* Decision Routes */}
-        <Route path="/decisions" element={<DecisionList />} />
-        <Route path="/create-decision" element={<CreateDecision />} />
-        <Route path="/edit-decision/:id" element={<EditDecision />} />
-        <Route path="/decisions/:id/history" element={<VersionHistory />} />
 
-        {/* Alternative Routes */}
-        <Route path="/alternatives" element={<AlternativesList />} />
-        <Route path="/add-alternative" element={<AddAlternative />} />
-        <Route path="/edit-alternative/:id" element={<EditAlternative />} />
+        {/* =========================
+            PROTECTED ROUTES
+        ========================= */}
 
-        {/* Comparison */}
-        <Route path="/comparison" element={<ComparisonView />} />
+        <Route element={<ProtectedRoute />}>
 
-        {/* Documents */}
-        <Route path="/documents" element={<DocumentList />} />
-        <Route path="/upload-document" element={<UploadDocument />} />
+          {/* Dashboard */}
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
 
-        {/* Discussion */}
-        <Route path="/discussion" element={<Discussion />} />
 
-        {/* Comments */}
-        <Route path="/comments" element={<CommentsList />} />
-        <Route path="/comments/add" element={<AddComment />} />
-        <Route path="/comments/edit/:id" element={<EditComment />} />
+          {/* =========================
+              DECISION ROUTES
+          ========================= */}
+
+          <Route
+            path="/decisions"
+            element={<DecisionList />}
+          />
+
+          <Route
+            path="/create-decision"
+            element={<CreateDecision />}
+          />
+
+          <Route
+            path="/edit-decision/:id"
+            element={<EditDecision />}
+          />
+
+          <Route
+            path="/decisions/:id/history"
+            element={<VersionHistory />}
+          />
+
+
+          {/* =========================
+              ALTERNATIVE ROUTES
+          ========================= */}
+
+          <Route
+            path="/alternatives"
+            element={<AlternativesList />}
+          />
+
+          <Route
+            path="/add-alternative"
+            element={<AddAlternative />}
+          />
+
+          <Route
+            path="/edit-alternative/:id"
+            element={<EditAlternative />}
+          />
+
+
+          {/* =========================
+              COMPARISON
+          ========================= */}
+
+          <Route
+            path="/comparison"
+            element={<ComparisonView />}
+          />
+
+
+          {/* =========================
+              DOCUMENTS
+          ========================= */}
+
+          <Route
+            path="/documents"
+            element={<DocumentList />}
+          />
+
+          <Route
+            path="/upload-document"
+            element={<UploadDocument />}
+          />
+
+
+          {/* =========================
+              DISCUSSION
+          ========================= */}
+
+          <Route
+            path="/discussion"
+            element={<Discussion />}
+          />
+
+
+          {/* =========================
+              COMMENTS
+          ========================= */}
+
+          <Route
+            path="/comments"
+            element={<CommentsList />}
+          />
+
+          <Route
+            path="/comments/add"
+            element={<AddComment />}
+          />
+
+          <Route
+            path="/comments/edit/:id"
+            element={<EditComment />}
+          />
+
+
+          {/* =========================
+              NOTIFICATIONS
+          ========================= */}
+
+          <Route
+            path="/notifications"
+            element={<Notifications />}
+          />
+
+
+          {/* =========================
+              AUDIT LOGS
+          ========================= */}
+
+          <Route
+            path="/audit-logs"
+            element={<AuditLogs />}
+          />
+
+
+          {/* =========================
+              REPORTS
+          ========================= */}
+
+          <Route
+            path="/reports"
+            element={<Reports />}
+          />
+
+        </Route>
 
       </Routes>
 
