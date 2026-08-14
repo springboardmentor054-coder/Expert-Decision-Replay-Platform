@@ -14,6 +14,56 @@ router = APIRouter(
 )
 
 
+# Submit decision for approval
+@router.put("/{decision_id}/submit")
+def submit_for_approval(
+    decision_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # Find decision
+    decision = db.query(Decision).filter(
+        Decision.id == decision_id
+    ).first()
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found"
+        )
+
+    # Only Draft decisions can be submitted
+    if decision.status != "Draft":
+        raise HTTPException(
+            status_code=400,
+            detail="Only Draft decisions can be submitted for approval"
+        )
+
+    # Change status
+    decision.status = "Pending Approval"
+
+    # Create notification for admin/approver
+    # We use the current user for the audit record.
+    audit = AuditLog(
+        user_id=current_user.id,
+        action="Decision Submitted for Approval",
+        decision_id=decision.id,
+        details=f'Decision "{decision.title}" was submitted for approval.'
+    )
+
+    db.add(audit)
+
+    # Save changes
+    db.commit()
+    db.refresh(decision)
+
+    return {
+        "message": "Decision submitted for approval",
+        "decision_id": decision.id,
+        "status": decision.status
+    }
+
+
 @router.put("/{decision_id}/approve")
 def approve_decision(
     decision_id: int,

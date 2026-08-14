@@ -28,7 +28,7 @@ def get_dashboard_stats(
     ).count()
 
     pending = db.query(Decision).filter(
-        Decision.status == "Pending"
+        Decision.status.in_(["Pending", "Pending Approval"])
     ).count()
 
     draft = db.query(Decision).filter(

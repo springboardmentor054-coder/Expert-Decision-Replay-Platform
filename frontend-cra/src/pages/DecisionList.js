@@ -54,6 +54,24 @@ function DecisionList() {
     }
   };
 
+  // Submit Draft decision for approval
+  const submitForApproval = async (id) => {
+    try {
+      await api.put("/approval/" + id + "/submit");
+
+      alert("Decision submitted for approval");
+
+      getDecisions();
+    } catch (error) {
+      console.log(error);
+      alert(
+        error.response?.data?.detail ||
+          "Failed to submit decision for approval"
+      );
+    }
+  };
+
+  // Approve Pending Approval decision
   const approveDecision = async (id) => {
     try {
       await api.put("/approval/" + id + "/approve");
@@ -67,6 +85,7 @@ function DecisionList() {
     }
   };
 
+  // Reject Pending Approval decision
   const rejectDecision = async (id) => {
     try {
       await api.put("/approval/" + id + "/reject");
@@ -184,25 +203,43 @@ function DecisionList() {
                           History
                         </button>
 
+                        {/* ADMIN APPROVAL ACTIONS */}
                         {userRole === 1 && (
                           <>
-                            <button
-                              className="approve-btn"
-                              onClick={() =>
-                                approveDecision(decision.id)
-                              }
-                            >
-                              Approve
-                            </button>
+                            {/* Draft → Submit for Approval */}
+                            {decision.status === "Draft" && (
+                              <button
+                                className="approve-btn"
+                                onClick={() =>
+                                  submitForApproval(decision.id)
+                                }
+                              >
+                                Submit for Approval
+                              </button>
+                            )}
 
-                            <button
-                              className="reject-btn"
-                              onClick={() =>
-                                rejectDecision(decision.id)
-                              }
-                            >
-                              Reject
-                            </button>
+                            {/* Pending Approval → Approve / Reject */}
+                            {decision.status === "Pending Approval" && (
+                              <>
+                                <button
+                                  className="approve-btn"
+                                  onClick={() =>
+                                    approveDecision(decision.id)
+                                  }
+                                >
+                                  Approve
+                                </button>
+
+                                <button
+                                  className="reject-btn"
+                                  onClick={() =>
+                                    rejectDecision(decision.id)
+                                  }
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
                           </>
                         )}
 
