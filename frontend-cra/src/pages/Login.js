@@ -10,7 +10,7 @@ function Login() {
   const handleLogin = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/login`,
+        "https://expert-decision-replay-platform.onrender.com/login",
         {
           method: "POST",
           headers: {
@@ -27,12 +27,11 @@ function Login() {
 
       console.log(data);
 
-      if (data.access_token) {
+      if (response.ok && data.access_token) {
         localStorage.setItem("token", data.access_token);
 
         alert("Login successful");
 
-        // Redirect to Dashboard
         navigate("/dashboard");
       } else {
         alert(data.detail || "Login failed");
