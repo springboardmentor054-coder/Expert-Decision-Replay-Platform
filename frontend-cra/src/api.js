@@ -2,8 +2,7 @@ import "./App.css";
 import axios from "axios";
 
 const API = axios.create({
-  baseURL:
-    process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"
+  baseURL: "https://expert-decision-replay-platform.onrender.com"
 });
 
 API.interceptors.request.use(
@@ -28,10 +27,10 @@ API.interceptors.request.use(
 // =======================
 
 export const loginUser = (data) =>
-  API.post("/auth/login", data);
+  API.post("/login", data);
 
 export const registerUser = (data) =>
-  API.post("/auth/register", data);
+  API.post("/register", data);
 
 
 // =======================
