@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api";
+import axios from "axios";
 
 function Register() {
   const [name, setName] = useState("");
@@ -16,15 +16,17 @@ function Register() {
     }
 
     try {
-      const response = await API.post("/register", {
-        name: name,
-        email: email,
-        password: password,
-      });
+      const response = await axios.post(
+        "https://expert-decision-replay-platform.onrender.com/register",
+        {
+          name: name,
+          email: email,
+          password: password,
+        }
+      );
 
       alert(response.data.message || "Registration successful");
 
-      // Go back to Login after successful registration
       navigate("/login");
 
     } catch (error) {
