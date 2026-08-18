@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Decision - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+        window.DECISION_ID = { decision_id };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/documents">
+                        <span>📁</span> Documents
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Edit Decision</h1>
+                    <p class="page-subtitle">Update decision problem statement, options, or metadata</p>
+                </div>
+                <div>
+                    <a class="btn btn-secondary" href="/decisions/{{ decision_id }}">⬅️ Back to Detail</a>
+                </div>
+            </div>
+
+            <div id="error-alert" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+            <div id="success-alert" class="alert alert-success" style="display: none; margin-bottom: 20px;"></div>
+
+            <form id="edit-decision-form">
+                <div class="card" style="margin-bottom: 24px;">
+                    <h2 class="section-title">Core Information</h2>
+
+                    <div class="form-group">
+                        <label class="form-label" for="decision-title">Decision Title <span
+                                style="color: #ef4444;">*</span></label>
+                        <input type="text" id="decision-title" class="form-control"
+                            placeholder="e.g., Cloud Database Migration Strategy" required>
+                    </div>
+
+                    <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label" for="decision-category">Category <span
+                                    style="color: #ef4444;">*</span></label>
+                            <select id="decision-category" class="form-control" required>
+                                <option value="Architecture">Architecture</option>
+                                <option value="Infrastructure">Infrastructure</option>
+                                <option value="Product Strategy">Product Strategy</option>
+                                <option value="Procurement">Procurement</option>
+                                <option value="Compliance">Compliance</option>
+                                <option value="Security">Security</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label" for="decision-status">Status</label>
+                            <select id="decision-status" class="form-control">
+                                <option value="Draft">Draft</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Archived">Archived</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="decision-problem">Problem Statement <span
+                                style="color: #ef4444;">*</span></label>
+                        <textarea id="decision-problem" class="form-control" rows="4"
+                            placeholder="Describe the background context and core problem..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="decision-description">Description</label>
+                        <textarea id="decision-description" class="form-control" rows="3"
+                            placeholder="Additional details or context..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="change-summary">Change Summary / Notes for this Version</label>
+                        <input type="text" id="change-summary" class="form-control" value="Updated decision details">
+                    </div>
+                </div>
+
+                <!-- Alternatives Section -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 class="section-title" style="margin-bottom: 0;">Evaluation Alternatives</h2>
+                        <button type="button" class="btn btn-secondary btn-sm" id="add-alt-btn">➕ Add
+                            Alternative</button>
+                    </div>
+
+                    <div id="alternatives-container" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                    <a href="/decisions/{{ decision_id }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="save-btn">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const decisionId = window.DECISION_ID;
+            const token = Auth.getToken();
+
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const errorAlert = document.getElementById("error-alert");
+            const successAlert = document.getElementById("success-alert");
+            const altContainer = document.getElementById("alternatives-container");
+
+            let altIndex = 0;
+
+            function addAlternativeRow(alt = {}) {
+                altIndex++;
+                const row = document.createElement("div");
+                row.className = "card";
+                row.style.background = "#1e293b";
+                row.style.border = "1px solid #334155";
+                row.id = `alt-row-${altIndex}`;
+                row.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: #3b82f6;">Option #${altIndex}</h4>
+                        <button type="button" class="btn btn-danger btn-sm remove-alt-btn" data-id="${altIndex}">🗑️ Remove</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control alt-title" value="${alt.title || ''}" placeholder="Option title..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control alt-desc" rows="2" placeholder="Description of this option...">${alt.description || ''}</textarea>
+                    </div>
+                    <div class="form-row" style="display: flex; gap: 16px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Cost ($)</label>
+                            <input type="number" class="form-control alt-cost" value="${alt.cost || 0}">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Feasibility (1-5)</label>
+                            <input type="number" min="1" max="5" class="form-control alt-feasibility" value="${alt.feasibility_rating || 3}">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Risk (1-5)</label>
+                            <input type="number" min="1" max="5" class="form-control alt-risk" value="${alt.risk_rating || 3}">
+                        </div>
+                    </div>
+                `;
+                altContainer.appendChild(row);
+
+                row.querySelector(".remove-alt-btn").addEventListener("click", () => {
+                    row.remove();
+                });
+            }
+
+            document.getElementById("add-alt-btn").addEventListener("click", () => addAlternativeRow());
+
+            // Fetch existing decision data
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${decisionId}`, {
+                    headers: Auth.getHeaders()
+                });
+                if (!res.ok) throw new Error("Failed to load decision.");
+                const data = await res.json();
+
+                document.getElementById("decision-title").value = data.title;
+                document.getElementById("decision-category").value = data.category || "Architecture";
+                document.getElementById("decision-status").value = data.status || "Draft";
+                document.getElementById("decision-problem").value = data.problem_statement;
+                document.getElementById("decision-description").value = data.description || "";
+
+                if (data.alternatives && data.alternatives.length > 0) {
+                    data.alternatives.forEach(alt => addAlternativeRow(alt));
+                } else {
+                    addAlternativeRow();
+                }
+
+            } catch (err) {
+                errorAlert.textContent = err.message;
+                errorAlert.style.display = "block";
+            }
+
+            // Handle Form Submit
+            document.getElementById("edit-decision-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                errorAlert.style.display = "none";
+                successAlert.style.display = "none";
+
+                const title = document.getElementById("decision-title").value.trim();
+                const problem = document.getElementById("decision-problem").value.trim();
+
+                if (!title) {
+                    errorAlert.textContent = "Title cannot be empty.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+                if (!problem) {
+                    errorAlert.textContent = "Problem statement is mandatory.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+
+                // Gather alternatives
+                const altRows = altContainer.querySelectorAll(".card");
+                const alternatives = [];
+                altRows.forEach(row => {
+                    const altTitle = row.querySelector(".alt-title").value.trim();
+                    const altDesc = row.querySelector(".alt-desc").value.trim();
+                    if (altTitle) {
+                        alternatives.push({
+                            title: altTitle,
+                            description: altDesc || altTitle,
+                            cost: parseFloat(row.querySelector(".alt-cost").value) || 0,
+                            feasibility_rating: parseInt(row.querySelector(".alt-feasibility").value) || 3,
+                            risk_rating: parseInt(row.querySelector(".alt-risk").value) || 3
+                        });
+                    }
+                });
+
+                const payload = {
+                    title: title,
+                    category: document.getElementById("decision-category").value,
+                    status: document.getElementById("decision-status").value,
+                    problem_statement: problem,
+                    description: document.getElementById("decision-description").value.trim(),
+                    change_summary: document.getElementById("change-summary").value.trim(),
+                    alternatives: alternatives
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE}/decisions/${decisionId}`, {
+                        method: "PUT",
+                        headers: Auth.getHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        let msg = errData.detail;
+                        if (Array.isArray(msg)) msg = msg.map(m => m.msg).join(", ");
+                        throw new Error(msg || "Failed to update decision.");
+                    }
+
+                    successAlert.textContent = "Decision updated successfully!";
+                    successAlert.style.display = "block";
+                    setTimeout(() => {
+                        window.location.href = `/decisions/${decisionId}`;
+                    }, 1200);
+
+                } catch (err) {
+                    errorAlert.textContent = err.message;
+                    errorAlert.style.display = "block";
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

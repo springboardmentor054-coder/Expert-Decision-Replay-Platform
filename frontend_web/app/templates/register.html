@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body class="auth-page">
+    <div class="card auth-card">
+        <div class="auth-header">
+            <div style="display: inline-flex; margin-bottom: 12px; justify-content: center; width: 100%;">
+                <div class="logo-icon" style="width: 50px; height: 50px; font-size: 1.5rem;">ED</div>
+            </div>
+            <h2>Create Account</h2>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Register to join your organization's workspace</p>
+        </div>
+        
+        <form id="register-form">
+            <div class="form-group">
+                <label class="form-label" for="full-name">Full Name</label>
+                <input class="form-control" type="text" id="full-name" required placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">Work Email</label>
+                <input class="form-control" type="email" id="email" required placeholder="name@company.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-control" type="password" id="password" required placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="role">System Role</label>
+                <select class="form-control" id="role" required>
+                    <option value="Employee">Employee (Submit Decisions, Comment)</option>
+                    <option value="Reviewer">Reviewer (Provide expert comments, approvals)</option>
+                    <option value="Manager">Manager (Review decisions, Approve, Reassign)</option>
+                    <option value="Administrator">Administrator (Audit logs, full control)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="team">Team / Department</label>
+                <select class="form-control" id="team" required>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Product Management">Product Management</option>
+                    <option value="Legal & Compliance">Legal & Compliance</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Technical Architecture">Technical Architecture</option>
+                    <option value="Finance & Procurement">Finance & Procurement</option>
+                </select>
+            </div>
+            
+            <div id="error-message" style="color: var(--color-danger); font-size: 0.9rem; margin-bottom: 15px; display: none;"></div>
+            
+            <button class="btn btn-primary" type="submit" style="width: 100%; padding: 12px;">Sign Up</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary);">
+            Already have an account? <a href="/login">Sign In</a>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.getElementById("register-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById("full-name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+            const team = document.getElementById("team").value;
+            const errEl = document.getElementById("error-message");
+            
+            errEl.style.display = "none";
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        password: password,
+                        role: role,
+                        team: team
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.ok ? {} : await response.json();
+                    throw new Error(errorData.detail || "Registration failed. Email might already exist.");
+                }
+                
+                // Login immediately
+                const details = {
+                    'username': email,
+                    'password': password
+                };
+                
+                let formBody = [];
+                for (const property in details) {
+                    const encodedKey = encodeURIComponent(property);
+                    const encodedValue = encodeURIComponent(details[property]);
+                    formBody.push(encodedKey + "=" + encodedValue);
+                }
+                formBody = formBody.join("&");
+                
+                const loginRes = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    },
+                    body: formBody
+                });
+                
+                const tokenData = await loginRes.json();
+                Auth.setToken(tokenData.access_token);
+                
+                const meRes = await fetch(`${API_BASE}/users/me`, {
+                    headers: { "Authorization": `Bearer ${tokenData.access_token}` }
+                });
+                const userData = await meRes.json();
+                Auth.setUser(userData);
+                
+                window.location.href = "/dashboard";
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>

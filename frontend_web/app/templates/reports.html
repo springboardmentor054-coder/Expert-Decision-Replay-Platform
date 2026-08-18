@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Governance & Analytical Reports - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Chart.js for analytics rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+    <style>
+        .report-tab-btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .report-tab-btn.active {
+            background: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+        }
+        .report-section {
+            display: none;
+        }
+        .report-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Management Reports</h1>
+                    <p class="page-subtitle">Comprehensive analytical summaries across Decisions, Approvals, Teams, and Audit Trails</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+                    <button class="btn btn-secondary" onclick="exportExcel()">📊 Export Excel</button>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                <button class="report-tab-btn active" onclick="switchReportTab('decisions')">📂 Decision Reports</button>
+                <button class="report-tab-btn" onclick="switchReportTab('approvals')">✍️ Approval Reports</button>
+                <button class="report-tab-btn" onclick="switchReportTab('teams')">🏢 Team Reports</button>
+                <button class="report-tab-btn" onclick="switchReportTab('audit')">🛡️ Audit Reports</button>
+            </div>
+
+            <!-- SECTION 1: DECISION REPORTS -->
+            <div id="section-decisions" class="report-section active">
+                <div class="grid-stats" style="margin-bottom: 24px;">
+                    <div class="card stat-card">
+                        <div class="stat-icon primary">📂</div>
+                        <div>
+                            <div class="stat-number" id="dec-stat-total">0</div>
+                            <div class="stat-label">Total Decisions</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon success">✅</div>
+                        <div>
+                            <div class="stat-number" id="dec-stat-approved">0</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon danger" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">❌</div>
+                        <div>
+                            <div class="stat-number" id="dec-stat-rejected">0</div>
+                            <div class="stat-label">Rejected</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon warning">⏳</div>
+                        <div>
+                            <div class="stat-number" id="dec-stat-pending">0</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Decision Summary Records</h3>
+                        <input class="form-control" type="text" id="dec-search" placeholder="Search decision title or category..." style="max-width: 300px;" oninput="renderDecisionTable()">
+                    </div>
+                    <div class="table-container">
+                        <table class="custom-table" id="dec-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Decision Title</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Created By</th>
+                                    <th>Created Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">Loading decision report...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: APPROVAL REPORTS -->
+            <div id="section-approvals" class="report-section">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Reviewer Approval Performance</h3>
+                        <input class="form-control" type="text" id="app-search" placeholder="Search reviewer name..." style="max-width: 300px;" oninput="renderApprovalTable()">
+                    </div>
+                    <div class="table-container">
+                        <table class="custom-table" id="app-table">
+                            <thead>
+                                <tr>
+                                    <th>Reviewer Name</th>
+                                    <th>Decisions Approved</th>
+                                    <th>Decisions Rejected</th>
+                                    <th>Pending Reviews</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">Loading approval report...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: TEAM REPORTS -->
+            <div id="section-teams" class="report-section">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Departmental & Team Summary</h3>
+                        <input class="form-control" type="text" id="team-search" placeholder="Search team name..." style="max-width: 300px;" oninput="renderTeamTable()">
+                    </div>
+                    <div class="table-container">
+                        <table class="custom-table" id="team-table">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Total Decisions</th>
+                                    <th>Total Users</th>
+                                    <th>Total Approvals</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">Loading team report...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: AUDIT REPORTS -->
+            <div id="section-audit" class="report-section">
+                <div class="grid-stats" style="margin-bottom: 24px; grid-template-columns: repeat(5, 1fr);">
+                    <div class="card stat-card">
+                        <div class="stat-icon info">🔑</div>
+                        <div>
+                            <div class="stat-number" id="audit-stat-logins">0</div>
+                            <div class="stat-label">Total Logins</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon primary">➕</div>
+                        <div>
+                            <div class="stat-number" id="audit-stat-decisions">0</div>
+                            <div class="stat-label">Decisions Created</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon success">📄</div>
+                        <div>
+                            <div class="stat-number" id="audit-stat-docs">0</div>
+                            <div class="stat-label">Documents Uploaded</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon warning">💬</div>
+                        <div>
+                            <div class="stat-number" id="audit-stat-comments">0</div>
+                            <div class="stat-label">Comments Added</div>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon primary" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">✍️</div>
+                        <div>
+                            <div class="stat-number" id="audit-stat-approvals">0</div>
+                            <div class="stat-label">Approval Actions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">📊 Activity Event Breakdown</h3>
+                    <div style="height: 320px; position: relative; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="auditChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let decisionData = null;
+        let approvalData = null;
+        let teamData = null;
+        let auditData = null;
+        let auditChartInstance = null;
+        let currentTab = 'decisions';
+
+        function switchReportTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.report-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.report-section').forEach(sec => sec.classList.remove('active'));
+
+            const targetBtn = Array.from(document.querySelectorAll('.report-tab-btn')).find(b => b.textContent.toLowerCase().includes(tabName));
+            if (targetBtn) targetBtn.classList.add('active');
+            
+            const targetSec = document.getElementById(`section-${tabName}`);
+            if (targetSec) targetSec.classList.add('active');
+        }
+
+        async function fetchReportsData() {
+            const user = Auth.getUser();
+            if (!user || (user.role !== "Manager" && user.role !== "Administrator")) {
+                alert("Access Denied: Reports are only accessible by Managers and Administrators.");
+                window.location.href = "/dashboard";
+                return;
+            }
+
+            try {
+                // 1. Decision Report
+                const decRes = await fetch(`${API_BASE}/reports/decisions`, { headers: Auth.getHeaders() });
+                if (decRes.ok) {
+                    decisionData = await decRes.json();
+                    document.getElementById("dec-stat-total").textContent = decisionData.total_decisions;
+                    document.getElementById("dec-stat-approved").textContent = decisionData.approved;
+                    document.getElementById("dec-stat-rejected").textContent = decisionData.rejected;
+                    document.getElementById("dec-stat-pending").textContent = decisionData.pending;
+                    renderDecisionTable();
+                }
+
+                // 2. Approval Report
+                const appRes = await fetch(`${API_BASE}/reports/approvals`, { headers: Auth.getHeaders() });
+                if (appRes.ok) {
+                    approvalData = await appRes.json();
+                    renderApprovalTable();
+                }
+
+                // 3. Team Report
+                const teamRes = await fetch(`${API_BASE}/reports/teams`, { headers: Auth.getHeaders() });
+                if (teamRes.ok) {
+                    teamData = await teamRes.json();
+                    renderTeamTable();
+                }
+
+                // 4. Audit Report
+                const auditRes = await fetch(`${API_BASE}/reports/audit`, { headers: Auth.getHeaders() });
+                if (auditRes.ok) {
+                    auditData = await auditRes.json();
+                    document.getElementById("audit-stat-logins").textContent = auditData.total_logins;
+                    document.getElementById("audit-stat-decisions").textContent = auditData.decisions_created;
+                    document.getElementById("audit-stat-docs").textContent = auditData.documents_uploaded;
+                    document.getElementById("audit-stat-comments").textContent = auditData.comments_added;
+                    document.getElementById("audit-stat-approvals").textContent = auditData.approval_actions;
+                    renderAuditChart();
+                }
+
+            } catch (err) {
+                console.error("Error loading report data:", err);
+            }
+        }
+
+        function renderDecisionTable() {
+            if (!decisionData) return;
+            const search = document.getElementById("dec-search").value.toLowerCase();
+            const tbody = document.querySelector("#dec-table tbody");
+            tbody.innerHTML = "";
+
+            const records = decisionData.records.filter(r => 
+                r.title.toLowerCase().includes(search) || r.category.toLowerCase().includes(search)
+            );
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 30px;">No decision records found.</td></tr>`;
+                return;
+            }
+
+            records.forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>#${r.id}</strong></td>
+                    <td style="font-weight: 600; color: white;"><a href="/decisions/${r.id}" style="color: white;">${r.title}</a></td>
+                    <td>${r.category}</td>
+                    <td>${getStatusBadge(r.status)}</td>
+                    <td>${r.created_by}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">${formatDate(r.created_date)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderApprovalTable() {
+            if (!approvalData) return;
+            const search = document.getElementById("app-search").value.toLowerCase();
+            const tbody = document.querySelector("#app-table tbody");
+            tbody.innerHTML = "";
+
+            const reviewers = approvalData.reviewers.filter(r => 
+                r.reviewer_name.toLowerCase().includes(search) || r.reviewer_email.toLowerCase().includes(search)
+            );
+
+            if (reviewers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">No reviewer records found.</td></tr>`;
+                return;
+            }
+
+            reviewers.forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: white;">${r.reviewer_name} <br><span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">${r.reviewer_email}</span></td>
+                    <td style="color: var(--color-success); font-weight: 600;">${r.decisions_approved}</td>
+                    <td style="color: var(--color-danger); font-weight: 600;">${r.decisions_rejected}</td>
+                    <td style="color: var(--color-warning); font-weight: 600;">${r.pending_reviews}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTeamTable() {
+            if (!teamData) return;
+            const search = document.getElementById("team-search").value.toLowerCase();
+            const tbody = document.querySelector("#team-table tbody");
+            tbody.innerHTML = "";
+
+            const teams = teamData.teams.filter(t => t.team_name.toLowerCase().includes(search));
+
+            if (teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">No team records found.</td></tr>`;
+                return;
+            }
+
+            teams.forEach(t => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: white;">${t.team_name}</td>
+                    <td>${t.total_decisions}</td>
+                    <td>${t.total_users}</td>
+                    <td style="color: var(--color-success); font-weight: 600;">${t.total_approvals}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAuditChart() {
+            if (!auditData) return;
+            const ctx = document.getElementById('auditChart').getContext('2d');
+            if (auditChartInstance) auditChartInstance.destroy();
+
+            auditChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Total Logins', 'Decisions Created', 'Documents Uploaded', 'Comments Added', 'Approval Actions'],
+                    datasets: [{
+                        label: 'Total Actions Recorded',
+                        data: [
+                            auditData.total_logins,
+                            auditData.decisions_created,
+                            auditData.documents_uploaded,
+                            auditData.comments_added,
+                            auditData.approval_actions
+                        ],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(6, 182, 212, 0.7)',
+                            'rgba(168, 85, 247, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        async function exportExcel() {
+            try {
+                const res = await fetch(`${API_BASE}/reports/export/excel?report_type=${currentTab}`, {
+                    headers: Auth.getHeaders()
+                });
+                if (!res.ok) throw new Error("Excel export failed.");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `governance_report_${currentTab}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function exportPDF() {
+            try {
+                const res = await fetch(`${API_BASE}/reports/export/pdf?report_type=${currentTab}`, {
+                    headers: Auth.getHeaders()
+                });
+                if (!res.ok) throw new Error("PDF export failed.");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `governance_report_${currentTab}_${new Date().toISOString().slice(0,10)}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(fetchReportsData, 300);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: decision_replay_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_db:/app/backend
+      - shared_uploads:/app/uploads
+    environment:
+      - SECRET_KEY=supersecretkeyforjwttokengenerationthatisverylong123456
+      - DATABASE_URL=sqlite:////app/backend/decisions.db
+      - UPLOAD_DIR=/app/uploads
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend_web/Dockerfile
+    container_name: decision_replay_frontend
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_API_URL=http://localhost:8000/api/v1  # Used by browser to call API
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_db:
+  shared_uploads:

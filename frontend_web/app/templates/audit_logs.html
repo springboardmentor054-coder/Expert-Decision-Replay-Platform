@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item active" id="menu-audit-logs">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Compliance Audit Logs</h1>
+                    <p class="page-subtitle">Immutable event logs recording all authentication, decision edits, approvals, document uploads, and comments</p>
+                </div>
+                <div>
+                    <a class="btn btn-secondary" href="/dashboard">⬅ Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Audit Card -->
+            <div class="card">
+                <h3 style="margin-bottom: 20px;">System Activity Trail</h3>
+                
+                <!-- Filters Section (Task 4 requirement) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; margin-bottom: 24px;">
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Filter by User</label>
+                        <select class="form-control" id="filter-user">
+                            <option value="">All Users</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Filter by Action Type</label>
+                        <select class="form-control" id="filter-action">
+                            <option value="">All Action Types</option>
+                            <option value="LOGIN">LOGIN</option>
+                            <option value="CREATE_DECISION">CREATE_DECISION</option>
+                            <option value="UPDATE_DECISION">UPDATE_DECISION</option>
+                            <option value="DELETE_DECISION">DELETE_DECISION</option>
+                            <option value="UPLOAD_DOCUMENT">UPLOAD_DOCUMENT</option>
+                            <option value="ADD_COMMENT">ADD_COMMENT</option>
+                            <option value="APPROVE_DECISION">APPROVE_DECISION</option>
+                            <option value="REJECT_DECISION">REJECT_DECISION</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Filter by Date</label>
+                        <input class="form-control" type="date" id="filter-date">
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-secondary" onclick="resetFilters()">Reset Filters</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="custom-table" id="audit-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User Name</th>
+                                <th>Action Type</th>
+                                <th>Decision Title</th>
+                                <th>Description</th>
+                                <th>Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                                    Loading audit logs...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        async function loadUsersOptions() {
+            try {
+                const user = Auth.getUser();
+                if (!user || user.role !== "Administrator") {
+                    alert("Access Denied: Only Administrators can access Audit Logs.");
+                    window.location.href = "/dashboard";
+                    return;
+                }
+
+                const res = await fetch(`${API_BASE}/users/`, {
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    const users = await res.json();
+                    const userSelect = document.getElementById("filter-user");
+                    userSelect.innerHTML = '<option value="">All Users</option>';
+                    users.forEach(u => {
+                        const opt = document.createElement("option");
+                        opt.value = u.id;
+                        opt.textContent = `${u.full_name} (${u.email})`;
+                        userSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Could not load users for filter", err);
+            }
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const user = Auth.getUser();
+                if (!user || user.role !== "Administrator") {
+                    alert("Access Denied: Only Administrators can access Audit Logs.");
+                    window.location.href = "/dashboard";
+                    return;
+                }
+
+                const userId = document.getElementById("filter-user").value;
+                const actionType = document.getElementById("filter-action").value;
+                const date = document.getElementById("filter-date").value;
+
+                let url = `${API_BASE}/audit-logs/?`;
+                if (userId) url += `user_id=${userId}&`;
+                if (actionType) url += `action_type=${encodeURIComponent(actionType)}&`;
+                if (date) url += `date=${date}&`;
+
+                const res = await fetch(url, {
+                    headers: Auth.getHeaders()
+                });
+                
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        alert("Access Denied: Administrator role required.");
+                        window.location.href = "/dashboard";
+                        return;
+                    }
+                    alert("Could not load audit logs.");
+                    return;
+                }
+
+                const logs = await res.json();
+                const tbody = document.querySelector("#audit-table tbody");
+                tbody.innerHTML = "";
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                                No system actions recorded matching the selected criteria.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const tr = document.createElement("tr");
+                    const userName = log.user ? log.user.full_name : 'System';
+                    const actionName = log.action_type || log.action || 'EVENT';
+                    const decisionTitle = log.decision_title ? `<a href="/decisions/${log.decision_id}" style="color: white;">${log.decision_title}</a>` : (log.decision_id ? `#${log.decision_id}` : '-');
+                    const desc = log.description || log.details || '';
+                    const timeStr = formatDate(log.created_at || log.timestamp);
+
+                    tr.innerHTML = `
+                        <td><strong>#${log.id}</strong></td>
+                        <td style="font-weight: 600; color: white;">${userName}</td>
+                        <td><span class="badge badge-review" style="background: rgba(255,255,255,0.08); color: #60a5fa; border: 1px solid var(--border-color);">${actionName}</span></td>
+                        <td>${decisionTitle}</td>
+                        <td style="max-width: 320px; font-size: 0.88rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${desc}">${desc}</td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">${timeStr}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById("filter-user").value = "";
+            document.getElementById("filter-action").value = "";
+            document.getElementById("filter-date").value = "";
+            loadAuditLogs();
+        }
+
+        document.getElementById("filter-user").addEventListener("change", loadAuditLogs);
+        document.getElementById("filter-action").addEventListener("change", loadAuditLogs);
+        document.getElementById("filter-date").addEventListener("change", loadAuditLogs);
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            await loadUsersOptions();
+            await loadAuditLogs();
+        });
+    </script>
+</body>
+</html>

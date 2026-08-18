@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Document - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="/documents">
+                        <span>📁</span> Documents
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Upload Document</h1>
+                    <p class="page-subtitle">Attach reports, architecture diagrams, or specifications to a decision</p>
+                </div>
+                <div>
+                    <a class="btn btn-secondary" href="/documents">⬅️ Document Repository</a>
+                </div>
+            </div>
+
+            <div id="upload-error-alert" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+            <div id="upload-success-alert" class="alert alert-success" style="display: none; margin-bottom: 20px;"></div>
+
+            <div class="card" style="max-width: 650px; margin: 0 auto;">
+                <form id="upload-document-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label" for="decision-select">Select Decision <span style="color: #ef4444;">*</span></label>
+                        <select id="decision-select" class="form-control" required>
+                            <option value="">-- Choose a Decision --</option>
+                        </select>
+                        <small style="color: #94a3b8; font-size: 12px; margin-top: 4px; display: block;">
+                            A file cannot be uploaded without selecting a decision.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="file-input">Select File <span style="color: #ef4444;">*</span></label>
+                        <input type="file" id="file-input" class="form-control" accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg" required style="padding: 10px;">
+                        <small style="color: #94a3b8; font-size: 12px; margin-top: 6px; display: block;">
+                            Allowed types: <strong>PDF, DOCX, XLSX, PNG, JPG</strong>. Max file size: <strong>10 MB</strong>.
+                        </small>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                        <a href="/documents" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="upload-submit-btn">📤 Upload Document</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = Auth.getToken();
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const decisionSelect = document.getElementById("decision-select");
+            const errorAlert = document.getElementById("upload-error-alert");
+            const successAlert = document.getElementById("upload-success-alert");
+            const form = document.getElementById("upload-document-form");
+
+            // Extract decision_id from URL query string if provided e.g. /documents/upload?decision_id=2
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectedDecisionId = urlParams.get("decision_id");
+
+            // Load Decisions into dropdown
+            try {
+                const res = await fetch(`${API_BASE}/decisions/`, { headers: Auth.getHeaders() });
+                if (res.ok) {
+                    const decisions = await res.json();
+                    decisions.forEach(d => {
+                        const opt = document.createElement("option");
+                        opt.value = d.id;
+                        opt.textContent = `#${d.id} - ${d.title}`;
+                        if (preselectedDecisionId && String(d.id) === String(preselectedDecisionId)) {
+                            opt.selected = true;
+                        }
+                        decisionSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load decisions", err);
+            }
+
+            // Handle Upload Form Submit
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                errorAlert.style.display = "none";
+                successAlert.style.display = "none";
+
+                const decisionId = decisionSelect.value;
+                const fileInput = document.getElementById("file-input");
+                const file = fileInput.files[0];
+
+                if (!decisionId) {
+                    errorAlert.textContent = "A file cannot be uploaded without selecting a decision.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+
+                if (!file) {
+                    errorAlert.textContent = "Please select a file to upload.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+
+                // Check extension
+                const allowedExts = [".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg"];
+                const fileName = file.name.toLowerCase();
+                const hasValidExt = allowedExts.some(ext => fileName.endsWith(ext));
+                if (!hasValidExt) {
+                    errorAlert.textContent = "Invalid file type. Allow only common document types such as PDF, DOCX, XLSX, PNG, and JPG.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+
+                // Check size (10 MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    errorAlert.textContent = "File is too large. Maximum allowed file size is 10 MB.";
+                    errorAlert.style.display = "block";
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("decision_id", decisionId);
+                formData.append("file", file);
+
+                try {
+                    const submitBtn = document.getElementById("upload-submit-btn");
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Uploading...";
+
+                    const res = await fetch(`${API_BASE}/documents/upload`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        let msg = errData.detail;
+                        if (Array.isArray(msg)) msg = msg.map(m => m.msg).join(", ");
+                        throw new Error(msg || "File upload failed.");
+                    }
+
+                    const data = await res.json();
+                    successAlert.textContent = `File '${data.file_name}' uploaded successfully!`;
+                    successAlert.style.display = "block";
+
+                    setTimeout(() => {
+                        window.location.href = `/documents`;
+                    }, 1200);
+
+                } catch (err) {
+                    errorAlert.textContent = err.message;
+                    errorAlert.style.display = "block";
+                } finally {
+                    const submitBtn = document.getElementById("upload-submit-btn");
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "📤 Upload Document";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
