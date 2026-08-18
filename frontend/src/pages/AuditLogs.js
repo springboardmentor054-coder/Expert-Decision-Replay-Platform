@@ -11,10 +11,11 @@ function AuditLogs() {
   const [dateFilter, setDateFilter] = useState("");
 
   const token = localStorage.getItem("token");
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const fetchAuditLogs = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/audit-logs", {
+      const response = await fetch(API_BASE_URL + "/audit-logs", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -29,11 +30,11 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching audit logs:", error);
     }
-  }, [token]);
+  }, [token, API_BASE_URL]);
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/users", {
+      const response = await fetch(API_BASE_URL + "/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,11 +49,11 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching users:", error);
     }
-  }, [token]);
+  }, [token, API_BASE_URL]);
 
   const fetchDecisions = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/decisions", {
+      const response = await fetch(API_BASE_URL + "/decisions", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,7 +68,7 @@ function AuditLogs() {
     } catch (error) {
       console.error("Error fetching decisions:", error);
     }
-  }, [token]);
+  }, [token, API_BASE_URL]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -306,3 +307,8 @@ function AuditLogs() {
 }
 
 export default AuditLogs;
+
+
+
+
+

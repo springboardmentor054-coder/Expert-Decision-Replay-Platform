@@ -11,6 +11,7 @@ function Notifications() {
     const [error, setError] = useState("");
 
     const token = localStorage.getItem("token");
+    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 
     // ==========================================
@@ -24,7 +25,7 @@ function Notifications() {
             setLoading(true);
 
             const response = await fetch(
-                "http://localhost:8000/notifications",
+                API_BASE_URL + "/notifications",
                 {
                     method: "GET",
                     headers: {
@@ -66,7 +67,7 @@ function Notifications() {
 
         }
 
-    }, [token]);
+    }, [token, API_BASE_URL]);
 
 
     // ==========================================
@@ -89,7 +90,7 @@ function Notifications() {
         try {
 
             const response = await fetch(
-                `http://localhost:8000/notifications/${id}/read`,
+                `${API_BASE_URL}/notifications/${id}/read`,
                 {
                     method: "PUT",
                     headers: {
@@ -160,7 +161,7 @@ function Notifications() {
         try {
 
             const response = await fetch(
-                `http://localhost:8000/notifications/${id}`,
+                `${API_BASE_URL}/notifications/${id}`,
                 {
                     method: "DELETE",
                     headers: {
@@ -465,3 +466,7 @@ function Notifications() {
 
 
 export default Notifications;
+
+
+
+
