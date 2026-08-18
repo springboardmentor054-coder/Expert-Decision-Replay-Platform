@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: edp-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-edp_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edp_password}
+      POSTGRES_DB: ${POSTGRES_DB:-expert_decision_replay}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edp_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edp-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: edp-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-edp_user}:${POSTGRES_PASSWORD:-edp_password}@postgres:5432/${POSTGRES_DB:-expert_decision_replay}
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-secret-key-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://frontend:3000}
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/uploads:/app/uploads
+    networks:
+      - edp-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edp-frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - edp-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional, for production-like setup)
+  nginx:
+    image: nginx:alpine
+    container_name: edp-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - edp-network
+    restart: unless-stopped
+    profiles:
+      - with-nginx
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  edp-network:
+    driver: bridge

@@ -1,0 +1,10 @@
+{
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.11",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false,
+  "reportUnusedVariable": false,
+  "reportUnusedImport": false,
+  "stubPath": "./stubs",
+  "exclude": ["**/node_modules", "**/__pycache__", ".git"]
+}
