@@ -3,8 +3,8 @@ uvicorn[standard]
 sqlalchemy==2.0.51
 psycopg2-binary
 python-jose
-passlib
-bcrypt
+passlib==1.7.4
+bcrypt==4.0.1
 python-multipart
 reportlab
 openpyxl
