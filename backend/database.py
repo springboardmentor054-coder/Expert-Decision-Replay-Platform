@@ -1,7 +1,11 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql://postgres:shreyas@localhost:5432/expert_decision_db"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:shreyas@localhost:5432/expert_decision_db"
+)
 
 engine = create_engine(DATABASE_URL)
 

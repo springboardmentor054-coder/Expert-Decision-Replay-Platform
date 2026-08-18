@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 
+
 # ============================================================
 # USER SCHEMAS
 # ============================================================
@@ -182,3 +183,36 @@ class ApprovalResponse(BaseModel):
     class Config:
 
         from_attributes = True   
+
+# ============================================================
+# AUDIT LOG SCHEMAS
+# ============================================================
+
+class AuditLogBase(BaseModel):
+
+    user_id: int
+
+    decision_id: Optional[int] = None
+
+    action_type: str
+
+    description: str
+
+    ip_address: Optional[str] = None
+
+
+class AuditLogCreate(AuditLogBase):
+    pass
+
+
+class AuditLogResponse(AuditLogBase):
+
+    id: int
+
+    created_at: datetime
+
+    class Config:
+
+        from_attributes = True
+
+        

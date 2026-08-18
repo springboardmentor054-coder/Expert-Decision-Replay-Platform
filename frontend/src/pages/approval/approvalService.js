@@ -10,11 +10,6 @@ export const getApprovalDetails = (approvalId) => {
     return API.get(`/approvals/${approvalId}`);
 };
 
-// Get approval history
-export const getApprovalHistory = () => {
-    return API.get("/approvals/history");
-};
-
 // Approve
 export const approveDecision = (approvalId, reviewerId) => {
     return API.put(

@@ -41,6 +41,7 @@ const Decisions = () => {
   const [filteredDecisions, setFilteredDecisions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All"); // Step 2: Added Status Filter state
   const [showModal, setShowModal] = useState(false);
   const [editingDecision, setEditingDecision] = useState(null);
 
@@ -69,16 +70,23 @@ const Decisions = () => {
   }, []);
 
   // ==========================
-  // Search Filter
+  // Search & Status Filter (Step 2)
   // ==========================
   useEffect(() => {
-    const filtered = decisions.filter((decision) =>
-      decision.decision_title
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-    );
+    let filtered = decisions;
+
+    if (search !== "") {
+      filtered = filtered.filter((d) =>
+        d.decision_title?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((d) => d.status === statusFilter);
+    }
+
     setFilteredDecisions(filtered);
-  }, [search, decisions]);
+  }, [search, statusFilter, decisions]);
 
   // ==========================
   // Add Decision
@@ -111,8 +119,7 @@ const Decisions = () => {
     } catch (error) {
       console.error(error);
       alert(
-        error?.response?.data?.detail ||
-        "Submission failed."
+        error?.response?.data?.detail || "Submission failed."
       );
     }
   };
@@ -174,6 +181,58 @@ const Decisions = () => {
         {/* Body                       */}
         {/* ========================== */}
         <Card.Body>
+          {/* Step 1: Decision Statistics Cards */}
+          <div className="row mb-4">
+            <div className="col-md-3">
+              <Card className="border-0 shadow-sm text-center">
+                <Card.Body>
+                  <h5>Total Decisions</h5>
+                  <h2>{decisions.length}</h2>
+                </Card.Body>
+              </Card>
+            </div>
+
+            <div className="col-md-3">
+              <Card className="border-0 shadow-sm text-center">
+                <Card.Body>
+                  <h5>Approved</h5>
+                  <h2 className="text-success">
+                    {decisions.filter((d) => d.status === "Approved").length}
+                  </h2>
+                </Card.Body>
+              </Card>
+            </div>
+
+            <div className="col-md-3">
+              <Card className="border-0 shadow-sm text-center">
+                <Card.Body>
+                  <h5>Pending</h5>
+                  <h2 className="text-warning">
+                    {
+                      decisions.filter(
+                        (d) =>
+                          d.status === "Pending Review" ||
+                          d.status === "Pending Manager Approval"
+                      ).length
+                    }
+                  </h2>
+                </Card.Body>
+              </Card>
+            </div>
+
+            <div className="col-md-3">
+              <Card className="border-0 shadow-sm text-center">
+                <Card.Body>
+                  <h5>Rejected</h5>
+                  <h2 className="text-danger">
+                    {decisions.filter((d) => d.status === "Rejected").length}
+                  </h2>
+                </Card.Body>
+              </Card>
+            </div>
+          </div>
+
+          {/* Controls: Search and Status Dropdown Filter */}
           <div className="row mb-3">
             <div className="col-md-4">
               <div className="input-group">
@@ -187,6 +246,23 @@ const Decisions = () => {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Step 3: Status Dropdown Filter */}
+            <div className="col-md-3">
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="All">All</option>
+                <option value="Draft">Draft</option>
+                <option value="Pending Review">Pending Review</option>
+                <option value="Pending Manager Approval">
+                  Pending Manager Approval
+                </option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </Form.Select>
             </div>
           </div>
 
@@ -222,14 +298,17 @@ const Decisions = () => {
                       <td>{decision.decision_description}</td>
                       <td>{decision.user_id}</td>
                       <td>
+                        {/* Step 4: Better Status Badges */}
                         <span
                           className={`badge ${
                             decision.status === "Approved"
                               ? "bg-success"
-                              : decision.status === "Pending Review"
-                              ? "bg-warning text-dark"
                               : decision.status === "Rejected"
                               ? "bg-danger"
+                              : decision.status === "Pending Review"
+                              ? "bg-warning text-dark"
+                              : decision.status === "Pending Manager Approval"
+                              ? "bg-primary"
                               : "bg-secondary"
                           }`}
                         >

@@ -12,11 +12,12 @@ import {
   FaHistory,
   FaUsers,
   FaUserCircle,
-  FaSignOutAlt,
-  FaCheckCircle
+  FaSignOutAlt
 } from "react-icons/fa";
 
 import "../../styles/sidebar.css";
+
+import { FaBook } from "react-icons/fa";
 
 const Sidebar = () => {
 
@@ -107,97 +108,142 @@ const Sidebar = () => {
   icon: <FaHistory />
 },
 
+{
+  title: "Knowledge Repository",
+  path: "/knowledge",
+  icon: <FaBook />
+},
     // ==========================
-    // REVIEWER
-    // ==========================
+// REVIEWER
+// ==========================
 
-    ...(role === "Reviewer"
-      ? [
+...(role === "Reviewer"
+  ? [
 
-          {
-            heading: "Approval Workflow"
-          },
+      {
+        heading: "Approval Workflow"
+      },
 
-          {
-            title: "Pending Approvals",
-            path: "/pending-approvals",
-            icon: <FaClipboardList />
-          },
+      {
+        title: "Pending Approvals",
+        path: "/pending-approvals",
+        icon: <FaClipboardList />
+      },
 
-          {
-            title: "Approval History",
-            path: "/approval-history",
-            icon: <FaHistory />
-          }
+      {
+        title: "Approval History",
+        path: "/approval-history",
+        icon: <FaHistory />
+      }
 
-          
-
-        ]
-      : []),
-
-    // ==========================
-    // MANAGER
-    // ==========================
-
-    ...(role === "Manager"
-      ? [
-
-          {
-            heading: "Approval Workflow"
-          },
-
-          {
-            title: "Pending Approvals",
-            path: "/pending-approvals",
-            icon: <FaClipboardList />
-          },
-
-          {
-            title: "Approval History",
-            path: "/approval-history",
-            icon: <FaHistory />
-          }
-
-        ]
-      : []),
+    ]
+  : []),
 
     // ==========================
-    // ADMIN
+// MANAGER
+// ==========================
+
+...(role === "Manager"
+  ? [
+
+      {
+        heading: "Approval Workflow"
+      },
+
+      {
+        title: "Pending Approvals",
+        path: "/pending-approvals",
+        icon: <FaClipboardList />
+      },
+
+      {
+        title: "Approval History",
+        path: "/approval-history",
+        icon: <FaHistory />
+      },
+
+      {
+        heading: "Management"
+      },
+
+      {
+        title: "Team",
+        path: "/team",
+        icon: <FaUsers />
+      },
+
+      {
+        title: "Audit Logs",
+        path: "/audit-logs",
+        icon: <FaHistory />
+      },
+
+      {
+        title: "Reports",
+        path: "/reports",
+        icon: <FaChartBar />
+      }
+
+    ]
+  : []),
+
     // ==========================
+// ADMIN
+// ==========================
 
-    ...(role === "Admin"
-      ? [
+...(role === "Admin"
+  ? [
 
-          {
-            heading: "Administration"
-          },
+      {
+        heading: "Administration"
+      },
 
-          {
-            title: "Users",
-            path: "/users",
-            icon: <FaUsers />
-          },
+      {
+        title: "Users",
+        path: "/users",
+        icon: <FaUsers />
+      },
 
-          {
-            heading: "Approval Workflow"
-          },
+      {
+        heading: "Approval Workflow"
+      },
 
-          {
-            title: "Pending Approvals",
-            path: "/pending-approvals",
-            icon: <FaClipboardList />
-          },
+      {
+        title: "Pending Approvals",
+        path: "/pending-approvals",
+        icon: <FaClipboardList />
+      },
 
-          {
-            title: "Approval History",
-            path: "/approval-history",
-            icon: <FaHistory />
-          }
+      {
+        title: "Approval History",
+        path: "/approval-history",
+        icon: <FaHistory />
+      },
 
-          
+      {
+        heading: "Management"
+      },
 
-        ]
-      : []),
+      {
+        title: "Team",
+        path: "/team",
+        icon: <FaUsers />
+      },
+
+      {
+        title: "Audit Logs",
+        path: "/audit-logs",
+        icon: <FaHistory />
+      },
+
+      {
+        title: "Reports",
+        path: "/reports",
+        icon: <FaChartBar />
+      }
+
+    ]
+  : []),
 
     // ==========================
     // COMMON MENU

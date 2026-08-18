@@ -10,8 +10,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import func
 from database import get_db
 from models import Decision, Approval, User
-
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database import Base, engine, get_db
 from models import (
@@ -24,7 +23,8 @@ from models import (
     Discussion,
     DecisionVersion,
     Approval,
-    Notification
+    Notification,
+    AuditLog
 )
 
 from schemas import (
@@ -46,7 +46,9 @@ from schemas import (
     DecisionVersionUpdate,
     ApprovalCreate,
     ApprovalUpdate,
-    ApprovalResponse
+    ApprovalResponse,
+    AuditLogCreate,
+    AuditLogResponse
 )
 
 from security import (
@@ -160,6 +162,7 @@ def login(
     db: Session = Depends(get_db)
 ):
 
+    # Check Email
     db_user = (
         db.query(User)
         .filter(
@@ -168,54 +171,61 @@ def login(
         .first()
     )
 
-
     if not db_user:
-
         raise HTTPException(
             status_code=401,
             detail="Invalid Email"
         )
 
-
+    # Check Password
     if not verify_password(
         user.password,
         db_user.password_hash
     ):
-
         raise HTTPException(
             status_code=401,
             detail="Invalid Password"
         )
 
-
-    # Create secure JWT token
+    # Create JWT Token
     access_token = create_access_token(
         db_user.user_id
     )
 
+    # ============================================================
+    # Create Audit Log
+    # ============================================================
 
+    create_audit_log(
+
+        db=db,
+
+        user_id=db_user.user_id,
+
+        decision_id=None,
+
+        action_type="Login",
+
+        description=f'{db_user.username} logged into the system.'
+
+    )
+
+    # Return Login Response
     return {
 
-        "message":
-            "Login Successful",
+        "message": "Login Successful",
 
-        "access_token":
-            access_token,
+        "access_token": access_token,
 
-        "token_type":
-            "bearer",
+        "token_type": "bearer",
 
-        "user_id":
-            db_user.user_id,
+        "user_id": db_user.user_id,
 
-        "username":
-            db_user.username,
+        "username": db_user.username,
 
-        "role":
-            db_user.role
+        "role": db_user.role
 
     }
-
 # =====================================
 # Update User
 # =====================================
@@ -342,6 +352,22 @@ def update_role(
         "message": "Role updated successfully",
         "role": user.role
     }
+# ============================================================
+# Get All Users
+# ============================================================
+
+@app.get("/users")
+def get_users(
+    db: Session = Depends(get_db)
+):
+
+    users = (
+        db.query(User)
+        .order_by(User.user_id)
+        .all()
+    )
+
+    return users
 
 # =====================================
 # Create Decision + Initial Version
@@ -379,11 +405,10 @@ def create_decision(
 
         db.add(new_decision)
 
-        # Flush so decision_id is generated
-        # before creating Version 1
+        # Generate decision_id
         db.flush()
 
-        # Automatically create Version 1
+        # Create Initial Version
         initial_version = DecisionVersion(
             decision_id=new_decision.decision_id,
             version_number=1,
@@ -396,22 +421,41 @@ def create_decision(
 
         db.add(initial_version)
 
-        # Save decision + Version 1 together
+        # Save Decision & Version
         db.commit()
 
         db.refresh(new_decision)
         db.refresh(initial_version)
 
-    except Exception:
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=decision.user_id,
+
+            decision_id=new_decision.decision_id,
+
+            action_type="Create Decision",
+
+            description=f'Decision "{new_decision.decision_title}" created successfully.'
+
+        )
+
+    except Exception as e:
 
         db.rollback()
 
         raise HTTPException(
             status_code=500,
-            detail="Could not create decision"
+            detail=f"Could not create decision: {str(e)}"
         )
 
     return {
+
         "message":
             "Decision created successfully",
 
@@ -426,6 +470,7 @@ def create_decision(
 
         "change_summary":
             initial_version.change_summary
+
     }
 # =====================================
 # Get All Decisions
@@ -593,6 +638,7 @@ def update_decision(
         "modified_at": new_version.modified_at,
         "change_summary": new_version.change_summary
     }
+
 # =====================================
 # Delete Decision
 # =====================================
@@ -603,11 +649,10 @@ def delete_decision(
     db: Session = Depends(get_db)
 ):
 
+    # Check decision exists
     decision = (
         db.query(Decision)
-        .filter(
-            Decision.decision_id == decision_id
-        )
+        .filter(Decision.decision_id == decision_id)
         .first()
     )
 
@@ -617,54 +662,47 @@ def delete_decision(
             detail="Decision not found"
         )
 
-    db.delete(decision)
-    db.commit()
+    # Store values before deleting
+    decision_title = decision.decision_title
+    decision_owner = decision.user_id
+
+    try:
+
+        db.delete(decision)
+
+        db.commit()
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=decision_owner,
+
+            decision_id=decision_id,
+
+            action_type="Delete Decision",
+
+            description=(
+                f'Decision "{decision_title}" deleted successfully.'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not delete decision: {str(e)}"
+        )
 
     return {
         "message": "Decision deleted successfully"
-    }
-# =====================================
-# Create Alternative
-# =====================================
-
-@app.post("/alternatives")
-def create_alternative(
-    alternative: AlternativeCreate,
-    db: Session = Depends(get_db)
-):
-
-    decision = (
-        db.query(Decision)
-        .filter(
-            Decision.decision_id == alternative.decision_id
-        )
-        .first()
-    )
-
-    if not decision:
-        raise HTTPException(
-            status_code=404,
-            detail="Decision not found"
-        )
-
-    new_alternative = Alternative(
-        decision_id=alternative.decision_id,
-        alternative_name=alternative.alternative_name,
-        description=alternative.description,
-        pros=alternative.pros,
-        cons=alternative.cons,
-        estimated_cost=alternative.estimated_cost,
-        feasibility=alternative.feasibility,
-        risk_level=alternative.risk_level
-    )
-
-    db.add(new_alternative)
-    db.commit()
-    db.refresh(new_alternative)
-
-    return {
-        "message": "Alternative created successfully",
-        "alternative_id": new_alternative.alternative_id
     }
 
 
@@ -696,6 +734,34 @@ def get_alternative(
         )
 
     return alternative
+
+
+# ============================================================
+# Create Alternative
+# ============================================================
+
+@app.post("/alternatives")
+def create_alternative(
+    alternative: AlternativeCreate,
+    db: Session = Depends(get_db)
+):
+
+    new_alternative = Alternative(
+        decision_id=alternative.decision_id,
+        alternative_name=alternative.alternative_name,
+        description=alternative.description,
+        pros=alternative.pros,
+        cons=alternative.cons,
+        estimated_cost=alternative.estimated_cost,
+        feasibility=alternative.feasibility,
+        risk_level=alternative.risk_level
+    )
+
+    db.add(new_alternative)
+    db.commit()
+    db.refresh(new_alternative)
+
+    return new_alternative
 # =====================================
 # Update Alternative
 # =====================================
@@ -769,23 +835,7 @@ def delete_alternative(
     }
 
 
-# =====================================
-# Get Alternatives By Decision
-# =====================================
 
-@app.get("/decisions/{decision_id}/alternatives")
-def get_decision_alternatives(
-    decision_id: int,
-    db: Session = Depends(get_db)
-):
-
-    return (
-        db.query(Alternative)
-        .filter(
-            Alternative.decision_id == decision_id
-        )
-        .all()
-    )
 
 # =====================================
 # Create Criteria
@@ -1528,39 +1578,85 @@ def delete_document(
 
     file_path = document.file_path
     file_name = document.file_name
+    decision_id = document.decision_id
+    uploaded_by = document.uploaded_by
+
+    # Get decision title for audit log
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    decision_title = (
+        decision.decision_title
+        if decision
+        else f"Decision ID {decision_id}"
+    )
 
     # Delete database record
     try:
 
         db.delete(document)
+
         db.commit()
 
-    except Exception:
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=uploaded_by,
+
+            decision_id=decision_id,
+
+            action_type="Delete Document",
+
+            description=(
+                f'Deleted document "{file_name}" '
+                f'from decision "{decision_title}".'
+            )
+
+        )
+
+    except Exception as e:
 
         db.rollback()
 
         raise HTTPException(
             status_code=500,
-            detail="Could not delete document"
+            detail=f"Could not delete document: {str(e)}"
         )
 
     # Delete physical file
     if os.path.exists(file_path):
 
         try:
+
             os.remove(file_path)
 
         except OSError:
 
             return {
+
                 "message":
                     "Document record deleted, but physical file could not be removed",
+
                 "file_name": file_name
+
             }
 
     return {
+
         "message": "Document deleted successfully",
+
         "file_name": file_name
+
     }
 
 # =====================================
@@ -1667,153 +1763,54 @@ def get_discussion(
     return discussion
 
 
-# Edit Comment / Meeting Note
-@app.put("/discussions/{discussion_id}")
-def update_discussion(
-    discussion_id: int,
-    data: DiscussionUpdate,
-    db: Session = Depends(get_db)
-):
-    discussion = db.query(Discussion).filter(
-        Discussion.discussion_id == discussion_id
-    ).first()
-
-    if not discussion:
-        raise HTTPException(
-            status_code=404,
-            detail="Discussion not found"
-        )
-
-    if data.discussion_type not in ["Comment", "Meeting Note"]:
-        raise HTTPException(
-            status_code=400,
-            detail="Type must be Comment or Meeting Note"
-        )
-
-    discussion.comment = data.comment
-    discussion.discussion_type = data.discussion_type
-
-    db.commit()
-    db.refresh(discussion)
-
-    return {
-        "message": "Discussion updated successfully",
-        "discussion_id": discussion.discussion_id,
-        "comment": discussion.comment,
-        "discussion_type": discussion.discussion_type
-    }
 
 
-# Delete Discussion
-@app.delete("/discussions/{discussion_id}")
-def delete_discussion(
-    discussion_id: int,
-    db: Session = Depends(get_db)
-):
-    discussion = db.query(Discussion).filter(
-        Discussion.discussion_id == discussion_id
-    ).first()
-
-    if not discussion:
-        raise HTTPException(
-            status_code=404,
-            detail="Discussion not found"
-        )
-
-    db.delete(discussion)
-    db.commit()
-
-    return {
-        "message": "Discussion deleted successfully"
-    }
-
-
-# View Only Meeting Notes
-@app.get("/decisions/{decision_id}/meeting-notes")
-def get_meeting_notes(
-    decision_id: int,
-    db: Session = Depends(get_db)
-):
-    decision = db.query(Decision).filter(
-        Decision.decision_id == decision_id
-    ).first()
-
-    if not decision:
-        raise HTTPException(
-            status_code=404,
-            detail="Decision not found"
-        )
-
-    return db.query(Discussion).filter(
-        Discussion.decision_id == decision_id,
-        Discussion.discussion_type == "Meeting Note"
-    ).order_by(
-        Discussion.created_at.desc()
-    ).all()
 
 # =====================================
 # DECISION VERSION TRACKING
 # =====================================
 
 
-# =====================================
-# Create Decision Version Manually
-# =====================================
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-@app.post("/decisions/{decision_id}/versions")
+
+@app.post(
+    "/decisions/{decision_id}/versions", status_code=status.HTTP_201_CREATED
+)
 def create_decision_version(
     decision_id: int,
     version_data: DecisionVersionCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-
-    # Check decision
+    # 1. Check decision
     decision = (
-        db.query(Decision)
-        .filter(
-            Decision.decision_id == decision_id
-        )
-        .first()
+        db.query(Decision).filter(Decision.decision_id == decision_id).first()
     )
-
     if not decision:
         raise HTTPException(
-            status_code=404,
-            detail="Decision not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Decision not found"
         )
 
-    # Check modifying user
+    # 2. Check modifying user
     user = (
-        db.query(User)
-        .filter(
-            User.user_id == version_data.modified_by
-        )
-        .first()
+        db.query(User).filter(User.user_id == version_data.modified_by).first()
     )
-
     if not user:
         raise HTTPException(
-            status_code=404,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    # Find latest version
+    # 3. Find latest version & compute next version number
     latest_version = (
         db.query(DecisionVersion)
-        .filter(
-            DecisionVersion.decision_id == decision_id
-        )
-        .order_by(
-            DecisionVersion.version_number.desc()
-        )
+        .filter(DecisionVersion.decision_id == decision_id)
+        .order_by(DecisionVersion.version_number.desc())
         .first()
     )
+    next_version = (latest_version.version_number + 1) if latest_version else 1
 
-    if latest_version:
-        next_version = latest_version.version_number + 1
-    else:
-        next_version = 1
-
+    # 4. Create new version entity
     new_version = DecisionVersion(
         decision_id=decision_id,
         version_number=next_version,
@@ -1821,13 +1818,26 @@ def create_decision_version(
         description=decision.decision_description,
         status=version_data.status,
         modified_by=version_data.modified_by,
-        change_summary=version_data.change_summary
+        change_summary=version_data.change_summary,
     )
 
     db.add(new_version)
     db.commit()
     db.refresh(new_version)
 
+    # 5. Create audit log entry
+    create_audit_log(
+        db=db,
+        user_id=version_data.modified_by,
+        decision_id=decision.decision_id,
+        action_type="Create Version",
+        description=(
+            f"Created Version {new_version.version_number} "
+            f'for decision "{decision.decision_title}".'
+        ),
+    )
+
+    # 6. Return response
     return {
         "message": "Decision version created successfully",
         "id": new_version.id,
@@ -1838,10 +1848,8 @@ def create_decision_version(
         "status": new_version.status,
         "modified_by": new_version.modified_by,
         "modified_at": new_version.modified_at,
-        "change_summary": new_version.change_summary
+        "change_summary": new_version.change_summary,
     }
-
-
 # =====================================
 # Get Version History
 # =====================================
@@ -2151,6 +2159,19 @@ def upload_document(
             detail="Decision not found."
         )
 
+    # Check user exists
+    user = (
+        db.query(User)
+        .filter(User.user_id == uploaded_by)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
     # Original filename
     filename = file.filename
 
@@ -2162,33 +2183,65 @@ def upload_document(
         )
     )
 
-    # Save file
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(
-            file.file,
-            buffer
+    try:
+
+        # Save file
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(
+                file.file,
+                buffer
+            )
+
+        # Save metadata
+        document = Document(
+
+            decision_id=decision_id,
+
+            file_name=filename,
+
+            file_path=filepath,
+
+            file_type=file.content_type,
+
+            uploaded_by=uploaded_by
+
         )
 
-    # Save metadata to database
-    document = Document(
+        db.add(document)
 
-        decision_id=decision_id,
+        db.commit()
 
-        file_name=filename,
+        db.refresh(document)
 
-        file_path=filepath,
+        # ============================================================
+        # Audit Log
+        # ============================================================
 
-        file_type=file.content_type,
+        create_audit_log(
 
-        uploaded_by=uploaded_by
+            db=db,
 
-    )
+            user_id=uploaded_by,
 
-    db.add(document)
+            decision_id=decision_id,
 
-    db.commit()
+            action_type="Upload Document",
 
-    db.refresh(document)
+            description=(
+                f'Uploaded document "{filename}" '
+                f'for decision "{decision.decision_title}".'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not upload document: {str(e)}"
+        )
 
     return {
 
@@ -2328,55 +2381,7 @@ def download_document(
         media_type=document.file_type
 
     )
-# ============================================================
-# Delete Document
-# ============================================================
 
-@app.delete("/documents/{document_id}")
-def delete_document(
-    document_id: int,
-    db: Session = Depends(get_db)
-):
-
-    document = (
-
-        db.query(Document)
-
-        .filter(
-            Document.document_id == document_id
-        )
-
-        .first()
-
-    )
-
-    if not document:
-
-        raise HTTPException(
-
-            status_code=404,
-
-            detail="Document not found."
-
-        )
-
-    # Delete physical file
-
-    if os.path.exists(document.file_path):
-
-        os.remove(document.file_path)
-
-    # Delete database record
-
-    db.delete(document)
-
-    db.commit()
-
-    return {
-
-        "message": "Document deleted successfully."
-
-    }
 
 # ============================================================
 # Create Discussion
@@ -2388,19 +2393,93 @@ def create_discussion(
     db: Session = Depends(get_db)
 ):
 
-    new_discussion = Discussion(
-        decision_id=discussion.decision_id,
-        user_id=discussion.user_id,
-        comment=discussion.comment
+    # Check Decision
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == discussion.decision_id
+        )
+        .first()
     )
 
-    db.add(new_discussion)
-    db.commit()
-    db.refresh(new_discussion)
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    # Check User
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == discussion.user_id
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    new_discussion = Discussion(
+
+        decision_id=discussion.decision_id,
+
+        user_id=discussion.user_id,
+
+        comment=discussion.comment
+
+    )
+
+    try:
+
+        db.add(new_discussion)
+
+        db.commit()
+
+        db.refresh(new_discussion)
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=discussion.user_id,
+
+            decision_id=discussion.decision_id,
+
+            action_type="Create Discussion",
+
+            description=(
+                f'{user.username} added a discussion '
+                f'to decision "{decision.decision_title}".'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=f"Could not create discussion: {str(e)}"
+
+        )
 
     return {
+
         "message": "Discussion added successfully.",
+
         "discussion": new_discussion
+
     }
 
 # ============================================================
@@ -2531,15 +2610,70 @@ def update_discussion(
             detail="Discussion not found."
         )
 
+    # Get user
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == existing.user_id
+        )
+        .first()
+    )
+
+    # Get decision
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == existing.decision_id
+        )
+        .first()
+    )
+
     existing.comment = discussion.comment
 
-    db.commit()
-    db.refresh(existing)
+    try:
+
+        db.commit()
+
+        db.refresh(existing)
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=existing.user_id,
+
+            decision_id=existing.decision_id,
+
+            action_type="Update Discussion",
+
+            description=(
+                f'{user.username} updated a discussion '
+                f'on decision "{decision.decision_title}".'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=f"Could not update discussion: {str(e)}"
+
+        )
 
     return {
-        "message": "Discussion updated successfully."
-    }
 
+        "message": "Discussion updated successfully."
+
+    }
 # ============================================================
 # Delete Discussion
 # ============================================================
@@ -2564,11 +2698,70 @@ def delete_discussion(
             detail="Discussion not found."
         )
 
-    db.delete(discussion)
-    db.commit()
+    # Get user
+    user = (
+        db.query(User)
+        .filter(
+            User.user_id == discussion.user_id
+        )
+        .first()
+    )
+
+    # Get decision
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == discussion.decision_id
+        )
+        .first()
+    )
+
+    try:
+
+        user_id = discussion.user_id
+        decision_id = discussion.decision_id
+
+        db.delete(discussion)
+
+        db.commit()
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=user_id,
+
+            decision_id=decision_id,
+
+            action_type="Delete Discussion",
+
+            description=(
+                f'{user.username} deleted a discussion '
+                f'from decision "{decision.decision_title}".'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=f"Could not delete discussion: {str(e)}"
+
+        )
 
     return {
+
         "message": "Discussion deleted successfully."
+
     }
 
 # ============================================================
@@ -2733,7 +2926,8 @@ def get_approval_history(
         })
 
     return result  
-from datetime import datetime, timezone
+
+
 
 # ============================================================
 # Get Approvals for a Decision
@@ -2746,23 +2940,19 @@ def get_decision_approvals(
 ):
     decision = (
         db.query(Decision)
-        .filter(
-            Decision.decision_id == decision_id
-        )
+        .filter(Decision.decision_id == decision_id)
         .first()
     )
 
     if not decision:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Decision not found."
         )
 
     approvals = (
         db.query(Approval)
-        .filter(
-            Approval.decision_id == decision_id
-        )
+        .filter(Approval.decision_id == decision_id)
         .all()
     )
 
@@ -2779,71 +2969,77 @@ def approve_decision(
     reviewer_id: int,
     db: Session = Depends(get_db)
 ):
-
+    # 1. Verify acting user exists
     reviewer = verify_reviewer_manager(reviewer_id, db)
 
+    # 2. Fetch approval record
     approval = (
         db.query(Approval)
         .filter(Approval.id == approval_id)
         .first()
     )
-
     if not approval:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Approval not found."
         )
 
+    # 3. Check status
     if approval.status != "Pending":
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Approval already processed. Current status: {approval.status}"
         )
 
+    # 4. Fetch associated decision
     decision = (
         db.query(Decision)
         .filter(Decision.decision_id == approval.decision_id)
         .first()
     )
-
     if not decision:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="Decision not found."
         )
 
+    # 5. Prevent self-approval
     if decision.user_id == reviewer.user_id:
         raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="You cannot approve your own decision."
         )
 
-    # ==========================================
-    # LEVEL 1 : REVIEWER
-    # ==========================================
+    # 6. Ensure reviewer is authorized on this specific approval
+    if approval.reviewer_id and approval.reviewer_id != reviewer.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to process this specific approval."
+        )
 
+    # ==========================================
+    # LEVEL 1 : REVIEWER APPROVAL
+    # ==========================================
     if approval.approval_level == 1:
-
         if reviewer.role != "Reviewer":
             raise HTTPException(
-                status_code=403,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only Reviewer can approve Level 1."
             )
 
         approval.status = "Approved"
         approval.approved_at = datetime.now(timezone.utc)
-
         decision.status = "Pending Manager Approval"
 
+        # Locate Manager for Level 2
         manager = (
             db.query(User)
             .filter(User.role == "Manager")
             .first()
         )
-
         if not manager:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Manager not found."
             )
 
@@ -2857,8 +3053,7 @@ def approve_decision(
         )
 
         if not existing:
-
-            managerApproval = Approval(
+            manager_approval = Approval(
                 decision_id=decision.decision_id,
                 reviewer_id=manager.user_id,
                 approval_level=2,
@@ -2873,10 +3068,29 @@ def approve_decision(
                 is_read=False
             )
 
-            db.add(managerApproval)
+            db.add(manager_approval)
             db.add(notification)
 
-        db.commit()
+        # Transactional execution
+        try:
+            db.commit()
+
+            create_audit_log(
+                db=db,
+                user_id=reviewer.user_id,
+                decision_id=decision.decision_id,
+                action_type="Reviewer Approval",
+                description=(
+                    f'Reviewer "{reviewer.username}" approved '
+                    f'decision "{decision.decision_title}".'
+                )
+            )
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Approval failed: {str(e)}"
+            )
 
         return {
             "message": "Reviewer approved successfully.",
@@ -2884,20 +3098,17 @@ def approve_decision(
         }
 
     # ==========================================
-    # LEVEL 2 : MANAGER
+    # LEVEL 2 : MANAGER APPROVAL
     # ==========================================
-
     elif approval.approval_level == 2:
-
         if reviewer.role != "Manager":
             raise HTTPException(
-                status_code=403,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only Manager can approve Level 2."
             )
 
         approval.status = "Approved"
         approval.approved_at = datetime.now(timezone.utc)
-
         decision.status = "Approved"
 
         notification = Notification(
@@ -2910,19 +3121,37 @@ def approve_decision(
 
         db.add(notification)
 
-        db.commit()
+        # Transactional execution
+        try:
+            db.commit()
+
+            create_audit_log(
+                db=db,
+                user_id=reviewer.user_id,
+                decision_id=decision.decision_id,
+                action_type="Manager Approval",
+                description=(
+                    f'Manager "{reviewer.username}" fully approved '
+                    f'decision "{decision.decision_title}".'
+                )
+            )
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Approval failed: {str(e)}"
+            )
 
         return {
             "message": "Decision fully approved.",
             "status": decision.status
         }
 
+    # Fallback for unexpected approval levels
     raise HTTPException(
-        status_code=400,
+        status_code=status.HTTP_400_BAD_REQUEST,
         detail="Invalid approval level."
     )
-
-
 # ============================================================
 # Reject Decision
 # ============================================================
@@ -2934,6 +3163,7 @@ def reject_decision(
     remarks: str,
     db: Session = Depends(get_db)
 ):
+
     reviewer = verify_reviewer_manager(reviewer_id, db)
 
     approval = (
@@ -2975,9 +3205,10 @@ def reject_decision(
     approval.status = "Rejected"
     approval.remarks = remarks
     approval.approved_at = datetime.now(timezone.utc)
+
     decision.status = "Rejected"
 
-    # Notify Decision Owner of Rejection
+    # Notify Decision Owner
     notification = Notification(
         user_id=decision.user_id,
         title="Decision Rejected",
@@ -2986,12 +3217,50 @@ def reject_decision(
         is_read=False
     )
 
-    db.add(notification)
-    db.commit()
+    try:
+
+        db.add(notification)
+
+        # Save rejection
+        db.commit()
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=reviewer.user_id,
+
+            decision_id=decision.decision_id,
+
+            action_type="Reject Decision",
+
+            description=(
+                f'{reviewer.role} "{reviewer.username}" rejected '
+                f'decision "{decision.decision_title}". '
+                f'Remarks: {remarks}'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not reject decision: {str(e)}"
+        )
 
     return {
+
         "message": "Decision rejected successfully.",
+
         "status": decision.status
+
     }
 # ============================================================
 # Verify Reviewer / Manager / Admin
@@ -3037,10 +3306,13 @@ def submit_decision(
     decision_id: int,
     db: Session = Depends(get_db)
 ):
+
     # Find Decision
-    decision = db.query(Decision).filter(
-        Decision.decision_id == decision_id
-    ).first()
+    decision = (
+        db.query(Decision)
+        .filter(Decision.decision_id == decision_id)
+        .first()
+    )
 
     if not decision:
         raise HTTPException(
@@ -3056,9 +3328,11 @@ def submit_decision(
         )
 
     # Find Reviewer
-    reviewer = db.query(User).filter(
-        User.role == "Reviewer"
-    ).first()
+    reviewer = (
+        db.query(User)
+        .filter(User.role == "Reviewer")
+        .first()
+    )
 
     if not reviewer:
         raise HTTPException(
@@ -3077,7 +3351,7 @@ def submit_decision(
         status="Pending"
     )
 
-    # Create Notification Record
+    # Create Notification
     notification = Notification(
         user_id=reviewer.user_id,
         title="New Decision Submitted",
@@ -3086,69 +3360,46 @@ def submit_decision(
         is_read=False
     )
 
-    # Save to database in a single transaction
-    db.add(approval)
-    db.add(notification)
-    db.commit()
+    try:
+
+        db.add(approval)
+        db.add(notification)
+
+        db.commit()
+
+        # ============================================================
+        # Audit Log
+        # ============================================================
+
+        create_audit_log(
+
+            db=db,
+
+            user_id=decision.user_id,
+
+            decision_id=decision.decision_id,
+
+            action_type="Submit Decision",
+
+            description=(
+                f'Decision "{decision.decision_title}" submitted for review.'
+            )
+
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not submit decision: {str(e)}"
+        )
 
     return {
+
         "message": "Decision submitted successfully."
-    }
 
-# =====================================
-# Submit Decision For Approval
-# =====================================
-
-@app.put("/decisions/{decision_id}/submit")
-def submit_decision(
-    decision_id: int,
-    db: Session = Depends(get_db)
-):
-
-    decision = (
-        db.query(Decision)
-        .filter(Decision.decision_id == decision_id)
-        .first()
-    )
-
-    if not decision:
-        raise HTTPException(
-            status_code=404,
-            detail="Decision not found"
-        )
-
-    if decision.status != "Draft":
-        raise HTTPException(
-            status_code=400,
-            detail="Only Draft decisions can be submitted."
-        )
-
-    reviewer = (
-        db.query(User)
-        .filter(User.role == "Reviewer")
-        .first()
-    )
-
-    if not reviewer:
-        raise HTTPException(
-            status_code=404,
-            detail="Reviewer not found."
-        )
-
-    decision.status = "Pending Review"
-
-    approval = Approval(
-        decision_id=decision.decision_id,
-        reviewer_id=reviewer.user_id,
-        approval_level=1,
-        status="Pending"
-    )
-
-    db.add(approval)
-    db.commit()
-
-    return {
-        "message": "Decision submitted successfully."
     }
 
 # ============================================================
@@ -3502,3 +3753,505 @@ def get_decision_alternatives(
     )
 
     return alternatives
+
+# ============================================================
+# Get All Audit Logs
+# ============================================================
+
+@app.get(
+    "/audit-logs",
+    response_model=list[AuditLogResponse]
+)
+def get_audit_logs(
+    db: Session = Depends(get_db)
+):
+
+    logs = (
+        db.query(AuditLog)
+        .order_by(AuditLog.created_at.desc())
+        .all()
+    )
+
+    return logs
+
+# ============================================================
+# Get Audit Log By ID
+# ============================================================
+
+@app.get(
+    "/audit-logs/{log_id}",
+    response_model=AuditLogResponse
+)
+def get_audit_log(
+    log_id: int,
+    db: Session = Depends(get_db)
+):
+
+    log = (
+        db.query(AuditLog)
+        .filter(AuditLog.id == log_id)
+        .first()
+    )
+
+    if not log:
+        raise HTTPException(
+            status_code=404,
+            detail="Audit log not found."
+        )
+
+    return log
+
+# ============================================================
+# Get Audit Logs By User
+# ============================================================
+
+@app.get(
+    "/users/{user_id}/audit-logs",
+    response_model=list[AuditLogResponse]
+)
+def get_user_audit_logs(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+
+    logs = (
+        db.query(AuditLog)
+        .filter(AuditLog.user_id == user_id)
+        .order_by(AuditLog.created_at.desc())
+        .all()
+    )
+
+    return logs
+
+# ============================================================
+# Get Audit Logs By Decision
+# ============================================================
+
+@app.get(
+    "/decisions/{decision_id}/audit-logs",
+    response_model=list[AuditLogResponse]
+)
+def get_decision_audit_logs(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    logs = (
+        db.query(AuditLog)
+        .filter(AuditLog.decision_id == decision_id)
+        .order_by(AuditLog.created_at.desc())
+        .all()
+    )
+
+    return logs
+
+# ============================================================
+# Audit Log Helper
+# ============================================================
+
+def create_audit_log(
+    db: Session,
+    user_id: int,
+    action_type: str,
+    description: str,
+    decision_id: int = None,
+    ip_address: str = None
+):
+
+
+    try:
+
+        log = AuditLog(
+
+            user_id=user_id,
+
+            decision_id=decision_id,
+
+            action_type=action_type,
+
+            description=description,
+
+            ip_address=ip_address
+
+        )
+
+        db.add(log)
+
+        db.commit()
+
+        db.refresh(log)
+
+        
+
+        return log
+
+    except Exception as e:
+
+        db.rollback()
+
+        print("AUDIT LOG ERROR:", e)
+
+        raise
+
+# ============================================================
+# Reports Dashboard
+# ============================================================
+
+from sqlalchemy import func
+
+@app.get("/reports/dashboard")
+def reports_dashboard(
+    db: Session = Depends(get_db)
+):
+
+    return {
+
+        # ==========================
+        # Users
+        # ==========================
+
+        "total_users":
+            db.query(User).count(),
+
+        "admins":
+            db.query(User)
+            .filter(User.role=="Admin")
+            .count(),
+
+        "managers":
+            db.query(User)
+            .filter(User.role=="Manager")
+            .count(),
+
+        "reviewers":
+            db.query(User)
+            .filter(User.role=="Reviewer")
+            .count(),
+
+        "users":
+            db.query(User)
+            .filter(User.role=="User")
+            .count(),
+
+        # ==========================
+        # Decisions
+        # ==========================
+
+        "total_decisions":
+            db.query(Decision).count(),
+
+        "draft":
+            db.query(Decision)
+            .filter(Decision.status=="Draft")
+            .count(),
+
+        "pending_review":
+            db.query(Decision)
+            .filter(
+                Decision.status=="Pending Review"
+            )
+            .count(),
+
+        "pending_manager":
+            db.query(Decision)
+            .filter(
+                Decision.status=="Pending Manager Approval"
+            )
+            .count(),
+
+        "approved":
+            db.query(Decision)
+            .filter(
+                Decision.status=="Approved"
+            )
+            .count(),
+
+        "rejected":
+            db.query(Decision)
+            .filter(
+                Decision.status=="Rejected"
+            )
+            .count(),
+
+        # ==========================
+        # Documents
+        # ==========================
+
+        "documents":
+            db.query(Document).count(),
+
+        # ==========================
+        # Discussions
+        # ==========================
+
+        "discussions":
+            db.query(Discussion).count(),
+
+        # ==========================
+        # Audit Logs
+        # ==========================
+
+        "audit_logs":
+            db.query(AuditLog).count(),
+
+        # ==========================
+        # Approvals
+        # ==========================
+
+        "pending_approvals":
+            db.query(Approval)
+            .filter(
+                Approval.status=="Pending"
+            )
+            .count(),
+
+        "approved_approvals":
+            db.query(Approval)
+            .filter(
+                Approval.status=="Approved"
+            )
+            .count(),
+
+        "rejected_approvals":
+            db.query(Approval)
+            .filter(
+                Approval.status=="Rejected"
+            )
+            .count()
+
+    }
+
+# ============================================================
+# Get All Audit Logs
+# ============================================================
+
+@app.get("/audit-logs")
+def get_all_audit_logs(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.user_id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    if user.role not in ["Admin", "Manager"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied."
+        )
+
+    logs = (
+        db.query(AuditLog)
+        .order_by(AuditLog.created_at.desc())
+        .all()
+    )
+
+    return logs
+
+# ============================================================
+# KNOWLEDGE REPOSITORY
+# ============================================================
+
+@app.get("/knowledge")
+def get_knowledge_repository(
+    db: Session = Depends(get_db)
+):
+    """
+    Return approved decisions for the Knowledge Repository.
+    """
+
+    decisions = (
+        db.query(Decision)
+        .filter(Decision.status == "Approved")
+        .order_by(Decision.created_at.desc())
+        .all()
+    )
+
+    return decisions
+
+# ============================================================
+# Get Knowledge Repository Decision
+# ============================================================
+
+@app.get("/knowledge/{decision_id}")
+def get_knowledge_decision(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id,
+            Decision.status == "Approved"
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Approved decision not found."
+        )
+
+    return decision
+
+# ============================================================
+# PROFESSIONAL DECISION REPORT DATA
+# ============================================================
+
+@app.get("/reports/decision/{decision_id}")
+def get_decision_report_data(
+    decision_id: int,
+    db: Session = Depends(get_db)
+):
+
+    # --------------------------------------------------------
+    # Decision
+    # --------------------------------------------------------
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.decision_id == decision_id
+        )
+        .first()
+    )
+
+    if not decision:
+        raise HTTPException(
+            status_code=404,
+            detail="Decision not found."
+        )
+
+    # --------------------------------------------------------
+    # Alternatives
+    # --------------------------------------------------------
+
+    alternatives = (
+        db.query(Alternative)
+        .filter(
+            Alternative.decision_id == decision_id
+        )
+        .all()
+    )
+
+    # --------------------------------------------------------
+    # Criteria
+    # --------------------------------------------------------
+
+    criteria = (
+        db.query(Criteria)
+        .filter(
+            Criteria.decision_id == decision_id
+        )
+        .all()
+    )
+
+    # --------------------------------------------------------
+    # Scores
+    # --------------------------------------------------------
+
+    scores = []
+
+    for alternative in alternatives:
+
+        alternative_scores = (
+            db.query(AlternativeScore)
+            .filter(
+                AlternativeScore.alternative_id
+                == alternative.alternative_id
+            )
+            .all()
+        )
+
+        for item in alternative_scores:
+
+            scores.append({
+                "alternative_id": item.alternative_id,
+                "criteria_id": item.criteria_id,
+                "score": item.score
+            })
+
+    # --------------------------------------------------------
+    # Approvals
+    # --------------------------------------------------------
+
+    approvals = (
+        db.query(Approval)
+        .filter(
+            Approval.decision_id == decision_id
+        )
+        .order_by(
+            Approval.created_at.asc()
+        )
+        .all()
+    )
+
+    # --------------------------------------------------------
+    # Response
+    # --------------------------------------------------------
+
+    return {
+
+        "decision": {
+            "decision_id": decision.decision_id,
+            "title": decision.decision_title,
+            "description": decision.decision_description,
+            "status": decision.status,
+            "created_at": decision.created_at
+        },
+
+        "alternatives": [
+
+            {
+                "alternative_id": item.alternative_id,
+                "name": item.alternative_name,
+                "description": item.description,
+                "pros": item.pros,
+                "cons": item.cons,
+                "estimated_cost": item.estimated_cost,
+                "feasibility": item.feasibility,
+                "risk_level": item.risk_level
+            }
+
+            for item in alternatives
+        ],
+
+        "criteria": [
+
+            {
+                "criteria_id": item.criteria_id,
+                "name": item.criteria_name,
+                "weight": item.weight
+            }
+
+            for item in criteria
+        ],
+
+        "scores": scores,
+
+        "approvals": [
+
+            {
+                "id": item.id,
+                "reviewer_id": item.reviewer_id,
+                "approval_level": item.approval_level,
+                "status": item.status,
+                "remarks": item.remarks,
+                "approved_at": item.approved_at,
+                "created_at": item.created_at
+            }
+
+            for item in approvals
+        ]
+    }
