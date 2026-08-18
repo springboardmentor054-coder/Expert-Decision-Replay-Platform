@@ -3,347 +3,238 @@ import { useNavigate } from "react-router-dom";
 import "./Decision.css";
 
 function Decisions() {
-
   const [decisions, setDecisions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
-  const userEmail = localStorage.getItem("userEmail") || "User";
-
-
-  /* ========================= */
-  /* FETCH DECISIONS */
-  /* ========================= */
+  const categoryNames = {
+    1: "General",
+    2: "Technology",
+    3: "Finance",
+    4: "Operations",
+    5: "Human Resources",
+    6: "Marketing",
+    7: "Security"
+  };
 
   useEffect(() => {
-
     fetch("http://127.0.0.1:8000/decisions")
-
       .then((response) => response.json())
-
       .then((data) => {
-
         setDecisions(data);
         setLoading(false);
-
       })
-
       .catch((error) => {
-
         console.log(error);
         setLoading(false);
-
       });
-
   }, []);
 
-
-  /* ========================= */
-  /* DELETE DECISION */
-  /* ========================= */
-
   const deleteDecision = async (id) => {
-
     try {
-
       const response = await fetch(
         `http://127.0.0.1:8000/decisions/${id}`,
         {
-          method: "DELETE",
+          method: "DELETE"
         }
       );
 
-
       if (response.ok) {
-
-        setDecisions(
-          decisions.filter(
+        setDecisions((currentDecisions) =>
+          currentDecisions.filter(
             (decision) => decision.id !== id
           )
         );
-
       }
-
     } catch (error) {
-
       console.log(error);
-
     }
-
   };
-
-
-  /* ========================= */
-  /* LOGOUT */
-  /* ========================= */
 
   const handleLogout = () => {
-
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
-
     navigate("/login");
-
   };
 
+  const getCategoryName = (categoryId) => {
+    if (!categoryId) {
+      return "Uncategorized";
+    }
 
-  /* ========================= */
-  /* FILTER DECISIONS */
-  /* ========================= */
+    return categoryNames[categoryId] || "Uncategorized";
+  };
+
+  const getNormalizedStatus = (status) => {
+    if (!status) {
+      return "Unknown";
+    }
+
+    const normalizedStatus = status.toLowerCase().trim();
+
+    if (normalizedStatus === "approved") {
+      return "Approved";
+    }
+
+    if (normalizedStatus === "rejected") {
+      return "Rejected";
+    }
+
+    if (
+      normalizedStatus === "pending" ||
+      normalizedStatus === "review" ||
+      normalizedStatus === "in review" ||
+      normalizedStatus === "under review"
+    ) {
+      return "In Progress";
+    }
+
+    if (
+      normalizedStatus === "done" ||
+      normalizedStatus === "completed"
+    ) {
+      return "Completed";
+    }
+
+    if (normalizedStatus === "draft") {
+      return "Draft";
+    }
+
+    return status;
+  };
+
+  const getStatusClass = (status) => {
+    const normalizedStatus = getNormalizedStatus(status);
+
+    switch (normalizedStatus) {
+      case "Approved":
+        return "status-approved";
+
+      case "Rejected":
+        return "status-rejected";
+
+      case "In Progress":
+        return "status-progress";
+
+      case "Completed":
+        return "status-completed";
+
+      case "Draft":
+        return "status-draft";
+
+      default:
+        return "status-default";
+    }
+  };
 
   const filteredDecisions = decisions.filter((decision) => {
+    const search = searchTerm.toLowerCase().trim();
 
-    const search = searchTerm.toLowerCase();
+    const categoryName = getCategoryName(
+      decision.category_id
+    );
+
+    const normalizedStatus = getNormalizedStatus(
+      decision.status
+    );
 
     const matchesSearch =
-      decision.title?.toLowerCase().includes(search) ||
-      decision.status?.toLowerCase().includes(search) ||
+      decision.title
+        ?.toLowerCase()
+        .includes(search) ||
+      decision.status
+        ?.toLowerCase()
+        .includes(search) ||
+      categoryName
+        .toLowerCase()
+        .includes(search) ||
       String(decision.id).includes(search);
 
     const matchesStatus =
       statusFilter === "All" ||
-      decision.status === statusFilter;
+      normalizedStatus === statusFilter;
 
-    return matchesSearch && matchesStatus;
-
-  });
-
-
-  /* ========================= */
-  /* STATISTICS */
-  /* ========================= */
-
-  const totalDecisions = decisions.length;
-
-  const activeDecisions = decisions.filter(
-    (decision) =>
-      decision.status?.toLowerCase() === "active"
-  ).length;
-
-  const completedDecisions = decisions.filter(
-    (decision) =>
-      decision.status?.toLowerCase() === "completed"
-  ).length;
-
-  const pendingDecisions = decisions.filter(
-    (decision) =>
-      decision.status?.toLowerCase() === "pending"
-  ).length;
-
-
-  /* ========================= */
-  /* STATUS CLASS */
-  /* ========================= */
-
-  const getStatusClass = (status) => {
-
-    if (!status) return "status-default";
-
-    const normalizedStatus =
-      status.toLowerCase();
-
-    if (normalizedStatus === "active") {
-      return "status-active";
-    }
-
-    if (normalizedStatus === "completed") {
-      return "status-completed";
-    }
-
-    if (normalizedStatus === "pending") {
-      return "status-pending";
-    }
-
-    if (normalizedStatus === "cancelled") {
-      return "status-cancelled";
-    }
-
-    return "status-default";
-
-  };
-
-
-  /* ========================= */
-  /* LOADING */
-  /* ========================= */
-
-  if (loading) {
+    const matchesCategory =
+      categoryFilter === "All" ||
+      categoryName === categoryFilter;
 
     return (
-
-      <div className="decisions-page">
-
-        <div className="loading-screen">
-
-          <div className="loading-spinner"></div>
-
-          <p>
-            Loading decisions...
-          </p>
-
-        </div>
-
-      </div>
-
+      matchesSearch &&
+      matchesStatus &&
+      matchesCategory
     );
+  });
 
+  const formatDate = (date) => {
+    if (!date) {
+      return "—";
+    }
+
+    return new Date(date).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="decisions-page">
+        <div className="loading-screen">
+          <div className="loading-spinner"></div>
+          <p>Loading decisions...</p>
+        </div>
+      </div>
+    );
   }
 
-
   return (
-
     <div className="decisions-page">
-
-
-      {/* ========================= */}
-      {/* TOP NAVIGATION */}
-      {/* ========================= */}
 
       <header className="top-navbar">
 
         <div className="navbar-brand">
-
           <div className="navbar-logo">
             ED
           </div>
 
-          <div>
-
-            <h2>
-              Expert Decision
-            </h2>
-
-            <span>
-              Replay Platform
-            </span>
-
+          <div className="navbar-brand-text">
+            <h2>Expert Decision</h2>
+            <span>Replay Platform</span>
           </div>
-
         </div>
 
-
-        <div className="navbar-right">
-
-          <div className="user-info">
-
-            <div className="user-avatar">
-              {userEmail.charAt(0).toUpperCase()}
-            </div>
-
-            <div className="user-details">
-
-              <strong>
-                {userEmail}
-              </strong>
-
-              <span>
-                Decision Manager
-              </span>
-
-            </div>
-
-          </div>
-
-
-          {/* ========================= */}
-          {/* DASHBOARD BUTTON */}
-          {/* ========================= */}
-
-          <button
-            className="dashboard-nav-button"
-            onClick={() =>
-              navigate("/dashboard")
-            }
-          >
-
-            📊 Dashboard
-
-          </button>
-
-
-          {/* ========================= */}
-          {/* REPORTS BUTTON */}
-          {/* ========================= */}
-
-          <button
-            className="reports-nav-button"
-            onClick={() =>
-              navigate("/reports")
-            }
-          >
-
-            📊 Reports
-
-          </button>
-
-
-          {/* ========================= */}
-          {/* NOTIFICATIONS BUTTON */}
-          {/* ========================= */}
-
-          <button
-            className="notifications-button"
-            onClick={() =>
-              navigate("/notifications")
-            }
-          >
-
-            🔔 Notifications
-
-          </button>
-
-
-          {/* ========================= */}
-          {/* LOGOUT BUTTON */}
-          {/* ========================= */}
-
-          <button
-            className="logout-button"
-            onClick={handleLogout}
-          >
-
-            Logout
-
-          </button>
-
-        </div>
+        <button
+          className="logout-button"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
 
       </header>
 
-
-      {/* ========================= */}
-      {/* MAIN CONTENT */}
-      {/* ========================= */}
-
       <main className="decisions-main">
 
-
-        {/* ========================= */}
-        {/* PAGE HEADER */}
-        {/* ========================= */}
-
-        <div className="dashboard-header">
+        <div className="page-header">
 
           <div>
-
             <span className="eyebrow">
               DECISION MANAGEMENT
             </span>
 
-            <h1>
-              All Decisions
-            </h1>
+            <h1>All Decisions</h1>
 
             <p>
               Review, manage, and track your organization's
               important decisions.
             </p>
-
           </div>
-
 
           <button
             className="create-button"
@@ -351,304 +242,108 @@ function Decisions() {
               navigate("/create-decision")
             }
           >
-
-            <span className="button-icon">
-              +
-            </span>
-
+            <span className="button-icon">+</span>
             Create Decision
-
           </button>
 
         </div>
 
+        <section className="filters-section">
 
-        {/* ========================= */}
-        {/* QUICK NAVIGATION */}
-        {/* ========================= */}
-
-        <div className="quick-actions">
-
-
-          {/* ALTERNATIVES */}
-
-          <button
-            onClick={() =>
-              navigate("/alternatives")
-            }
-          >
-
-            <span className="quick-icon">
-              ⚖
-            </span>
-
-            <span>
-              <strong>
-                Alternatives
-              </strong>
-
-              <small>
-                Compare available options
-              </small>
-            </span>
-
-            <span className="quick-arrow">
-              →
-            </span>
-
-          </button>
-
-
-          {/* DOCUMENTS */}
-
-          <button
-            onClick={() =>
-              navigate("/documents")
-            }
-          >
-
-            <span className="quick-icon">
-              📄
-            </span>
-
-            <span>
-              <strong>
-                Documents
-              </strong>
-
-              <small>
-                View supporting files
-              </small>
-            </span>
-
-            <span className="quick-arrow">
-              →
-            </span>
-
-          </button>
-
-
-          {/* PENDING APPROVALS */}
-
-          <button
-            onClick={() =>
-              navigate("/approvals")
-            }
-          >
-
-            <span className="quick-icon">
-              ⏳
-            </span>
-
-            <span>
-              <strong>
-                Pending Approvals
-              </strong>
-
-              <small>
-                Review decisions awaiting approval
-              </small>
-            </span>
-
-            <span className="quick-arrow">
-              →
-            </span>
-
-          </button>
-
-
-          {/* APPROVAL HISTORY */}
-
-          <button
-            onClick={() =>
-              navigate("/approval-history")
-            }
-          >
-
-            <span className="quick-icon">
-              ✓
-            </span>
-
-            <span>
-              <strong>
-                Approval History
-              </strong>
-
-              <small>
-                View completed approval records
-              </small>
-            </span>
-
-            <span className="quick-arrow">
-              →
-            </span>
-
-          </button>
-
-
-          {/* ========================= */}
-          {/* AUDIT LOGS */}
-          {/* ========================= */}
-
-          <button
-            onClick={() =>
-              navigate("/audit-logs")
-            }
-          >
-
-            <span className="quick-icon">
-              📝
-            </span>
-
-            <span>
-              <strong>
-                Audit Logs
-              </strong>
-
-              <small>
-                Track user activities and actions
-              </small>
-            </span>
-
-            <span className="quick-arrow">
-              →
-            </span>
-
-          </button>
-
-
-        </div>
-
-
-        {/* ========================= */}
-        {/* STATISTICS */}
-        {/* ========================= */}
-
-        <div className="stats-grid">
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon blue">
-              ◈
-            </div>
-
-            <div>
-
-              <span>
-                Total Decisions
-              </span>
-
-              <strong>
-                {totalDecisions}
-              </strong>
-
-            </div>
-
+          <div className="filters-title">
+            <span className="filter-icon">⚱</span>
+            <h2>Filters</h2>
           </div>
 
+          <div className="filters-row">
 
-          <div className="stat-card">
+            <div className="filter-group">
+              <label>Status</label>
 
-            <div className="stat-icon green">
-              ✓
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value)
+                }
+              >
+                <option value="All">
+                  All Status
+                </option>
+
+                <option value="Approved">
+                  Approved
+                </option>
+
+                <option value="In Progress">
+                  In Progress
+                </option>
+
+                <option value="Rejected">
+                  Rejected
+                </option>
+
+                <option value="Completed">
+                  Completed
+                </option>
+
+                <option value="Draft">
+                  Draft
+                </option>
+              </select>
             </div>
 
-            <div>
+            <div className="filter-group">
+              <label>Category</label>
 
-              <span>
-                Active
-              </span>
+              <select
+                value={categoryFilter}
+                onChange={(e) =>
+                  setCategoryFilter(e.target.value)
+                }
+              >
+                <option value="All">
+                  All Categories
+                </option>
 
-              <strong>
-                {activeDecisions}
-              </strong>
+                <option value="General">
+                  General
+                </option>
 
+                <option value="Technology">
+                  Technology
+                </option>
+
+                <option value="Finance">
+                  Finance
+                </option>
+
+                <option value="Operations">
+                  Operations
+                </option>
+
+                <option value="Human Resources">
+                  Human Resources
+                </option>
+
+                <option value="Marketing">
+                  Marketing
+                </option>
+
+                <option value="Security">
+                  Security
+                </option>
+
+                <option value="Uncategorized">
+                  Uncategorized
+                </option>
+              </select>
             </div>
 
-          </div>
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon purple">
-              ★
-            </div>
-
-            <div>
-
-              <span>
-                Completed
-              </span>
-
-              <strong>
-                {completedDecisions}
-              </strong>
-
-            </div>
-
-          </div>
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon orange">
-              ◷
-            </div>
-
-            <div>
-
-              <span>
-                Pending
-              </span>
-
-              <strong>
-                {pendingDecisions}
-              </strong>
-
-            </div>
-
-          </div>
-
-
-        </div>
-
-
-        {/* ========================= */}
-        {/* DECISION SECTION */}
-        {/* ========================= */}
-
-        <section className="decision-section">
-
-
-          <div className="section-header">
-
-            <div>
-
-              <h2>
-                Decision Records
-              </h2>
-
-              <p>
-                {filteredDecisions.length} decision
-                {filteredDecisions.length !== 1
-                  ? "s"
-                  : ""}{" "}
-                found
-              </p>
-
-            </div>
-
-
-            {/* SEARCH + FILTER */}
-
-            <div className="filters">
+            <div className="filter-group search-filter">
+              <label>Search</label>
 
               <div className="search-box">
-
-                <span>
-                  🔍
-                </span>
+                <span>🔍</span>
 
                 <input
                   type="text"
@@ -658,47 +353,41 @@ function Decisions() {
                     setSearchTerm(e.target.value)
                   }
                 />
-
               </div>
-
-
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value)
-                }
-              >
-
-                <option value="All">
-                  All Status
-                </option>
-
-                <option value="Active">
-                  Active
-                </option>
-
-                <option value="Pending">
-                  Pending
-                </option>
-
-                <option value="Completed">
-                  Completed
-                </option>
-
-                <option value="Cancelled">
-                  Cancelled
-                </option>
-
-              </select>
-
             </div>
+
+            <button
+              className="reset-button"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("All");
+                setCategoryFilter("All");
+              }}
+            >
+              Reset
+            </button>
 
           </div>
 
+        </section>
 
-          {/* ========================= */}
-          {/* DECISION CARDS */}
-          {/* ========================= */}
+        <section className="decision-section">
+
+          <div className="section-header">
+
+            <div>
+              <h2>Decision Records</h2>
+
+              <p>
+                {filteredDecisions.length} decision
+                {filteredDecisions.length !== 1
+                  ? "s"
+                  : ""}{" "}
+                found
+              </p>
+            </div>
+
+          </div>
 
           {filteredDecisions.length === 0 ? (
 
@@ -713,7 +402,7 @@ function Decisions() {
               </h3>
 
               <p>
-                Try changing your search or create
+                Try changing your filters or create
                 a new decision.
               </p>
 
@@ -740,8 +429,6 @@ function Decisions() {
                     key={decision.id}
                   >
 
-                    {/* CARD HEADER */}
-
                     <div className="decision-card-header">
 
                       <div className="decision-number">
@@ -753,13 +440,12 @@ function Decisions() {
                           decision.status
                         )}`}
                       >
-                        {decision.status}
+                        {getNormalizedStatus(
+                          decision.status
+                        )}
                       </span>
 
                     </div>
-
-
-                    {/* CARD CONTENT */}
 
                     <div className="decision-card-body">
 
@@ -770,49 +456,32 @@ function Decisions() {
                       <div className="decision-meta">
 
                         <div>
-
-                          <span>
-                            Category
-                          </span>
+                          <span>Category</span>
 
                           <strong>
-                            {decision.category_id}
+                            {getCategoryName(
+                              decision.category_id
+                            )}
                           </strong>
-
                         </div>
 
                         <div>
-
-                          <span>
-                            Created By
-                          </span>
+                          <span>Created By</span>
 
                           <strong>
-                            {decision.created_by}
+                            {decision.created_by || "—"}
                           </strong>
-
                         </div>
 
                       </div>
 
                       <div className="created-date">
 
-                        <span>
-                          Created
-                        </span>
+                        <span>Created</span>
 
                         <strong>
-                          {new Date(
+                          {formatDate(
                             decision.created_at
-                          ).toLocaleString(
-                            "en-GB",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            }
                           )}
                         </strong>
 
@@ -820,11 +489,7 @@ function Decisions() {
 
                     </div>
 
-
-                    {/* CARD ACTIONS */}
-
                     <div className="decision-card-actions">
-
 
                       <button
                         className="view-button"
@@ -837,7 +502,6 @@ function Decisions() {
                         View
                       </button>
 
-
                       <button
                         className="edit-button"
                         onClick={() =>
@@ -848,7 +512,6 @@ function Decisions() {
                       >
                         Edit
                       </button>
-
 
                       <button
                         className="document-button"
@@ -861,7 +524,6 @@ function Decisions() {
                         Documents
                       </button>
 
-
                       <button
                         className="upload-button"
                         onClick={() =>
@@ -873,31 +535,24 @@ function Decisions() {
                         Upload
                       </button>
 
-
                       <button
                         className="delete-button"
                         onClick={() => {
-
                           if (
                             window.confirm(
                               "Are you sure you want to delete this decision?"
                             )
                           ) {
-
                             deleteDecision(
                               decision.id
                             );
-
                           }
-
                         }}
                       >
                         Delete
                       </button>
 
-
                     </div>
-
 
                   </div>
 
@@ -910,13 +565,10 @@ function Decisions() {
 
         </section>
 
-
       </main>
 
     </div>
-
   );
-
 }
 
 export default Decisions;

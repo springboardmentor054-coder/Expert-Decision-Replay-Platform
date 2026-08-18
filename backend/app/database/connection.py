@@ -1,8 +1,17 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Replace YOUR_PASSWORD with your PostgreSQL password
-DATABASE_URL = "postgresql://postgres:Sushil31%403@localhost:5433/expert_decision_replay"
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
+
 
 engine = create_engine(DATABASE_URL)
 

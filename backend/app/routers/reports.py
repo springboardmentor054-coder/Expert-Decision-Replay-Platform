@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from io import BytesIO
 
@@ -53,37 +53,103 @@ def get_db():
 
 
 # ==========================================
+# DECISION REPORT STATUS DEFINITIONS
+# ==========================================
+
+REPORT_STATUSES = [
+    "Approved",
+    "Rejected",
+    "Pending",
+    "Under Review",
+    "In Review",
+    "Review"
+]
+
+
+PENDING_STATUSES = [
+    "Pending",
+    "Under Review",
+    "In Review",
+    "Review"
+]
+
+
+# ==========================================
 # SHARED REPORT DATA FUNCTIONS
 # ==========================================
 
 def build_decision_report(db: Session):
 
+    # ------------------------------------------
+    # LOAD CATEGORY NAMES FROM EXISTING TABLE
+    # ------------------------------------------
+
+    category_rows = db.execute(
+        text(
+            "SELECT id, name FROM categories"
+        )
+    ).fetchall()
+
+    category_map = {
+        row[0]: row[1]
+        for row in category_rows
+    }
+
+    # ------------------------------------------
+    # TOTAL DECISIONS
+    #
+    # Only Approved, Rejected and Pending-family
+    # statuses are included.
+    #
+    # "done" is intentionally ignored.
+    # ------------------------------------------
+
     total_decisions = db.query(
         func.count(Decision.id)
-    ).scalar()
+    ).filter(
+        Decision.status.in_(REPORT_STATUSES)
+    ).scalar() or 0
+
+    # ------------------------------------------
+    # APPROVED DECISIONS
+    # ------------------------------------------
 
     approved_decisions = db.query(
         func.count(Decision.id)
     ).filter(
         Decision.status == "Approved"
-    ).scalar()
+    ).scalar() or 0
+
+    # ------------------------------------------
+    # REJECTED DECISIONS
+    # ------------------------------------------
 
     rejected_decisions = db.query(
         func.count(Decision.id)
     ).filter(
         Decision.status == "Rejected"
-    ).scalar()
+    ).scalar() or 0
+
+    # ------------------------------------------
+    # PENDING DECISIONS
+    #
+    # Pending
+    # Under Review
+    # In Review
+    # Review
+    #
+    # are all displayed as "Pending".
+    # ------------------------------------------
 
     pending_decisions = db.query(
         func.count(Decision.id)
     ).filter(
-        Decision.status.in_([
-            "Pending",
-            "Under Review",
-            "In Review",
-            "Review"
-        ])
-    ).scalar()
+        Decision.status.in_(PENDING_STATUSES)
+    ).scalar() or 0
+
+    # ------------------------------------------
+    # FETCH REPORT DECISIONS
+    # ------------------------------------------
 
     decisions = (
         db.query(
@@ -93,6 +159,9 @@ def build_decision_report(db: Session):
         .join(
             User,
             Decision.created_by == User.id
+        )
+        .filter(
+            Decision.status.in_(REPORT_STATUSES)
         )
         .order_by(
             Decision.created_at.desc()
@@ -104,10 +173,49 @@ def build_decision_report(db: Session):
 
     for decision, creator_name in decisions:
 
+        # --------------------------------------
+        # NORMALIZE STATUS FOR REPORT
+        # --------------------------------------
+
+        if decision.status in PENDING_STATUSES:
+
+            report_status = "Pending"
+
+        elif decision.status == "Approved":
+
+            report_status = "Approved"
+
+        elif decision.status == "Rejected":
+
+            report_status = "Rejected"
+
+        else:
+
+            continue
+
+        # --------------------------------------
+        # GET CATEGORY NAME
+        # --------------------------------------
+
+        if decision.category_id is not None:
+
+            category_name = category_map.get(
+                decision.category_id,
+                "Uncategorized"
+            )
+
+        else:
+
+            category_name = "Uncategorized"
+
+        # --------------------------------------
+        # ADD DECISION TO REPORT
+        # --------------------------------------
+
         decision_details.append({
             "title": decision.title,
-            "category": decision.category_id,
-            "status": decision.status,
+            "category": category_name,
+            "status": report_status,
             "created_by": creator_name,
             "created_date": decision.created_at
         })

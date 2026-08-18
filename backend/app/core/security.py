@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.database.connection import SessionLocal
@@ -18,7 +19,45 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 
-security = HTTPBearer()
+security = HTTPBearer(
+    scheme_name="Bearer",
+    description="Enter your JWT access token"
+)
+
+
+# ==========================================
+# PASSWORD HASHING
+# ==========================================
+
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+
+def hash_password(password: str) -> str:
+
+    return pwd_context.hash(password)
+
+
+def verify_password(
+    plain_password: str,
+    stored_password: str
+) -> bool:
+
+    if not stored_password.startswith("$2"):
+
+        return plain_password == stored_password
+
+    return pwd_context.verify(
+        plain_password,
+        stored_password
+    )
+
+
+def is_password_hashed(password: str) -> bool:
+
+    return password.startswith("$2")
 
 
 # ==========================================
@@ -30,9 +69,11 @@ def get_db():
     db = SessionLocal()
 
     try:
+
         yield db
 
     finally:
+
         db.close()
 
 
@@ -68,7 +109,7 @@ def create_access_token(data: dict):
 # ==========================================
 
 def get_current_user(
-    credentials=Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
 
@@ -76,7 +117,10 @@ def get_current_user(
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials"
+        detail="Could not validate credentials",
+        headers={
+            "WWW-Authenticate": "Bearer"
+        }
     )
 
     try:
@@ -90,6 +134,7 @@ def get_current_user(
         email = payload.get("sub")
 
         if email is None:
+
             raise credentials_exception
 
     except JWTError:
@@ -101,6 +146,7 @@ def get_current_user(
     ).first()
 
     if user is None:
+
         raise credentials_exception
 
     return user
@@ -113,10 +159,6 @@ def get_current_user(
 def get_current_admin(
     current_user: User = Depends(get_current_user)
 ):
-
-    # ==========================================
-    # CHECK ADMINISTRATOR ROLE
-    # ==========================================
 
     if current_user.role.lower() != "administrator":
 

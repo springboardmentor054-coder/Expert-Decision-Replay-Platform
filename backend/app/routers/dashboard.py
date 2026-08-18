@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, text
 
 from app.database.connection import SessionLocal
 
@@ -53,6 +53,68 @@ def get_user_role(user):
         return "Employee"
 
     return "Employee"
+
+
+# ==========================================
+# STATUS NORMALIZATION
+# ==========================================
+
+def normalize_decision_status(status):
+
+    if not status:
+        return "In Progress"
+
+    status = status.strip().lower()
+
+    if status == "approved":
+        return "Approved"
+
+    if status == "rejected":
+        return "Rejected"
+
+    # All other statuses are treated as In Progress
+    # for dashboard statistics.
+    #
+    # Examples:
+    # Pending
+    # Under Review
+    # In Review
+    # Review
+    # done
+    # Draft
+
+    return "In Progress"
+
+
+def normalize_approval_status(status):
+
+    if not status:
+        return "Pending"
+
+    status = status.strip().lower()
+
+    if status == "approved":
+        return "Approved"
+
+    if status == "rejected":
+        return "Rejected"
+
+    return "Pending"
+
+
+# ==========================================
+# CATEGORY MAPPING
+# ==========================================
+
+CATEGORY_NAMES = {
+    1: "General",
+    2: "Technology",
+    3: "Finance",
+    4: "Operations",
+    5: "Human Resources",
+    6: "Marketing",
+    7: "Security"
+}
 
 
 # ==========================================
@@ -224,12 +286,12 @@ def get_role_dashboard(
                 Decision.created_by == User.id
             )
             .filter(
-                User.team_id == current_user.team_id,
-                Decision.status.in_([
-                    "Pending",
-                    "Under Review",
-                    "In Review",
-                    "Review"
+                User.team_id == current_user.team_id
+            )
+            .filter(
+                ~Decision.status.in_([
+                    "Approved",
+                    "Rejected"
                 ])
             )
             .scalar()
@@ -350,11 +412,9 @@ def get_role_dashboard(
                 func.count(Decision.id)
             )
             .filter(
-                Decision.status.in_([
-                    "Pending",
-                    "Under Review",
-                    "In Review",
-                    "Review"
+                ~Decision.status.in_([
+                    "Approved",
+                    "Rejected"
                 ])
             )
             .scalar()
@@ -422,7 +482,7 @@ def get_dashboard_charts(
     role = get_user_role(current_user)
 
     # ==========================================
-    # DECISION STATUS DISTRIBUTION
+    # 1. DECISION STATUS DISTRIBUTION
     # ==========================================
 
     decision_status_rows = (
@@ -436,45 +496,95 @@ def get_dashboard_charts(
         .all()
     )
 
+    approved_count = 0
+    rejected_count = 0
+    in_progress_count = 0
+
+    for status, count in decision_status_rows:
+
+        normalized_status = normalize_decision_status(status)
+
+        if normalized_status == "Approved":
+
+            approved_count += count
+
+        elif normalized_status == "Rejected":
+
+            rejected_count += count
+
+        else:
+
+            in_progress_count += count
+
     decision_status = [
         {
-            "status": status or "Unknown",
-            "count": count
+            "status": "Approved",
+            "count": approved_count
+        },
+        {
+            "status": "In Progress",
+            "count": in_progress_count
+        },
+        {
+            "status": "Rejected",
+            "count": rejected_count
         }
-        for status, count in decision_status_rows
     ]
 
-
     # ==========================================
-    # DECISIONS BY CATEGORY
+    # 2. DECISIONS BY CATEGORY
     # ==========================================
 
-    category_rows = (
-        db.query(
-            Decision.category_id,
-            func.count(Decision.id)
+    category_rows = db.execute(
+        text(
+            """
+            SELECT
+                c.id,
+                c.name,
+                COUNT(d.id) AS decision_count
+            FROM categories c
+            LEFT JOIN decisions d
+                ON d.category_id = c.id
+            GROUP BY
+                c.id,
+                c.name
+            ORDER BY
+                c.id
+            """
         )
-        .group_by(
-            Decision.category_id
-        )
-        .all()
-    )
+    ).fetchall()
 
     decisions_by_category = [
         {
-            "category": (
-                f"Category {category_id}"
-                if category_id is not None
-                else "Uncategorized"
-            ),
-            "count": count
+            "category": row.name,
+            "count": row.decision_count
         }
-        for category_id, count in category_rows
+        for row in category_rows
     ]
 
+    # ==========================================
+    # UNCATEGORIZED DECISIONS
+    # ==========================================
+
+    uncategorized_count = (
+        db.query(
+            func.count(Decision.id)
+        )
+        .filter(
+            Decision.category_id.is_(None)
+        )
+        .scalar()
+    )
+
+    if uncategorized_count > 0:
+
+        decisions_by_category.append({
+            "category": "Uncategorized",
+            "count": uncategorized_count
+        })
 
     # ==========================================
-    # MONTHLY DECISIONS
+    # 3. MONTHLY DECISIONS
     # ==========================================
 
     monthly_rows = (
@@ -498,7 +608,6 @@ def get_dashboard_charts(
                 "year",
                 Decision.created_at
             ),
-
             extract(
                 "month",
                 Decision.created_at
@@ -509,7 +618,6 @@ def get_dashboard_charts(
                 "year",
                 Decision.created_at
             ),
-
             extract(
                 "month",
                 Decision.created_at
@@ -540,13 +648,15 @@ def get_dashboard_charts(
         month_number = int(month)
 
         monthly_decisions.append({
-            "month": f"{month_names[month_number - 1]} {int(year)}",
+            "month": (
+                f"{month_names[month_number - 1]} "
+                f"{int(year)}"
+            ),
             "count": count
         })
 
-
     # ==========================================
-    # APPROVAL STATISTICS
+    # 4. APPROVAL STATISTICS
     # ==========================================
 
     approval_rows = (
@@ -560,17 +670,45 @@ def get_dashboard_charts(
         .all()
     )
 
+    approval_counts = {
+        "Approved": 0,
+        "Pending": 0,
+        "Rejected": 0
+    }
+
+    for status, count in approval_rows:
+
+        normalized_status = normalize_approval_status(status)
+
+        if normalized_status == "Approved":
+
+            approval_counts["Approved"] += count
+
+        elif normalized_status == "Rejected":
+
+            approval_counts["Rejected"] += count
+
+        else:
+
+            approval_counts["Pending"] += count
+
     approval_status = [
         {
-            "status": status or "Unknown",
-            "count": count
+            "status": "Approved",
+            "count": approval_counts["Approved"]
+        },
+        {
+            "status": "Pending",
+            "count": approval_counts["Pending"]
+        },
+        {
+            "status": "Rejected",
+            "count": approval_counts["Rejected"]
         }
-        for status, count in approval_rows
     ]
 
-
     # ==========================================
-    # RECENT ACTIVITIES
+    # 5. RECENT ACTIVITIES
     # ==========================================
 
     recent_activities = (
@@ -594,7 +732,6 @@ def get_dashboard_charts(
         for activity in recent_activities
     ]
 
-
     # ==========================================
     # RESPONSE
     # ==========================================
@@ -605,17 +742,13 @@ def get_dashboard_charts(
 
         "decision_status": decision_status,
 
-        "decisions_by_category":
-            decisions_by_category,
+        "decisions_by_category": decisions_by_category,
 
-        "monthly_decisions":
-            monthly_decisions,
+        "monthly_decisions": monthly_decisions,
 
-        "approval_status":
-            approval_status,
+        "approval_status": approval_status,
 
         "team_decisions": [],
 
-        "audit_actions":
-            activity_data
+        "audit_actions": activity_data
     }

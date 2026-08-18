@@ -23,19 +23,11 @@ from app.utils.notification import create_notification
 from app.utils.audit import create_audit_log
 
 
-# ==========================================
-# Approval Router
-# ==========================================
-
 approval_router = APIRouter(
     prefix="/approvals",
     tags=["Approvals"]
 )
 
-
-# ==========================================
-# Decision Approval Router
-# ==========================================
 
 decision_approval_router = APIRouter(
     prefix="/decisions",
@@ -43,12 +35,7 @@ decision_approval_router = APIRouter(
 )
 
 
-# ==========================================
-# Database Dependency
-# ==========================================
-
 def get_db():
-
     db = SessionLocal()
 
     try:
@@ -57,11 +44,6 @@ def get_db():
     finally:
         db.close()
 
-
-# ==========================================
-# Helper Function
-# Check Reviewer / Manager Permission
-# ==========================================
 
 def check_approval_permission(current_user: User):
 
@@ -73,10 +55,18 @@ def check_approval_permission(current_user: User):
         )
 
 
-# ==========================================
-# POST /approvals
-# Create Approval
-# ==========================================
+def check_assigned_approval(
+    approval: Approval,
+    current_user: User
+):
+
+    if approval.reviewer_id != current_user.id:
+
+        raise HTTPException(
+            status_code=403,
+            detail="You are not assigned to this approval."
+        )
+
 
 @approval_router.post(
     "",
@@ -88,13 +78,15 @@ def create_approval(
     current_user: User = Depends(get_current_user)
 ):
 
-    # Only Reviewer or Manager can create approval
     check_approval_permission(current_user)
 
-    # Check decision exists
-    decision = db.query(Decision).filter(
-        Decision.id == approval.decision_id
-    ).first()
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.id == approval.decision_id
+        )
+        .first()
+    )
 
     if not decision:
 
@@ -103,10 +95,13 @@ def create_approval(
             detail="Decision not found."
         )
 
-    # Check reviewer exists
-    reviewer = db.query(User).filter(
-        User.id == approval.reviewer_id
-    ).first()
+    reviewer = (
+        db.query(User)
+        .filter(
+            User.id == approval.reviewer_id
+        )
+        .first()
+    )
 
     if not reviewer:
 
@@ -115,7 +110,6 @@ def create_approval(
             detail="Reviewer not found."
         )
 
-    # Reviewer must be Reviewer or Manager
     if reviewer.role not in ["Reviewer", "Manager"]:
 
         raise HTTPException(
@@ -123,12 +117,27 @@ def create_approval(
             detail="Approval can only be assigned to a Reviewer or Manager."
         )
 
-    # Prevent self approval
     if decision.created_by == reviewer.id:
 
         raise HTTPException(
             status_code=403,
             detail="Employees cannot approve their own decisions."
+        )
+
+    existing_approval = (
+        db.query(Approval)
+        .filter(
+            Approval.decision_id == approval.decision_id,
+            Approval.reviewer_id == approval.reviewer_id
+        )
+        .first()
+    )
+
+    if existing_approval:
+
+        raise HTTPException(
+            status_code=400,
+            detail="This user already has an approval for this decision."
         )
 
     new_approval = Approval(
@@ -147,11 +156,6 @@ def create_approval(
     return new_approval
 
 
-# ==========================================
-# GET /approvals
-# Get All Approvals
-# ==========================================
-
 @approval_router.get(
     "",
     response_model=list[ApprovalResponse]
@@ -161,13 +165,14 @@ def get_approvals(
     current_user: User = Depends(get_current_user)
 ):
 
-    return db.query(Approval).all()
+    return (
+        db.query(Approval)
+        .filter(
+            Approval.reviewer_id == current_user.id
+        )
+        .all()
+    )
 
-
-# ==========================================
-# GET /approvals/{id}
-# Get Single Approval
-# ==========================================
 
 @approval_router.get(
     "/{id}",
@@ -179,9 +184,13 @@ def get_approval(
     current_user: User = Depends(get_current_user)
 ):
 
-    approval = db.query(Approval).filter(
-        Approval.id == id
-    ).first()
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == id
+        )
+        .first()
+    )
 
     if not approval:
 
@@ -190,13 +199,13 @@ def get_approval(
             detail="Approval not found."
         )
 
+    check_assigned_approval(
+        approval,
+        current_user
+    )
+
     return approval
 
-
-# ==========================================
-# PUT /approvals/{id}
-# Update Approval
-# ==========================================
 
 @approval_router.put(
     "/{id}",
@@ -211,9 +220,13 @@ def update_approval(
 
     check_approval_permission(current_user)
 
-    approval = db.query(Approval).filter(
-        Approval.id == id
-    ).first()
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == id
+        )
+        .first()
+    )
 
     if not approval:
 
@@ -222,7 +235,11 @@ def update_approval(
             detail="Approval not found."
         )
 
-    # Cannot modify an already approved approval
+    check_assigned_approval(
+        approval,
+        current_user
+    )
+
     if approval.status == "Approved":
 
         raise HTTPException(
@@ -232,15 +249,21 @@ def update_approval(
 
     if approval_data.approval_level is not None:
 
-        approval.approval_level = approval_data.approval_level
+        approval.approval_level = (
+            approval_data.approval_level
+        )
 
     if approval_data.status is not None:
 
-        approval.status = approval_data.status
+        approval.status = (
+            approval_data.status
+        )
 
     if approval_data.remarks is not None:
 
-        approval.remarks = approval_data.remarks
+        approval.remarks = (
+            approval_data.remarks
+        )
 
     db.commit()
 
@@ -248,11 +271,6 @@ def update_approval(
 
     return approval
 
-
-# ==========================================
-# DELETE /approvals/{id}
-# Delete Approval
-# ==========================================
 
 @approval_router.delete(
     "/{id}"
@@ -265,9 +283,13 @@ def delete_approval(
 
     check_approval_permission(current_user)
 
-    approval = db.query(Approval).filter(
-        Approval.id == id
-    ).first()
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == id
+        )
+        .first()
+    )
 
     if not approval:
 
@@ -275,6 +297,11 @@ def delete_approval(
             status_code=404,
             detail="Approval not found."
         )
+
+    check_assigned_approval(
+        approval,
+        current_user
+    )
 
     db.delete(approval)
 
@@ -284,11 +311,6 @@ def delete_approval(
         "message": "Approval deleted successfully."
     }
 
-
-# ==========================================
-# GET /decisions/{id}/approvals
-# Get Approvals For Specific Decision
-# ==========================================
 
 @decision_approval_router.get(
     "/{id}/approvals",
@@ -300,9 +322,13 @@ def get_decision_approvals(
     current_user: User = Depends(get_current_user)
 ):
 
-    decision = db.query(Decision).filter(
-        Decision.id == id
-    ).first()
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.id == id
+        )
+        .first()
+    )
 
     if not decision:
 
@@ -311,17 +337,16 @@ def get_decision_approvals(
             detail="Decision not found."
         )
 
-    approvals = db.query(Approval).filter(
-        Approval.decision_id == id
-    ).all()
+    approvals = (
+        db.query(Approval)
+        .filter(
+            Approval.decision_id == id
+        )
+        .all()
+    )
 
     return approvals
 
-
-# ==========================================
-# PUT /approvals/{id}/approve
-# Approve Decision
-# ==========================================
 
 @approval_router.put(
     "/{id}/approve",
@@ -334,12 +359,15 @@ def approve_decision(
     current_user: User = Depends(get_current_user)
 ):
 
-    # Only Reviewer or Manager
     check_approval_permission(current_user)
 
-    approval = db.query(Approval).filter(
-        Approval.id == id
-    ).first()
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == id
+        )
+        .first()
+    )
 
     if not approval:
 
@@ -348,9 +376,18 @@ def approve_decision(
             detail="Approval not found."
         )
 
-    decision = db.query(Decision).filter(
-        Decision.id == approval.decision_id
-    ).first()
+    check_assigned_approval(
+        approval,
+        current_user
+    )
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.id == approval.decision_id
+        )
+        .first()
+    )
 
     if not decision:
 
@@ -359,7 +396,6 @@ def approve_decision(
             detail="Decision not found."
         )
 
-    # Prevent self approval
     if decision.created_by == current_user.id:
 
         raise HTTPException(
@@ -367,20 +403,32 @@ def approve_decision(
             detail="You cannot approve your own decision."
         )
 
-    # Only assigned reviewer can approve
-    if approval.reviewer_id != current_user.id:
-
-        raise HTTPException(
-            status_code=403,
-            detail="You are not assigned to approve this decision."
-        )
-
-    # Already approved
-    if approval.status == "Approved":
+    if decision.status == "Approved":
 
         raise HTTPException(
             status_code=400,
             detail="This decision has already been approved."
+        )
+
+    if decision.status == "Rejected":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This decision has already been rejected."
+        )
+
+    if approval.status == "Approved":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This approval has already been approved."
+        )
+
+    if approval.status == "Rejected":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This approval has already been rejected."
         )
 
     # ==========================================
@@ -393,27 +441,29 @@ def approve_decision(
 
     approval.approved_at = datetime.utcnow()
 
-    # Update Decision Status
     decision.status = "Approved"
 
+    # ==========================================
+    # REMOVE OTHER PENDING APPROVALS
+    # ==========================================
+
+    db.query(Approval).filter(
+        Approval.decision_id == decision.id,
+        Approval.id != approval.id,
+        Approval.status == "Pending"
+    ).delete(
+        synchronize_session=False
+    )
 
     # ==========================================
     # CREATE APPROVAL AUDIT LOG
     # ==========================================
 
     create_audit_log(
-
         db=db,
-
-        user_id=
-            current_user.id,
-
-        decision_id=
-            decision.id,
-
-        action_type=
-            "DECISION_APPROVED",
-
+        user_id=current_user.id,
+        decision_id=decision.id,
+        action_type="DECISION_APPROVED",
         description=(
             f'Decision "{decision.title}" '
             f'was approved by User '
@@ -421,34 +471,24 @@ def approve_decision(
         )
     )
 
-
     # ==========================================
     # CREATE APPROVAL NOTIFICATION
     # ==========================================
 
     create_notification(
-
         db=db,
-
-        user_id=
-            decision.created_by,
-
-        decision_id=
-            decision.id,
-
-        title=
-            "Decision Approved",
-
+        user_id=decision.created_by,
+        decision_id=decision.id,
+        title="Decision Approved",
         message=(
             f'Your decision "{decision.title}" '
-            f'has been approved by the reviewer.'
+            f'has been approved by '
+            f'{current_user.role.lower()}.'
         )
     )
 
-
     # ==========================================
-    # SAVE APPROVAL + DECISION +
-    # AUDIT LOG + NOTIFICATION
+    # SAVE CHANGES
     # ==========================================
 
     db.commit()
@@ -457,11 +497,6 @@ def approve_decision(
 
     return approval
 
-
-# ==========================================
-# PUT /approvals/{id}/reject
-# Reject Decision
-# ==========================================
 
 @approval_router.put(
     "/{id}/reject",
@@ -474,12 +509,15 @@ def reject_decision(
     current_user: User = Depends(get_current_user)
 ):
 
-    # Only Reviewer or Manager
     check_approval_permission(current_user)
 
-    approval = db.query(Approval).filter(
-        Approval.id == id
-    ).first()
+    approval = (
+        db.query(Approval)
+        .filter(
+            Approval.id == id
+        )
+        .first()
+    )
 
     if not approval:
 
@@ -488,9 +526,18 @@ def reject_decision(
             detail="Approval not found."
         )
 
-    decision = db.query(Decision).filter(
-        Decision.id == approval.decision_id
-    ).first()
+    check_assigned_approval(
+        approval,
+        current_user
+    )
+
+    decision = (
+        db.query(Decision)
+        .filter(
+            Decision.id == approval.decision_id
+        )
+        .first()
+    )
 
     if not decision:
 
@@ -499,7 +546,6 @@ def reject_decision(
             detail="Decision not found."
         )
 
-    # Prevent self rejection
     if decision.created_by == current_user.id:
 
         raise HTTPException(
@@ -507,23 +553,27 @@ def reject_decision(
             detail="You cannot reject your own decision."
         )
 
-    # Only assigned reviewer can reject
-    if approval.reviewer_id != current_user.id:
-
-        raise HTTPException(
-            status_code=403,
-            detail="You are not assigned to reject this decision."
-        )
-
-    # Already approved
-    if approval.status == "Approved":
+    if decision.status == "Approved":
 
         raise HTTPException(
             status_code=400,
             detail="This decision has already been approved and cannot be rejected."
         )
 
-    # Mandatory remarks
+    if approval.status == "Approved":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This approval has already been approved and cannot be rejected."
+        )
+
+    if approval.status == "Rejected":
+
+        raise HTTPException(
+            status_code=400,
+            detail="This approval has already been rejected."
+        )
+
     if not approval_data.remarks.strip():
 
         raise HTTPException(
@@ -541,27 +591,29 @@ def reject_decision(
 
     approval.approved_at = datetime.utcnow()
 
-    # Update Decision Status
     decision.status = "Rejected"
 
+    # ==========================================
+    # REMOVE OTHER PENDING APPROVALS
+    # ==========================================
+
+    db.query(Approval).filter(
+        Approval.decision_id == decision.id,
+        Approval.id != approval.id,
+        Approval.status == "Pending"
+    ).delete(
+        synchronize_session=False
+    )
 
     # ==========================================
     # CREATE REJECTION AUDIT LOG
     # ==========================================
 
     create_audit_log(
-
         db=db,
-
-        user_id=
-            current_user.id,
-
-        decision_id=
-            decision.id,
-
-        action_type=
-            "DECISION_REJECTED",
-
+        user_id=current_user.id,
+        decision_id=decision.id,
+        action_type="DECISION_REJECTED",
         description=(
             f'Decision "{decision.title}" '
             f'was rejected by User '
@@ -570,35 +622,25 @@ def reject_decision(
         )
     )
 
-
     # ==========================================
     # CREATE REJECTION NOTIFICATION
     # ==========================================
 
     create_notification(
-
         db=db,
-
-        user_id=
-            decision.created_by,
-
-        decision_id=
-            decision.id,
-
-        title=
-            "Decision Rejected",
-
+        user_id=decision.created_by,
+        decision_id=decision.id,
+        title="Decision Rejected",
         message=(
             f'Your decision "{decision.title}" '
-            f'has been rejected by the reviewer. '
+            f'has been rejected by '
+            f'{current_user.role.lower()}. '
             f'Remarks: {approval_data.remarks}'
         )
     )
 
-
     # ==========================================
-    # SAVE APPROVAL + DECISION +
-    # AUDIT LOG + NOTIFICATION
+    # SAVE CHANGES
     # ==========================================
 
     db.commit()

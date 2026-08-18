@@ -1,5 +1,12 @@
-import './App.css';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./App.css";
+
+import {
+    BrowserRouter,
+    Routes,
+    Route
+} from "react-router-dom";
+
+import MainLayout from "./layouts/MainLayout";
 
 import CreateDecision from "./pages/CreateDecision";
 import Decisions from "./pages/Decisions";
@@ -30,195 +37,212 @@ import AuditLogs from "./pages/AuditLogs";
 
 import Reports from "./pages/Reports";
 
+import Profile from "./pages/Profile";
+
 
 function App() {
 
-  return (
+    return (
 
-    <BrowserRouter>
+        <BrowserRouter>
 
-      <Routes>
+            <Routes>
 
-        {/* ========================= */}
-        {/* HOME / DASHBOARD ROUTE */}
-        {/* ========================= */}
+                {/* ================================= */}
+                {/* AUTHENTICATION ROUTES             */}
+                {/* NO SIDEBAR                       */}
+                {/* ================================= */}
 
-        <Route
-          path="/"
-          element={<Dashboard />}
-        />
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
-
-        {/* ========================= */}
-        {/* AUTHENTICATION ROUTES */}
-        {/* ========================= */}
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
 
 
-        {/* ========================= */}
-        {/* DASHBOARD ROUTE */}
-        {/* ========================= */}
+                {/* ================================= */}
+                {/* APPLICATION ROUTES               */}
+                {/* SIDEBAR + MAIN CONTENT           */}
+                {/* ================================= */}
 
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
+                <Route element={<MainLayout />}>
 
 
-        {/* ========================= */}
-        {/* DECISION ROUTES */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* DASHBOARD */}
+                    {/* ========================= */}
 
-        <Route
-          path="/create-decision"
-          element={<CreateDecision />}
-        />
+                    <Route
+                        path="/"
+                        element={<Dashboard />}
+                    />
 
-        <Route
-          path="/decisions"
-          element={<Decisions />}
-        />
-
-        <Route
-          path="/decision/:id"
-          element={<DecisionDetails />}
-        />
-
-        <Route
-          path="/decision/:id/history"
-          element={<VersionHistory />}
-        />
-
-        <Route
-          path="/edit/:id"
-          element={<EditDecision />}
-        />
+                    <Route
+                        path="/dashboard"
+                        element={<Dashboard />}
+                    />
 
 
-        {/* ========================= */}
-        {/* ALTERNATIVE ROUTES */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* PROFILE */}
+                    {/* ========================= */}
 
-        <Route
-          path="/alternatives"
-          element={<Alternatives />}
-        />
-
-        <Route
-          path="/alternatives/:id"
-          element={<Alternatives />}
-        />
-
-        <Route
-          path="/add-alternative"
-          element={<AddAlternative />}
-        />
-
-        <Route
-          path="/add-alternative/:id"
-          element={<AddAlternative />}
-        />
-
-        <Route
-          path="/edit-alternative/:id"
-          element={<EditAlternative />}
-        />
-
-        <Route
-          path="/alternative-comparison"
-          element={<AlternativeComparison />}
-        />
-
-        <Route
-          path="/alternative-comparison/:id"
-          element={<AlternativeComparison />}
-        />
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
+                    />
 
 
-        {/* ========================= */}
-        {/* DOCUMENT ROUTES */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* DECISIONS */}
+                    {/* ========================= */}
 
-        <Route
-          path="/documents"
-          element={<Documents />}
-        />
+                    <Route
+                        path="/decisions"
+                        element={<Decisions />}
+                    />
 
-        <Route
-          path="/documents/:id"
-          element={<Documents />}
-        />
+                    <Route
+                        path="/create-decision"
+                        element={<CreateDecision />}
+                    />
 
-        <Route
-          path="/upload-document/:id"
-          element={<UploadDocument />}
-        />
+                    <Route
+                        path="/decision/:id"
+                        element={<DecisionDetails />}
+                    />
 
+                    <Route
+                        path="/decision/:id/history"
+                        element={<VersionHistory />}
+                    />
 
-        {/* ========================= */}
-        {/* APPROVAL ROUTES */}
-        {/* ========================= */}
-
-        <Route
-          path="/approvals"
-          element={<PendingApprovals />}
-        />
-
-        <Route
-          path="/approval/:id"
-          element={<ApprovalDetails />}
-        />
-
-        <Route
-          path="/approval-history"
-          element={<ApprovalHistory />}
-        />
+                    <Route
+                        path="/edit/:id"
+                        element={<EditDecision />}
+                    />
 
 
-        {/* ========================= */}
-        {/* NOTIFICATION ROUTE */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* ALTERNATIVES */}
+                    {/* ========================= */}
 
-        <Route
-          path="/notifications"
-          element={<Notifications />}
-        />
+                    <Route
+                        path="/alternatives"
+                        element={<Alternatives />}
+                    />
+
+                    <Route
+                        path="/alternatives/:id"
+                        element={<Alternatives />}
+                    />
+
+                    <Route
+                        path="/add-alternative"
+                        element={<AddAlternative />}
+                    />
+
+                    <Route
+                        path="/add-alternative/:id"
+                        element={<AddAlternative />}
+                    />
+
+                    <Route
+                        path="/edit-alternative/:id"
+                        element={<EditAlternative />}
+                    />
+
+                    <Route
+                        path="/alternative-comparison"
+                        element={<AlternativeComparison />}
+                    />
+
+                    <Route
+                        path="/alternative-comparison/:id"
+                        element={<AlternativeComparison />}
+                    />
 
 
-        {/* ========================= */}
-        {/* AUDIT LOG ROUTE */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* DOCUMENTS */}
+                    {/* ========================= */}
 
-        <Route
-          path="/audit-logs"
-          element={<AuditLogs />}
-        />
+                    <Route
+                        path="/documents"
+                        element={<Documents />}
+                    />
+
+                    <Route
+                        path="/documents/:id"
+                        element={<Documents />}
+                    />
+
+                    <Route
+                        path="/upload-document/:id"
+                        element={<UploadDocument />}
+                    />
 
 
-        {/* ========================= */}
-        {/* REPORTS ROUTE */}
-        {/* ========================= */}
+                    {/* ========================= */}
+                    {/* APPROVALS */}
+                    {/* ========================= */}
 
-        <Route
-          path="/reports"
-          element={<Reports />}
-        />
+                    <Route
+                        path="/approvals"
+                        element={<PendingApprovals />}
+                    />
 
-      </Routes>
+                    <Route
+                        path="/approval/:id"
+                        element={<ApprovalDetails />}
+                    />
 
-    </BrowserRouter>
+                    <Route
+                        path="/approval-history"
+                        element={<ApprovalHistory />}
+                    />
 
-  );
 
+                    {/* ========================= */}
+                    {/* NOTIFICATIONS */}
+                    {/* ========================= */}
+
+                    <Route
+                        path="/notifications"
+                        element={<Notifications />}
+                    />
+
+
+                    {/* ========================= */}
+                    {/* AUDIT LOGS */}
+                    {/* ========================= */}
+
+                    <Route
+                        path="/audit-logs"
+                        element={<AuditLogs />}
+                    />
+
+
+                    {/* ========================= */}
+                    {/* REPORTS */}
+                    {/* ========================= */}
+
+                    <Route
+                        path="/reports"
+                        element={<Reports />}
+                    />
+
+                </Route>
+
+            </Routes>
+
+        </BrowserRouter>
+
+    );
 }
 
 

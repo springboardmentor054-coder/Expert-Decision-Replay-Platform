@@ -64,7 +64,7 @@ function Login() {
 
 
                 // Redirect to decisions page
-                navigate("/decisions");
+                navigate("/dashboard");
 
 
             } else {

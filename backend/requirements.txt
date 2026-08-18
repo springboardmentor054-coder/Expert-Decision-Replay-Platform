@@ -1,0 +1,12 @@
+fastapi==0.139.0
+uvicorn[standard]
+sqlalchemy==2.0.51
+psycopg2-binary
+python-jose
+passlib
+bcrypt
+python-multipart
+reportlab
+openpyxl
+python-dotenv
+email-validator

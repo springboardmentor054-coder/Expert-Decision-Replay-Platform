@@ -5,6 +5,16 @@ import "./CreateDecision.css";
 function CreateDecision() {
     const navigate = useNavigate();
 
+    const categories = [
+        { id: 1, name: "General" },
+        { id: 2, name: "Technology" },
+        { id: 3, name: "Finance" },
+        { id: 4, name: "Operations" },
+        { id: 5, name: "Human Resources" },
+        { id: 6, name: "Marketing" },
+        { id: 7, name: "Security" }
+    ];
+
     const [decision, setDecision] = useState({
         title: "",
         problem_statement: "",
@@ -15,10 +25,6 @@ function CreateDecision() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
-
-    // ==========================================
-    // HANDLE INPUT CHANGE
-    // ==========================================
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -34,18 +40,10 @@ function CreateDecision() {
         setError("");
     };
 
-    // ==========================================
-    // CREATE DECISION
-    // ==========================================
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         setError("");
-
-        // ------------------------------------------
-        // VALIDATION
-        // ------------------------------------------
 
         if (!decision.title.trim()) {
             setError("Decision title is required.");
@@ -54,6 +52,11 @@ function CreateDecision() {
 
         if (!decision.problem_statement.trim()) {
             setError("Problem Statement is required.");
+            return;
+        }
+
+        if (!decision.category_id) {
+            setError("Please select a category.");
             return;
         }
 
@@ -96,10 +99,6 @@ function CreateDecision() {
                 }
             );
 
-            // ------------------------------------------
-            // READ RESPONSE SAFELY
-            // ------------------------------------------
-
             let data = {};
 
             try {
@@ -118,10 +117,6 @@ function CreateDecision() {
                 data
             );
 
-            // ------------------------------------------
-            // UNAUTHORIZED
-            // ------------------------------------------
-
             if (response.status === 401) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("userEmail");
@@ -137,10 +132,6 @@ function CreateDecision() {
                 return;
             }
 
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
             if (response.ok) {
                 alert("Decision Created Successfully!");
 
@@ -148,10 +139,6 @@ function CreateDecision() {
 
                 return;
             }
-
-            // ------------------------------------------
-            // BACKEND ERROR
-            // ------------------------------------------
 
             let errorMessage =
                 "Unable to create decision.";
@@ -187,16 +174,10 @@ function CreateDecision() {
         }
     };
 
-    // ==========================================
-    // PAGE
-    // ==========================================
-
     return (
         <div className="create-decision-page">
 
-            {/* ==========================================
-                HEADER
-            ========================================== */}
+            {/* HEADER */}
 
             <header className="create-decision-header">
 
@@ -232,15 +213,11 @@ function CreateDecision() {
             </header>
 
 
-            {/* ==========================================
-                MAIN CONTENT
-            ========================================== */}
+            {/* MAIN CONTENT */}
 
             <main className="create-decision-main">
 
-                {/* ==========================================
-                    PAGE INTRO
-                ========================================== */}
+                {/* PAGE INTRO */}
 
                 <div className="create-decision-intro">
 
@@ -264,9 +241,7 @@ function CreateDecision() {
                 </div>
 
 
-                {/* ==========================================
-                    FORM CARD
-                ========================================== */}
+                {/* FORM CARD */}
 
                 <div className="create-decision-card">
 
@@ -292,12 +267,11 @@ function CreateDecision() {
                     </div>
 
 
-                    {/* ==========================================
-                        ERROR MESSAGE
-                    ========================================== */}
+                    {/* ERROR MESSAGE */}
 
                     {error && (
                         <div className="create-decision-error">
+
                             <span>
                                 ⚠
                             </span>
@@ -305,13 +279,12 @@ function CreateDecision() {
                             <p>
                                 {error}
                             </p>
+
                         </div>
                     )}
 
 
-                    {/* ==========================================
-                        FORM
-                    ========================================== */}
+                    {/* FORM */}
 
                     <form
                         className="create-decision-form"
@@ -409,20 +382,24 @@ function CreateDecision() {
 
                             <label htmlFor="category_id">
                                 Category
+                                <span>*</span>
                             </label>
 
                             <select
                                 id="category_id"
                                 name="category_id"
-                                value={
-                                    decision.category_id
-                                }
+                                value={decision.category_id}
                                 onChange={handleChange}
                                 disabled={isSubmitting}
                             >
-                                <option value={1}>
-                                    Category 1
-                                </option>
+                                {categories.map((category) => (
+                                    <option
+                                        key={category.id}
+                                        value={category.id}
+                                    >
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
 
                             <small>
@@ -491,9 +468,7 @@ function CreateDecision() {
                 </div>
 
 
-                {/* ==========================================
-                    QUICK NAVIGATION
-                ========================================== */}
+                {/* QUICK NAVIGATION */}
 
                 <div className="create-quick-navigation">
 

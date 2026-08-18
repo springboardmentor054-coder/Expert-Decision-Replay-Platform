@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: expert_decision_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:Sushil31%403@host.docker.internal:5433/expert_decision_replay
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/uploads:/app/uploads

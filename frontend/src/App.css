@@ -463,3 +463,17 @@ a {
     color: #1d4ed8;
     text-decoration: underline;
 }
+
+/* ========================================= */
+/* APPLICATION WITH SIDEBAR */
+/* ========================================= */
+
+body {
+    overflow-x: hidden;
+}
+
+.main-layout-content .page-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}

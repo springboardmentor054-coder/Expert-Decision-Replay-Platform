@@ -79,7 +79,6 @@ def create_comment(
         Decision.id == comment.decision_id
     ).first()
 
-
     if not decision:
 
         raise HTTPException(
@@ -87,88 +86,85 @@ def create_comment(
             detail="Decision not found"
         )
 
-
     # ==========================================
     # CREATE COMMENT
     # ==========================================
 
     new_comment = Comment(
-
-        decision_id=
-            comment.decision_id,
-
-        user_id=
-            current_user.id,
-
-        comment=
-            comment.content
+        decision_id=comment.decision_id,
+        user_id=current_user.id,
+        comment=comment.content
     )
 
-
     db.add(new_comment)
-
 
     # ==========================================
     # CREATE COMMENT AUDIT LOG
     # ==========================================
 
     create_audit_log(
-
         db=db,
-
-        user_id=
-            current_user.id,
-
-        decision_id=
-            decision.id,
-
-        action_type=
-            "COMMENT_ADDED",
-
+        user_id=current_user.id,
+        decision_id=decision.id,
+        action_type="COMMENT_ADDED",
         description=(
             f'User {current_user.id} added a comment '
             f'on decision "{decision.title}".'
         )
     )
 
-
     # ==========================================
-    # CREATE COMMENT NOTIFICATION
+    # CREATE COMMENT NOTIFICATIONS
     # ==========================================
 
-    # Notify the decision creator
-    # only if someone else adds the comment
+    recipients = (
+        db.query(User)
+        .filter(
+            User.role.in_(
+                [
+                    "Administrator",
+                    "Manager",
+                    "Reviewer"
+                ]
+            )
+        )
+        .all()
+    )
 
-    if decision.created_by != current_user.id:
+    notified_users = set()
+
+    for recipient in recipients:
+
+        # Do not notify the person who added the comment
+        if recipient.id == current_user.id:
+            continue
+
+        # Prevent duplicate notifications
+        if recipient.id in notified_users:
+            continue
 
         create_notification(
-
             db=db,
-
-            user_id=
-                decision.created_by,
-
-            decision_id=
-                decision.id,
-
-            title=
-                "New Comment Added",
-
+            user_id=recipient.id,
+            decision_id=decision.id,
+            title="New Comment Added",
             message=(
-                f'user{current_user.id} added a new comment '
-                f'on your decision "{decision.title}".'
+                f'User {current_user.id} added a new comment '
+                f'on decision "{decision.title}".'
             )
         )
 
+        notified_users.add(
+            recipient.id
+        )
 
     # ==========================================
-    # SAVE COMMENT + AUDIT LOG + NOTIFICATION
+    # SAVE COMMENT + AUDIT LOG + NOTIFICATIONS
     # ==========================================
 
     db.commit()
 
     db.refresh(new_comment)
-
 
     return new_comment
 
@@ -190,14 +186,12 @@ def get_comment(
         Comment.id == comment_id
     ).first()
 
-
     if not comment:
 
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
         )
-
 
     return comment
 
@@ -221,14 +215,12 @@ def update_comment(
         Comment.id == comment_id
     ).first()
 
-
     if not comment:
 
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
         )
-
 
     # ==========================================
     # CHECK COMMENT OWNER
@@ -241,14 +233,11 @@ def update_comment(
             detail="You can only edit your own comments"
         )
 
-
     comment.comment = updated_comment.content
-
 
     db.commit()
 
     db.refresh(comment)
-
 
     return comment
 
@@ -270,14 +259,12 @@ def delete_comment(
         Comment.id == comment_id
     ).first()
 
-
     if not comment:
 
         raise HTTPException(
             status_code=404,
             detail="Comment not found"
         )
-
 
     # ==========================================
     # CHECK COMMENT OWNER
@@ -287,22 +274,15 @@ def delete_comment(
 
         raise HTTPException(
             status_code=403,
-
-            detail=
-                "You can only delete your own comments"
+            detail="You can only delete your own comments"
         )
-
 
     db.delete(comment)
 
     db.commit()
 
-
     return {
-
-        "message":
-            "Comment deleted successfully"
-
+        "message": "Comment deleted successfully"
     }
 
 
@@ -323,7 +303,6 @@ def get_comments_by_decision(
         Decision.id == decision_id
     ).first()
 
-
     if not decision:
 
         raise HTTPException(
@@ -331,12 +310,10 @@ def get_comments_by_decision(
             detail="Decision not found"
         )
 
-
     comments = db.query(Comment).filter(
         Comment.decision_id == decision_id
     ).order_by(
         Comment.created_at.asc()
     ).all()
-
 
     return comments
