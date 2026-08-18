@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Details - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+        const DECISION_ID = {{ decision_id }};
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/documents">
+                        <span>📁</span> Documents
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title" id="decision-title">Loading Decision...</h1>
+                    <p class="page-subtitle" id="decision-meta">Category: - | Version: - | Creator: -</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-secondary" id="view-history-btn" onclick="openVersionHistoryModal()">📜 View History</button>
+                    <a class="btn btn-secondary" href="/decisions/{{ decision_id }}/edit" id="edit-decision-btn"
+                        style="display: none;">✏️ Edit</a>
+                    <button class="btn btn-primary" id="submit-review-btn" style="display: none;"
+                        onclick="submitForReview()">🚀 Submit for Review</button>
+                    <button class="btn btn-danger" id="archive-btn" style="display: none;"
+                        onclick="archiveDecision()">🗄️ Archive</button>
+                    <a class="btn btn-secondary" href="/dashboard">⬅ Back</a>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; gap: 24px;">
+                <!-- Left Column -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- Problem Statement Card -->
+                    <div class="card">
+                        <h3
+                            style="margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            📋 Problem Statement & Description</h3>
+                        <p id="decision-problem"
+                            style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text-primary);">
+                        </p>
+                        <div id="decision-description-wrapper" style="margin-top: 16px; display: none;">
+                            <strong style="color: #94a3b8; font-size: 0.85rem;">Additional Description:</strong>
+                            <p id="decision-description"
+                                style="white-space: pre-wrap; font-size: 0.9rem; color: #cbd5e1; margin-top: 4px;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Notes Card -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">📝 Meeting Notes & Summary</h3>
+                            <button class="btn btn-secondary btn-sm" id="toggle-meeting-notes-btn">✏️ Edit
+                                Notes</button>
+                        </div>
+
+                        <div id="meeting-notes-display">
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: #3b82f6; font-size: 0.85rem;">Meeting Summary:</strong>
+                                <div id="notes-summary-text"
+                                    style="color: #e2e8f0; font-size: 0.9rem; margin-top: 2px;">No summary recorded.
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: #10b981; font-size: 0.85rem;">Conclusion:</strong>
+                                <div id="notes-conclusion-text"
+                                    style="color: #e2e8f0; font-size: 0.9rem; margin-top: 2px;">No conclusion recorded.
+                                </div>
+                            </div>
+                            <div>
+                                <strong style="color: #f59e0b; font-size: 0.85rem;">Next Action:</strong>
+                                <div id="notes-action-text" style="color: #e2e8f0; font-size: 0.9rem; margin-top: 2px;">
+                                    No next action item recorded.</div>
+                            </div>
+                        </div>
+
+                        <form id="meeting-notes-form"
+                            style="display: none; flex-direction: column; gap: 12px; margin-top: 12px;">
+                            <div class="form-group">
+                                <label class="form-label">Meeting Summary</label>
+                                <textarea class="form-control" id="input-meeting-summary" rows="3"
+                                    placeholder="Summary of the key points discussed..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Conclusion</label>
+                                <textarea class="form-control" id="input-conclusion" rows="2"
+                                    placeholder="Final conclusion or decision outcome..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Next Action</label>
+                                <textarea class="form-control" id="input-next-action" rows="2"
+                                    placeholder="Action items, owners, and next steps..."></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    id="cancel-notes-btn">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm">💾 Save Notes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Alternatives Analysis -->
+                    <div class="card">
+                        <h3
+                            style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            ⚖️ Alternative Analysis</h3>
+                        <div id="alternatives-wrapper" class="alternative-comparison">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Threaded Discussions -->
+                    <div class="card" id="discussion-card">
+                        <h3
+                            style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            💬 Discussion Module</h3>
+
+                        <div id="comment-error-alert" class="alert alert-danger"
+                            style="display: none; margin-bottom: 12px;"></div>
+
+                        <!-- Post Comment Form -->
+                        <form id="add-comment-form"
+                            style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                            <textarea class="form-control" id="comment-content" required
+                                placeholder="Add a comment or question to the discussion thread..."></textarea>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <label class="form-label"
+                                        style="display: inline-block; margin-bottom: 0; cursor: pointer; color: var(--color-primary);">
+                                        📎 Attach File
+                                        <input type="file" id="comment-file" style="display: none;">
+                                    </label>
+                                    <span id="file-selected-name"
+                                        style="margin-left: 10px; font-size: 0.8rem; color: var(--text-secondary);"></span>
+                                </div>
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding: 8px 16px; font-size: 0.85rem;">Post Comment</button>
+                            </div>
+                        </form>
+
+                        <div class="comments-section" id="comments-container">
+                            <div style="color: var(--text-secondary); font-size: 0.95rem;">No discussion items yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- Decision Status Indicator -->
+                    <div class="card" style="text-align: center; padding: 20px;">
+                        <h4 style="color: var(--text-secondary); margin-bottom: 8px;">Current State</h4>
+                        <div id="decision-status-badge" style="font-size: 1.25rem;">-</div>
+                    </div>
+
+                    <!-- Approval Workflow Card -->
+                    <div class="card">
+                        <h3
+                            style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            🛡️ Governance Approvals</h3>
+                        <div id="approvals-container" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div style="color: var(--text-secondary);">No approvals configured.</div>
+                        </div>
+                    </div>
+
+                    <!-- Documents List Card -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">
+                            <h3 style="margin: 0;">📁 Attached Documents</h3>
+                            <a href="/documents/upload?decision_id={{ decision_id }}" class="btn btn-primary btn-sm"
+                                style="font-size: 0.75rem; text-decoration: none;">📤 Upload</a>
+                        </div>
+                        <div id="documents-container"
+                            style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
+                            <div style="color: var(--text-secondary);">No documents uploaded.</div>
+                        </div>
+                    </div>
+
+                    <!-- Version Timeline Card -->
+                    <div class="card">
+                        <h3
+                            style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            📜 Version History</h3>
+                        <div class="timeline" id="versions-container">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let currentUserId = null;
+        let currentUserRole = "";
+
+        document.getElementById("comment-file").addEventListener("change", (e) => {
+            const nameEl = document.getElementById("file-selected-name");
+            if (e.target.files.length > 0) {
+                nameEl.textContent = e.target.files[0].name;
+            } else {
+                nameEl.textContent = "";
+            }
+        });
+
+        async function loadDecisionDetails() {
+            const user = Auth.getUser();
+            if (user) {
+                currentUserId = user.id;
+                currentUserRole = user.role;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}`, {
+                    headers: Auth.getHeaders()
+                });
+
+                if (!res.ok) {
+                    alert("Could not load decision details.");
+                    window.location.href = "/dashboard";
+                    return;
+                }
+
+                const d = await res.json();
+
+                // Populate Details
+                document.getElementById("decision-title").textContent = d.title;
+                document.getElementById("decision-meta").textContent = `Category: ${d.category} | Version: v${d.current_version} | Creator: ${d.creator.full_name} (${d.creator.team || 'No Team'})`;
+                document.getElementById("decision-problem").textContent = d.problem_statement;
+
+                if (d.description) {
+                    document.getElementById("decision-description-wrapper").style.display = "block";
+                    document.getElementById("decision-description").textContent = d.description;
+                }
+
+                document.getElementById("decision-status-badge").innerHTML = getStatusBadge(d.status);
+
+                // Populate Meeting Notes
+                document.getElementById("notes-summary-text").textContent = d.meeting_summary || "No summary recorded.";
+                document.getElementById("notes-conclusion-text").textContent = d.conclusion || "No conclusion recorded.";
+                document.getElementById("notes-action-text").textContent = d.next_action || "No next action item recorded.";
+
+                document.getElementById("input-meeting-summary").value = d.meeting_summary || "";
+                document.getElementById("input-conclusion").value = d.conclusion || "";
+                document.getElementById("input-next-action").value = d.next_action || "";
+
+                // Show edit button for creator or admin/manager
+                if (d.creator_id === currentUserId || currentUserRole === "Administrator" || currentUserRole === "Manager") {
+                    document.getElementById("edit-decision-btn").style.display = "inline-flex";
+                    if (d.status === "Draft") {
+                        document.getElementById("submit-review-btn").style.display = "inline-flex";
+                    }
+                    if (d.status !== "Archived") {
+                        document.getElementById("archive-btn").style.display = "inline-flex";
+                    }
+                }
+
+                // Render Alternatives
+                const altContainer = document.getElementById("alternatives-wrapper");
+                altContainer.innerHTML = "";
+
+                if (d.alternatives) {
+                    d.alternatives.forEach(alt => {
+                        const feasibilityPct = alt.feasibility_rating * 20;
+                        const riskPct = alt.risk_rating * 20;
+
+                        let feasibilityClass = "medium";
+                        if (alt.feasibility_rating >= 4) feasibilityClass = "good";
+                        else if (alt.feasibility_rating <= 2) feasibilityClass = "bad";
+
+                        let riskClass = "medium";
+                        if (alt.risk_rating >= 4) riskClass = "bad";
+                        else if (alt.risk_rating <= 2) riskClass = "good";
+
+                        const card = document.createElement("div");
+                        card.className = "alternative-card";
+                        card.innerHTML = `
+                            <div class="alternative-title">${alt.title}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${alt.description}</div>
+                            
+                            <div style="margin-top: 10px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                                    <span>Feasibility Score</span>
+                                    <span style="font-weight:600;">${alt.feasibility_rating} / 5</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill ${feasibilityClass}" style="width: ${feasibilityPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                                    <span>Risk Assessment</span>
+                                    <span style="font-weight:600;">${alt.risk_rating} / 5</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill ${riskClass}" style="width: ${riskPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.85rem; font-weight: 500;">
+                                Est. Budget: <span style="color: white; font-weight: 600;">$${alt.cost.toLocaleString()} / year</span>
+                            </div>
+
+                            <div class="pro-con-list">
+                                ${(alt.pros || []).map(pro => `<div class="pro-con-item pro">${pro}</div>`).join('')}
+                                ${(alt.cons || []).map(con => `<div class="pro-con-item con">${con}</div>`).join('')}
+                            </div>
+
+                            ${alt.risk_mitigation ? `
+                                <div style="margin-top: 10px; padding: 8px; border-radius: 6px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); font-size: 0.78rem;">
+                                    <strong style="color: var(--color-danger);">Risk Mitigation:</strong> ${alt.risk_mitigation}
+                                </div>
+                            ` : ''}
+                        `;
+                        altContainer.appendChild(card);
+                    });
+                }
+
+                // Render Approvals Flow
+                const appContainer = document.getElementById("approvals-container");
+                appContainer.innerHTML = "";
+
+                if (!d.approvals || d.approvals.length === 0) {
+                    appContainer.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.9rem;">No governance reviews assigned.</div>`;
+                } else {
+                    d.approvals.forEach(app => {
+                        let appBadge = `<span class="badge badge-draft">Pending</span>`;
+                        if (app.status === "Approved") appBadge = `<span class="badge badge-approved">Approved</span>`;
+                        else if (app.status === "Rejected") appBadge = `<span class="badge badge-rejected">Rejected</span>`;
+
+                        const row = document.createElement("div");
+                        row.style.background = "rgba(255, 255, 255, 0.02)";
+                        row.style.border = "1px solid var(--border-color)";
+                        row.style.borderRadius = "8px";
+                        row.style.padding = "12px";
+                        row.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.9rem;">
+                                <span>Level ${app.level}: ${app.approver.full_name}</span>
+                                ${appBadge}
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Role: ${app.approver.role} (${app.approver.team || 'No Team'})</div>
+                            ${app.comments ? `
+                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 0.85rem; font-style: italic; color: var(--text-secondary);">
+                                    "${app.comments}"
+                                </div>
+                            ` : ''}
+                            ${app.actioned_at ? `
+                                <div style="font-size: 0.72rem; color: var(--text-muted); text-align: right; margin-top: 4px;">
+                                    Actioned: ${formatDate(app.actioned_at)}
+                                </div>
+                            ` : ''}
+                            ${app.status === "Pending" && (app.approver_id === currentUserId || currentUserRole === "Manager" || currentUserRole === "Administrator") ? `
+                                <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                                    <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="actionApprovalTask(${app.id}, 'Approved')">Approve</button>
+                                    <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="actionApprovalTask(${app.id}, 'Rejected')">Reject</button>
+                                </div>
+                            ` : ''}
+                        `;
+                        appContainer.appendChild(row);
+                    });
+                }
+
+                // Render Documents List
+                const docContainer = document.getElementById("documents-container");
+                docContainer.innerHTML = "";
+
+                const allDocs = (d.documents || []).concat(d.attachments || []);
+                if (allDocs.length === 0) {
+                    docContainer.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.9rem;">No documents uploaded.</div>`;
+                } else {
+                    allDocs.forEach(doc => {
+                        const filename = doc.file_name || doc.filename;
+                        const filepath = doc.file_path;
+                        const filesize = doc.file_size ? formatFileSize(doc.file_size) : '';
+                        const docId = doc.id;
+                        const canDelete = doc.uploaded_by === currentUserId || doc.uploaded_by_id === currentUserId || currentUserRole === "Administrator" || currentUserRole === "Manager";
+
+                        const row = document.createElement("div");
+                        row.style.display = "flex";
+                        row.style.justifyContent = "space-between";
+                        row.style.alignItems = "center";
+                        row.style.padding = "8px 12px";
+                        row.style.background = "rgba(255,255,255,0.01)";
+                        row.style.border = "1px solid var(--border-color)";
+                        row.style.borderRadius = "6px";
+                        row.innerHTML = `
+                            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px;">
+                                <div style="font-weight: 500; font-size: 0.85rem;">📄 ${filename}</div>
+                                ${filesize ? `<div style="font-size: 0.72rem; color: #94a3b8;">${filesize}</div>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 4px;">
+                                <a class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem; text-decoration: none;" href="/static/uploads/${filepath}" target="_blank">View</a>
+                                ${canDelete && doc.file_name ? `<button class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteDocumentFromDetail(${docId})">🗑️</button>` : ''}
+                            </div>
+                        `;
+                        docContainer.appendChild(row);
+                    });
+                }
+
+                // Render Version history
+                const versionContainer = document.getElementById("versions-container");
+                versionContainer.innerHTML = "";
+
+                if (d.versions) {
+                    d.versions.slice().reverse().forEach(v => {
+                        const row = document.createElement("div");
+                        row.className = "timeline-item";
+                        row.innerHTML = `
+                            <div class="timeline-header">
+                                <span class="timeline-version">Version v${v.version}</span>
+                                <span class="timeline-meta">${formatDate(v.created_at)}</span>
+                            </div>
+                            <div class="timeline-content">
+                                <div><strong>Summary:</strong> ${v.change_summary || 'Initial creation'}</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Edited by: ${v.changed_by.full_name} (${v.changed_by.role}) | Status: ${v.status}</div>
+                            </div>
+                        `;
+                        versionContainer.appendChild(row);
+                    });
+                }
+
+                // Render Comments
+                renderComments(d.comments || []);
+
+            } catch (err) {
+                console.error("Error loading decision detail", err);
+            }
+        }
+
+        async function deleteDocumentFromDetail(docId) {
+            if (confirm("Delete this document?")) {
+                try {
+                    const res = await fetch(`${API_BASE}/documents/${docId}`, {
+                        method: "DELETE",
+                        headers: Auth.getHeaders()
+                    });
+                    if (res.ok) {
+                        loadDecisionDetails();
+                    } else {
+                        alert("Could not delete document.");
+                    }
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+        }
+
+        // Meeting Notes Toggle & Submit
+        document.getElementById("toggle-meeting-notes-btn").addEventListener("click", () => {
+            const display = document.getElementById("meeting-notes-display");
+            const form = document.getElementById("meeting-notes-form");
+            if (form.style.display === "none") {
+                form.style.display = "flex";
+                display.style.display = "none";
+            } else {
+                form.style.display = "none";
+                display.style.display = "block";
+            }
+        });
+
+        document.getElementById("cancel-notes-btn").addEventListener("click", () => {
+            document.getElementById("meeting-notes-form").style.display = "none";
+            document.getElementById("meeting-notes-display").style.display = "block";
+        });
+
+        document.getElementById("meeting-notes-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const summary = document.getElementById("input-meeting-summary").value.trim();
+            const conclusion = document.getElementById("input-conclusion").value.trim();
+            const nextAction = document.getElementById("input-next-action").value.trim();
+
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}/meeting-notes`, {
+                    method: "PUT",
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        meeting_summary: summary,
+                        conclusion: conclusion,
+                        next_action: nextAction
+                    })
+                });
+
+                if (res.ok) {
+                    document.getElementById("meeting-notes-form").style.display = "none";
+                    document.getElementById("meeting-notes-display").style.display = "block";
+                    loadDecisionDetails();
+                } else {
+                    alert("Could not update meeting notes.");
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+
+        // Threaded comments renderer
+        function renderComments(commentsList) {
+            const container = document.getElementById("comments-container");
+            container.innerHTML = "";
+
+            if (commentsList.length === 0) {
+                container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.95rem;">No discussion items yet. Be the first to comment!</div>`;
+                return;
+            }
+
+            function makeCommentHtml(comment) {
+                const canDelete = comment.user_id === currentUserId || currentUserRole === "Administrator" || currentUserRole === "Manager";
+                const canEdit = comment.user_id === currentUserId;
+
+                return `
+                    <div class="comment-card" id="comment-${comment.id}" style="border: 1px solid #334155; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #1e293b;">
+                        <div class="comment-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span class="comment-author" style="font-weight: 600; color: #3b82f6;">${comment.user ? comment.user.full_name : 'User'} (${comment.user ? comment.user.role : 'Member'})</span>
+                            <span class="comment-date" style="font-size: 0.78rem; color: #94a3b8;">${formatDate(comment.created_at)}</span>
+                        </div>
+                        <div id="comment-text-${comment.id}" style="font-size: 0.9rem; line-height: 1.5; color: white;">${comment.content || comment.comment}</div>
+                        
+                        ${comment.attachments && comment.attachments.length > 0 ? `
+                            <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${comment.attachments.map(att => `
+                                    <a href="/static/uploads/${att.file_path}" target="_blank" style="font-size: 0.75rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; color: #60a5fa; text-decoration: none;">
+                                        📎 ${att.filename}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div style="display: flex; gap: 12px; margin-top: 10px; align-items: center;">
+                            <button class="reply-btn" style="background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 0.8rem;" onclick="showReplyForm(${comment.id})">💬 Reply</button>
+                            ${canEdit ? `<button style="background: none; border: none; color: #f59e0b; cursor: pointer; font-size: 0.8rem;" onclick="showEditCommentForm(${comment.id}, '${(comment.content || comment.comment).replace(/'/g, "\\'")}')">✏️ Edit</button>` : ''}
+                            ${canDelete ? `<button style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem;" onclick="deleteComment(${comment.id})">🗑️ Delete</button>` : ''}
+                        </div>
+                        
+                        <div id="edit-comment-container-${comment.id}" style="margin-top: 10px; display: none;">
+                            <textarea class="form-control" style="font-size:0.85rem; min-height:60px;" id="edit-comment-content-${comment.id}"></textarea>
+                            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="hideEditCommentForm(${comment.id})">Cancel</button>
+                                <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="saveEditComment(${comment.id})">Save Edit</button>
+                            </div>
+                        </div>
+
+                        <div id="reply-form-container-${comment.id}" style="margin-top: 10px; display: none;">
+                            <textarea class="form-control" style="font-size:0.85rem; min-height:60px;" id="reply-content-${comment.id}" placeholder="Type your reply..."></textarea>
+                            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="hideReplyForm(${comment.id})">Cancel</button>
+                                <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="postReply(${comment.id})">Submit Reply</button>
+                            </div>
+                        </div>
+
+                        <!-- Nested Replies -->
+                        <div class="comment-replies" style="margin-left: 20px; border-left: 2px solid #334155; padding-left: 12px; margin-top: 12px;">
+                            ${comment.replies ? comment.replies.map(reply => makeCommentHtml(reply)).join('') : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            commentsList.forEach(c => {
+                container.innerHTML += makeCommentHtml(c);
+            });
+        }
+
+        function showReplyForm(commentId) {
+            document.getElementById(`reply-form-container-${commentId}`).style.display = "block";
+        }
+        function hideReplyForm(commentId) {
+            document.getElementById(`reply-form-container-${commentId}`).style.display = "none";
+        }
+
+        function showEditCommentForm(commentId, currentText) {
+            document.getElementById(`edit-comment-container-${commentId}`).style.display = "block";
+            document.getElementById(`edit-comment-content-${commentId}`).value = currentText;
+        }
+        function hideEditCommentForm(commentId) {
+            document.getElementById(`edit-comment-container-${commentId}`).style.display = "none";
+        }
+
+        async function saveEditComment(commentId) {
+            const text = document.getElementById(`edit-comment-content-${commentId}`).value.trim();
+            if (!text) {
+                alert("Empty comments cannot be submitted.");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/comments/${commentId}`, {
+                    method: "PUT",
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({ content: text })
+                });
+                if (res.ok) {
+                    loadDecisionDetails();
+                } else {
+                    alert("Could not update comment.");
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (confirm("Are you sure you want to delete this comment?")) {
+                try {
+                    const res = await fetch(`${API_BASE}/comments/${commentId}`, {
+                        method: "DELETE",
+                        headers: Auth.getHeaders()
+                    });
+                    if (res.ok) {
+                        loadDecisionDetails();
+                    } else {
+                        alert("Could not delete comment.");
+                    }
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+        }
+
+        async function postReply(parentId) {
+            const content = document.getElementById(`reply-content-${parentId}`).value.trim();
+            if (!content) {
+                alert("Empty comments cannot be submitted.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/comments`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        decision_id: DECISION_ID,
+                        content: content,
+                        parent_id: parentId
+                    })
+                });
+
+                if (res.ok) {
+                    loadDecisionDetails();
+                } else {
+                    alert("Could not post reply.");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Post root comment
+        document.getElementById("add-comment-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const content = document.getElementById("comment-content").value.trim();
+            const fileInput = document.getElementById("comment-file");
+            const errAlert = document.getElementById("comment-error-alert");
+            errAlert.style.display = "none";
+
+            if (!content) {
+                errAlert.textContent = "Empty comments cannot be submitted.";
+                errAlert.style.display = "block";
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/comments`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        decision_id: DECISION_ID,
+                        content: content
+                    })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    let msg = errData.detail;
+                    if (Array.isArray(msg)) msg = msg.map(m => m.msg).join(", ");
+                    throw new Error(msg || "Could not post comment.");
+                }
+
+                const comment = await res.json();
+
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append("file", fileInput.files[0]);
+                    formData.append("comment_id", comment.id);
+
+                    const uploadRes = await fetch(`${API_BASE}/decisions/${DECISION_ID}/attachments`, {
+                        method: 'POST',
+                        headers: {
+                            "Authorization": `Bearer ${Auth.getToken()}`
+                        },
+                        body: formData
+                    });
+                    if (!uploadRes.ok) {
+                        const errData = await uploadRes.json().catch(() => ({}));
+                        alert("Comment posted, but file upload failed: " + (errData.detail || "Server error"));
+                    }
+                }
+
+                document.getElementById("comment-content").value = "";
+                fileInput.value = "";
+                document.getElementById("file-selected-name").textContent = "";
+
+                loadDecisionDetails();
+            } catch (err) {
+                errAlert.textContent = err.message;
+                errAlert.style.display = "block";
+            }
+        });
+
+        async function actionApprovalTask(approvalId, status) {
+            const comments = prompt(`Enter review comments for ${status}:`, "");
+            if (comments === null) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/approvals/${approvalId}/action`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        status: status,
+                        comments: comments
+                    })
+                });
+                if (res.ok) {
+                    alert(`Approval actioned: ${status}`);
+                    loadDecisionDetails();
+                } else {
+                    const data = await res.json();
+                    alert(`Failed to action approval: ${data.detail}`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function submitForReview() {
+            if (!confirm("Are you sure you want to submit this decision for review?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}/submit-review`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    alert("Decision successfully submitted for review.");
+                    loadDecisionDetails();
+                } else {
+                    const err = await res.json();
+                    alert(`Error submitting for review: ${err.detail}`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function archiveDecision() {
+            if (!confirm("Are you sure you want to archive this decision?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}/archive`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    alert("Decision archived.");
+                    loadDecisionDetails();
+                } else {
+                    const err = await res.json();
+                    alert(`Error archiving: ${err.detail}`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function openVersionHistoryModal() {
+            const modal = document.getElementById("version-history-modal");
+            if (modal) modal.style.display = "flex";
+            await fetchAndRenderVersionHistoryModal();
+        }
+
+        function closeVersionHistoryModal() {
+            const modal = document.getElementById("version-history-modal");
+            if (modal) modal.style.display = "none";
+        }
+
+        async function fetchAndRenderVersionHistoryModal() {
+            const tbody = document.getElementById("version-history-modal-table-body");
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading history...</td></tr>';
+            
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}/versions`, {
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    const versions = await res.json();
+                    if (!versions || versions.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: var(--text-secondary);">No versions recorded.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = versions.map(v => {
+                        const versionNum = v.version_number || v.version;
+                        const modifiedByObj = v.modified_by || v.changed_by;
+                        const modifiedBy = modifiedByObj ? (modifiedByObj.full_name || modifiedByObj.email) : 'System';
+                        const modifiedDate = formatDate(v.modified_at || v.created_at);
+                        const status = v.status || 'Draft';
+                        const summary = v.change_summary || 'Initial creation';
+                        return `
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px; font-weight: bold;"><span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 8px; border-radius: 4px;">v${versionNum}</span></td>
+                                <td style="padding: 10px;">${modifiedBy}</td>
+                                <td style="padding: 10px; color: var(--text-secondary);">${modifiedDate}</td>
+                                <td style="padding: 10px;"><span style="background: #26354a; color: #f8fafc; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${status}</span></td>
+                                <td style="padding: 10px;">${summary}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #ef4444;">Failed to load version history.</td></tr>';
+                }
+            } catch (err) {
+                console.error("Error loading version history:", err);
+                tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #ef4444;">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function createNewVersionPrompt() {
+            const summary = prompt("Enter change summary for new version snapshot:", "Manual update snapshot");
+            if (!summary || !summary.trim()) return;
+            try {
+                const res = await fetch(`${API_BASE}/decisions/${DECISION_ID}/versions`, {
+                    method: 'POST',
+                    headers: Object.assign({}, Auth.getHeaders(), {'Content-Type': 'application/json'}),
+                    body: JSON.stringify({ change_summary: summary.trim() })
+                });
+                if (res.ok) {
+                    alert("New version snapshot created successfully.");
+                    await fetchAndRenderVersionHistoryModal();
+                    loadDecisionDetails();
+                } else {
+                    const err = await res.json();
+                    alert(`Failed: ${err.detail || 'Could not create version'}`);
+                }
+            } catch (e) {
+                alert(`Error: ${e.message}`);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(loadDecisionDetails, 300);
+        });
+    </script>
+
+    <!-- Version History Modal -->
+    <div id="version-history-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="card" style="width: 90%; max-width: 850px; max-height: 85vh; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 1.3rem; color: #f8fafc;">📜 Decision Version History</h2>
+                <button class="btn btn-secondary btn-sm" onclick="closeVersionHistoryModal()" style="font-size: 1.1rem; padding: 2px 10px; cursor: pointer;">✕</button>
+            </div>
+            
+            <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Complete version change audit trail for this decision.</p>
+                <button class="btn btn-primary btn-sm" onclick="createNewVersionPrompt()">➕ Create Version Snapshot</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; color: #f8fafc;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); color: #94a3b8;">
+                            <th style="padding: 10px;">Version Number</th>
+                            <th style="padding: 10px;">Modified By</th>
+                            <th style="padding: 10px;">Modified Date</th>
+                            <th style="padding: 10px;">Status</th>
+                            <th style="padding: 10px;">Change Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="version-history-modal-table-body">
+                        <tr><td colspan="5" style="padding: 20px; text-align: center; color: #94a3b8;">Loading history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

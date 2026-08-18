@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item active">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/documents">
+                        <span>📁</span> Documents
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/notifications">
+                        <span>🔔</span> Notifications <span class="notif-badge" id="sidebar-notif-badge" style="display:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:0.15rem 0.5rem;border-radius:10px;font-size:0.7rem;font-weight:700;margin-left:0.3rem;">0</span>
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Decision Workspace</h1>
+                    <p class="page-subtitle">Preserve institutional knowledge and review governance workflows</p>
+                </div>
+                <div>
+                    <a class="btn btn-primary" href="/decisions/create">➕ Record Decision</a>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid-stats">
+                <div class="card stat-card">
+                    <div class="stat-icon primary">📂</div>
+                    <div>
+                        <div class="stat-number" id="stat-total-decisions">-</div>
+                        <div class="stat-label">Total Decisions</div>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon warning">⏳</div>
+                    <div>
+                        <div class="stat-number" id="stat-pending-reviews">-</div>
+                        <div class="stat-label">Pending Reviews</div>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon success">🎯</div>
+                    <div>
+                        <div class="stat-number" id="stat-my-decisions">-</div>
+                        <div class="stat-label">My Decisions</div>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-icon info">⚡</div>
+                    <div>
+                        <div class="stat-number" id="stat-turnaround">-</div>
+                        <div class="stat-label">Turnaround (Hours)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Left: Decisions List & Filters -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px;">Knowledge Directory</h3>
+                        
+                        <!-- Filters Panel -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <input class="form-control" type="text" id="search-filter" placeholder="Search by decision title, keyword, problem statement...">
+                            <select class="form-control" id="category-filter">
+                                <option value="">All Categories</option>
+                                <option value="Architecture">Architecture</option>
+                                <option value="Infrastructure">Infrastructure</option>
+                                <option value="Product Strategy">Product Strategy</option>
+                                <option value="Procurement">Procurement</option>
+                                <option value="Compliance">Compliance</option>
+                                <option value="Security">Security</option>
+                            </select>
+                            <select class="form-control" id="status-filter">
+                                <option value="">All Statuses</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Archived">Archived</option>
+                            </select>
+                        </div>
+
+                        <!-- Decisions Table -->
+                        <div class="table-container">
+                            <table class="custom-table" id="decisions-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Created By</th>
+                                        <th>Created Date</th>
+                                        <th style="text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                                            Loading decisions...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Approvals & Activity Widgets -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- Pending Approvals Widget -->
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>📥 Pending Reviews</span>
+                            <span class="badge badge-review" id="badge-pending-count">0</span>
+                        </h3>
+                        <div id="pending-reviews-list" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- Populated by JS -->
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">No pending reviews.</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Widget -->
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px;">⏱️ Recent Activity</h3>
+                        <div id="recent-activities-list" style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
+                            <!-- Populated by JS -->
+                            <div style="color: var(--text-secondary);">Loading activity...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Page level script to populate statistics, filters, and tables
+        async function loadDashboard() {
+            const token = Auth.getToken();
+            
+            // 1. Fetch Stats from Dashboard API
+            try {
+                const res = await fetch(`${API_BASE}/analytics/dashboard`, {
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    const stats = await res.json();
+                    document.getElementById("stat-total-decisions").textContent = stats.total_decisions;
+                    document.getElementById("stat-pending-reviews").textContent = stats.status_distribution["Under Review"] || 0;
+                    document.getElementById("stat-my-decisions").textContent = stats.my_decisions_count;
+                    document.getElementById("stat-turnaround").textContent = stats.avg_approval_turnaround_hours;
+                    
+                    // Role-Based Customization
+                    const currentUser = Auth.getUser();
+                    if (currentUser) {
+                        const welcomeTitle = document.getElementById("dashboard-welcome-title");
+                        const roleBanner = document.getElementById("dashboard-role-banner");
+                        if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${currentUser.full_name}`;
+                        if (roleBanner) {
+                            if (currentUser.role === "Employee") {
+                                roleBanner.textContent = "Employee Workspace • Track your decisions, pending reviews & active discussions";
+                            } else if (currentUser.role === "Reviewer" || currentUser.role === "Manager") {
+                                roleBanner.textContent = `${currentUser.role} Control Center • Review pending approvals & manage team governance`;
+                            } else if (currentUser.role === "Administrator") {
+                                roleBanner.textContent = "Administrator Command Center • Full system oversight, audit trail & governance administration";
+                            }
+                        }
+                    }
+
+                    // Render activities widget (Task 4 requirement)
+                    const activitiesContainer = document.getElementById("recent-activities-list");
+                    activitiesContainer.innerHTML = "";
+                    if (stats.recent_activities.length === 0) {
+                        activitiesContainer.innerHTML = `<div style="color: var(--text-muted);">No activity logged.</div>`;
+                    } else {
+                        stats.recent_activities.forEach(act => {
+                            let actLabel = act.action;
+                            let actColor = "#60a5fa";
+                            if (act.action.includes("CREATE")) { actLabel = "✨ Decision Created"; actColor = "#10b981"; }
+                            else if (act.action.includes("APPROVE")) { actLabel = "✅ Decision Approved"; actColor = "#10b981"; }
+                            else if (act.action.includes("REJECT")) { actLabel = "❌ Decision Rejected"; actColor = "#ef4444"; }
+                            else if (act.action.includes("UPLOAD") || act.action.includes("DOCUMENT")) { actLabel = "📄 Document Uploaded"; actColor = "#f59e0b"; }
+                            else if (act.action.includes("COMMENT")) { actLabel = "💬 Comment Added"; actColor = "#06b6d4"; }
+                            else if (act.action.includes("LOGIN")) { actLabel = "🔑 User Logged In"; actColor = "#3b82f6"; }
+
+                            const actItem = document.createElement("div");
+                            actItem.style.borderBottom = "1px solid var(--border-color)";
+                            actItem.style.paddingBottom = "8px";
+                            actItem.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; font-weight: 600; color: ${actColor};">
+                                    <span>${actLabel}</span>
+                                    <span style="font-weight: normal; color: var(--text-muted); font-size: 0.75rem;">${formatDate(act.timestamp)}</span>
+                                </div>
+                                <div style="color: var(--text-secondary); margin-top: 4px;">${act.details}</div>
+                                <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px;">By: ${act.user_email}</div>
+                            `;
+                            activitiesContainer.appendChild(actItem);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Could not load stats", err);
+            }
+
+            // 2. Fetch Decisions list
+            await filterDecisions();
+
+            // 3. Fetch Pending approvals
+            try {
+                const appRes = await fetch(`${API_BASE}/approvals/pending`, {
+                    headers: Auth.getHeaders()
+                });
+                if (appRes.ok) {
+                    const approvals = await appRes.json();
+                    document.getElementById("badge-pending-count").textContent = approvals.length;
+                    
+                    const container = document.getElementById("pending-reviews-list");
+                    container.innerHTML = "";
+                    if (approvals.length === 0) {
+                        container.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.9rem;">All caught up! No reviews pending.</div>`;
+                    } else {
+                        approvals.forEach(app => {
+                            const div = document.createElement("div");
+                            div.className = "card";
+                            div.style.padding = "12px";
+                            div.style.background = "rgba(255, 255, 255, 0.02)";
+                            div.style.border = "1px solid var(--border-color)";
+                            div.innerHTML = `
+                                <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">
+                                    <a href="/decisions/${app.decision_id}">Decision #${app.decision_id}</a>
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 8px;">
+                                    Level ${app.level} Review
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="actionApprove(${app.id}, 'Approved')">Approve</button>
+                                    <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem; background: var(--color-danger);" onclick="actionApprove(${app.id}, 'Rejected')">Reject</button>
+                                </div>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Could not fetch pending reviews", err);
+            }
+        }
+
+        async function actionApprove(approvalId, status) {
+            const comments = prompt(`Enter comments for ${status}:`, `Proceeding with ${status}`);
+            if (comments === null) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/approvals/${approvalId}/action`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        status: status,
+                        comments: comments
+                    })
+                });
+                if (res.ok) {
+                    alert(`Decision successfully ${status}.`);
+                    loadDashboard();
+                } else {
+                    const err = await res.json();
+                    alert(`Error actioning approval: ${err.detail}`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteDecision(decisionId, title) {
+            if (confirm(`Are you sure you want to delete decision #${decisionId}: "${title}"?`)) {
+                try {
+                    const res = await fetch(`${API_BASE}/decisions/${decisionId}`, {
+                        method: "DELETE",
+                        headers: Auth.getHeaders()
+                    });
+                    if (res.ok) {
+                        alert("Decision deleted successfully.");
+                        loadDashboard();
+                    } else {
+                        const err = await res.json();
+                        alert(`Could not delete decision: ${err.detail}`);
+                    }
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                }
+            }
+        }
+
+        async function filterDecisions() {
+            const search = document.getElementById("search-filter").value;
+            const category = document.getElementById("category-filter").value;
+            const status = document.getElementById("status-filter").value;
+            const currentUser = Auth.getUser();
+            
+            let url = `${API_BASE}/decisions/?`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (category) url += `category=${encodeURIComponent(category)}&`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: Auth.getHeaders()
+                });
+                if (res.ok) {
+                    const decisions = await res.json();
+                    const tbody = document.querySelector("#decisions-table tbody");
+                    tbody.innerHTML = "";
+                    
+                    if (decisions.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                                    No decisions found matching the filter criteria.
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
+                    decisions.forEach(d => {
+                        const tr = document.createElement("tr");
+                        const canDelete = currentUser && (d.creator_id === currentUser.id || currentUser.role === "Administrator" || currentUser.role === "Manager");
+                        const canEdit = currentUser && (d.creator_id === currentUser.id || currentUser.role === "Administrator" || currentUser.role === "Manager");
+
+                        tr.innerHTML = `
+                            <td><strong>#${d.id}</strong></td>
+                            <td style="font-weight: 600; color: white;">
+                                <a href="/decisions/${d.id}" style="color: white; text-decoration: none;">${d.title}</a>
+                            </td>
+                            <td>${d.category}</td>
+                            <td>${getStatusBadge(d.status)}</td>
+                            <td>${d.creator ? d.creator.full_name : 'Unknown'}</td>
+                            <td style="color: var(--text-muted); font-size: 0.85rem;">${formatDate(d.created_at)}</td>
+                            <td style="text-align: right;">
+                                <a href="/decisions/${d.id}" class="btn btn-secondary btn-sm" style="margin-right: 4px; text-decoration: none;">👁️ View</a>
+                                ${canEdit ? `<a href="/decisions/${d.id}/edit" class="btn btn-secondary btn-sm" style="margin-right: 4px; text-decoration: none;">✏️ Edit</a>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger btn-sm" onclick="deleteDecision(${d.id}, '${d.title.replace(/'/g, "\\'")}')">🗑️ Delete</button>` : ''}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error("Could not fetch decisions list", err);
+            }
+        }
+
+        // Set up filters triggers
+        document.getElementById("search-filter").addEventListener("input", filterDecisions);
+        document.getElementById("category-filter").addEventListener("change", filterDecisions);
+        document.getElementById("status-filter").addEventListener("change", filterDecisions);
+
+        // Load initially
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(loadDashboard, 300);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert Decision Replay Platform</title>
+    <script>
+        // Inline routing check based on localStorage token
+        if (localStorage.getItem("token")) {
+            window.location.href = "/dashboard";
+        } else {
+            window.location.href = "/login";
+        }
+    </script>
+</head>
+<body style="background: #0b0f19;">
+</body>
+</html>

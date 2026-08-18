@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Management - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="/documents">
+                        <span>📁</span> Documents
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Document Repository</h1>
+                    <p class="page-subtitle">Attach, view, and manage supporting evidence, diagrams, and reports for decisions</p>
+                </div>
+                <div>
+                    <a class="btn btn-primary" href="/documents/upload">📤 Upload Document</a>
+                </div>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div class="card" style="margin-bottom: 24px; padding: 16px;">
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="flex: 1;">
+                        <label class="form-label" for="filter-decision">Filter by Decision</label>
+                        <select id="filter-decision" class="form-control">
+                            <option value="">All Decisions</option>
+                        </select>
+                    </div>
+                    <div style="padding-top: 24px;">
+                        <button class="btn btn-secondary" id="refresh-docs-btn">🔄 Refresh</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="doc-error-alert" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+            <div id="doc-success-alert" class="alert alert-success" style="display: none; margin-bottom: 20px;"></div>
+
+            <!-- Documents Table -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <table class="table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #1e293b; color: #94a3b8; text-align: left; border-bottom: 1px solid #334155;">
+                            <th style="padding: 14px 20px;">File Name</th>
+                            <th style="padding: 14px 20px;">File Type</th>
+                            <th style="padding: 14px 20px;">File Size</th>
+                            <th style="padding: 14px 20px;">Associated Decision</th>
+                            <th style="padding: 14px 20px;">Uploaded Date</th>
+                            <th style="padding: 14px 20px; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documents-table-body">
+                        <tr>
+                            <td colspan="6" style="padding: 20px; text-align: center; color: #94a3b8;">Loading documents...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = Auth.getToken();
+            if (!token) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const tableBody = document.getElementById("documents-table-body");
+            const decisionFilter = document.getElementById("filter-decision");
+            const errorAlert = document.getElementById("doc-error-alert");
+            const successAlert = document.getElementById("doc-success-alert");
+            const currentUser = Auth.getUser();
+
+            // Populate Decisions Dropdown
+            async function loadDecisionsDropdown() {
+                try {
+                    const res = await fetch(`${API_BASE}/decisions/`, { headers: Auth.getHeaders() });
+                    if (res.ok) {
+                        const decisions = await res.json();
+                        decisionFilter.innerHTML = `<option value="">All Decisions</option>`;
+                        decisions.forEach(d => {
+                            const opt = document.createElement("option");
+                            opt.value = d.id;
+                            opt.textContent = `#${d.id} - ${d.title}`;
+                            decisionFilter.appendChild(opt);
+                        });
+                    }
+                } catch (err) {
+                    console.error("Failed to load decisions dropdown", err);
+                }
+            }
+
+            // Load Documents
+            async function loadDocuments() {
+                errorAlert.style.display = "none";
+                tableBody.innerHTML = `<tr><td colspan="6" style="padding: 20px; text-align: center; color: #94a3b8;">Loading documents...</td></tr>`;
+
+                const selectedDecisionId = decisionFilter.value;
+                let url = `${API_BASE}/documents/`;
+                if (selectedDecisionId) {
+                    url += `?decision_id=${selectedDecisionId}`;
+                }
+
+                try {
+                    const res = await fetch(url, { headers: Auth.getHeaders() });
+                    if (!res.ok) throw new Error("Failed to fetch documents.");
+                    const docs = await res.json();
+
+                    if (docs.length === 0) {
+                        tableBody.innerHTML = `<tr><td colspan="6" style="padding: 30px; text-align: center; color: #94a3b8;">No documents uploaded yet. <a href="/documents/upload" style="color:#3b82f6;">Upload one now</a>.</td></tr>`;
+                        return;
+                    }
+
+                    tableBody.innerHTML = "";
+                    docs.forEach(doc => {
+                        const tr = document.createElement("tr");
+                        tr.style.borderBottom = "1px solid #1e293b";
+                        
+                        const fileUrl = `${window.location.origin.replace(':5000', ':8000')}/static/uploads/${doc.file_path}`;
+                        const canDelete = currentUser && (doc.uploaded_by === currentUser.id || currentUser.role === "Administrator" || currentUser.role === "Manager");
+
+                        tr.innerHTML = `
+                            <td style="padding: 14px 20px; font-weight: 500; color: #f8fafc;">
+                                📄 ${doc.file_name}
+                            </td>
+                            <td style="padding: 14px 20px;">
+                                <span class="badge" style="background: #334155; color: #e2e8f0;">${doc.file_type}</span>
+                            </td>
+                            <td style="padding: 14px 20px; color: #cbd5e1;">
+                                ${formatFileSize(doc.file_size)}
+                            </td>
+                            <td style="padding: 14px 20px;">
+                                <a href="/decisions/${doc.decision_id}" style="color: #3b82f6; text-decoration: none;">
+                                    Decision #${doc.decision_id} 🔗
+                                </a>
+                            </td>
+                            <td style="padding: 14px 20px; color: #94a3b8; font-size: 13px;">
+                                ${formatDate(doc.uploaded_at)}
+                            </td>
+                            <td style="padding: 14px 20px; text-align: right;">
+                                <a href="/static/uploads/${doc.file_path}" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none; margin-right: 8px;">
+                                    👁️ Download/View
+                                </a>
+                                ${canDelete ? `
+                                    <button class="btn btn-danger btn-sm delete-doc-btn" data-id="${doc.id}">
+                                        🗑️ Delete
+                                    </button>
+                                ` : ''}
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    // Attach event listeners to delete buttons
+                    document.querySelectorAll(".delete-doc-btn").forEach(btn => {
+                        btn.addEventListener("click", async (e) => {
+                            const docId = e.target.getAttribute("data-id");
+                            if (confirm("Are you sure you want to delete this document?")) {
+                                try {
+                                    const delRes = await fetch(`${API_BASE}/documents/${docId}`, {
+                                        method: "DELETE",
+                                        headers: Auth.getHeaders()
+                                    });
+                                    if (!delRes.ok) throw new Error("Failed to delete document.");
+                                    successAlert.textContent = "Document deleted successfully.";
+                                    successAlert.style.display = "block";
+                                    loadDocuments();
+                                } catch (err) {
+                                    errorAlert.textContent = err.message;
+                                    errorAlert.style.display = "block";
+                                }
+                            }
+                        });
+                    });
+
+                } catch (err) {
+                    errorAlert.textContent = err.message;
+                    errorAlert.style.display = "block";
+                    tableBody.innerHTML = `<tr><td colspan="6" style="padding: 20px; text-align: center; color: #ef4444;">Error loading documents: ${err.message}</td></tr>`;
+                }
+            }
+
+            decisionFilter.addEventListener("change", loadDocuments);
+            document.getElementById("refresh-docs-btn").addEventListener("click", loadDocuments);
+
+            await loadDecisionsDropdown();
+            await loadDocuments();
+        });
+    </script>
+</body>
+</html>

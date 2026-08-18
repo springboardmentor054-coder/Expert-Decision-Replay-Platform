@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Decision - Expert Decision Replay Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.BACKEND_API_URL = "{{ BACKEND_API_URL }}";
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">ED</div>
+                <div class="logo-text">DecisionReplay</div>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item">
+                    <a href="/dashboard">
+                        <span>📊</span> Dashboard
+                    </a>
+                </li>
+                <li class="menu-item active">
+                    <a href="/decisions/create">
+                        <span>➕</span> Record Decision
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/reports">
+                        <span>📈</span> Reports & Analytics
+                    </a>
+                </li>
+                <li class="menu-item" id="menu-audit-logs" style="display: none;">
+                    <a href="/audit-logs">
+                        <span>🛡️</span> Audit Logs
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile-section">
+                <div>
+                    <div class="user-info-name" id="sidebar-user-name">Loading...</div>
+                    <div class="user-info-role" id="sidebar-user-role">User</div>
+                </div>
+                <button class="logout-btn" id="sidebar-logout-btn">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-container">
+                <div>
+                    <h1 class="page-title">Document New Decision</h1>
+                    <p class="page-subtitle">Formulate problem statement, outline options, and request governance reviews</p>
+                </div>
+                <div>
+                    <a class="btn btn-secondary" href="/dashboard">⬅ Back to Dashboard</a>
+                </div>
+            </div>
+
+            <form id="decision-form" style="display: flex; flex-direction: column; gap: 30px;">
+                <!-- Main Details Card -->
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">📋 Decision Details</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="title">Decision Title / Heading</label>
+                        <input class="form-control" type="text" id="title" required placeholder="e.g. Migrate Core Database to PostgreSQL">
+                    </div>
+                    <div class="grid-stats" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                        <div class="form-group">
+                            <label class="form-label" for="category">Category</label>
+                            <select class="form-control" id="category" required>
+                                <option value="Architecture">Architecture Decision</option>
+                                <option value="Infrastructure">Infrastructure Provisioning</option>
+                                <option value="Product Strategy">Product Roadmap Shift</option>
+                                <option value="Procurement">Supplier & SaaS Procurement</option>
+                                <option value="Compliance">Legal & Compliance Policy</option>
+                                <option value="Security">Security Access Protocols</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="status">Initial Status</label>
+                            <select class="form-control" id="status" required>
+                                <option value="Draft">Draft (Modify later before submitting)</option>
+                                <option value="Under Review">Submit for Review Immediately</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="problem_statement">Problem Statement & Background Rationale</label>
+                        <textarea class="form-control" id="problem_statement" required placeholder="Describe the current context, problem statement, key challenges, limitations of the status quo, and why a decision is necessary..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Alternatives Analysis Card -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <h3>⚖️ Option Analysis & Comparison</h3>
+                        <button type="button" class="btn btn-secondary" id="add-alternative-btn" style="padding: 6px 12px; font-size: 0.8rem;">➕ Add Alternative Option</button>
+                    </div>
+                    
+                    <div id="alternatives-container" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Initial Alternative Block (Required) -->
+                        <div class="alternative-block card" style="background: rgba(255, 255, 255, 0.01); border: 1px dashed var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <h4 class="alt-index-title">Alternative Option #1</h4>
+                                <button type="button" class="btn btn-danger delete-alt-btn" style="padding: 4px 8px; font-size: 0.75rem; display: none;">Delete</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Option Name / Title</label>
+                                <input class="form-control alt-title" type="text" required placeholder="e.g. AWS Aurora PostgreSQL Serverless">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description & Solution Overview</label>
+                                <textarea class="form-control alt-desc" required placeholder="Provide brief architectural description, deployment mechanics, and alignment details..."></textarea>
+                            </div>
+                            <div class="grid-stats" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">Est. Cost ($ / Year)</label>
+                                    <input class="form-control alt-cost" type="number" step="any" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Feasibility (1-5)</label>
+                                    <select class="form-control alt-feasibility">
+                                        <option value="5">5 - Extremely Feasible</option>
+                                        <option value="4">4 - High Feasibility</option>
+                                        <option value="3" selected>3 - Medium Feasibility</option>
+                                        <option value="2">2 - Low Feasibility</option>
+                                        <option value="1">1 - Blocked / Highly Difficult</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Risk Level (1-5)</label>
+                                    <select class="form-control alt-risk">
+                                        <option value="1">1 - Negligible Risk</option>
+                                        <option value="2">2 - Low Risk</option>
+                                        <option value="3" selected>3 - Medium Risk</option>
+                                        <option value="4">4 - High Risk</option>
+                                        <option value="5">5 - Critical Risk</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid-stats" style="grid-template-columns: 1fr 1fr; margin-bottom: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label">Pros (Comma separated list)</label>
+                                    <input class="form-control alt-pros" type="text" placeholder="Managed backups, high availability, auto scaling">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cons (Comma separated list)</label>
+                                    <input class="form-control alt-cons" type="text" placeholder="Vendor lock-in, higher cost than EC2 hosts">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Risk Mitigation Plan</label>
+                                <textarea class="form-control alt-mitigation" placeholder="Describe backup plans, fallback mechanisms, or data migration checkpoints..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approval Workflow Routing Card -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <h3>🛡️ Approval Workflow Configuration</h3>
+                        <button type="button" class="btn btn-secondary" id="add-approver-btn" style="padding: 6px 12px; font-size: 0.8rem;">➕ Add Approver Level</button>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">
+                        Specify the sequence of reviewers and managers required to action approvals. Approvals are processed sequentially.
+                    </p>
+                    
+                    <div id="approvers-container" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Initial Approver level 1 (Optional, but highly recommended) -->
+                        <div class="approver-row" style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 15px; align-items: center;">
+                            <div>
+                                <label class="form-label">Review Level</label>
+                                <input class="form-control app-level" type="number" readonly value="1">
+                            </div>
+                            <div>
+                                <label class="form-label">Assigned Approver</label>
+                                <select class="form-control app-user-id" required>
+                                    <option value="">Fetching eligible approvers...</option>
+                                </select>
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <button type="button" class="btn btn-danger delete-app-btn" style="padding: 10px 14px; font-size: 0.85rem; display: none;">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error-message" style="color: var(--color-danger); font-size: 0.95rem; display: none; text-align: right;"></div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 40px;">
+                    <a href="/dashboard" class="btn btn-secondary" style="padding: 12px 24px;">Cancel</a>
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Save Decision Documentation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let approversListCache = [];
+
+        // Fetch Reviewers & Managers to cache
+        async function fetchApprovers() {
+            try {
+                const reviewersRes = await fetch(`${API_BASE}/users/roles/Reviewer`, { headers: Auth.getHeaders() });
+                const managersRes = await fetch(`${API_BASE}/users/roles/Manager`, { headers: Auth.getHeaders() });
+                
+                let reviewers = [];
+                let managers = [];
+                
+                if (reviewersRes.ok) reviewers = await reviewersRes.json();
+                if (managersRes.ok) managers = await managersRes.json();
+                
+                approversListCache = [...reviewers, ...managers];
+                
+                // Populate existing row
+                populateApproverSelect(document.querySelector(".app-user-id"));
+            } catch (err) {
+                console.error("Could not load approvers", err);
+            }
+        }
+
+        function populateApproverSelect(selectElement) {
+            if (!selectElement) return;
+            selectElement.innerHTML = `<option value="">-- Choose Approver (Reviewer/Manager) --</option>`;
+            approversListCache.forEach(u => {
+                selectElement.innerHTML += `<option value="${u.id}">${u.full_name} (${u.role} - ${u.team || 'No Team'})</option>`;
+            });
+        }
+
+        // Add dynamic Alternative Block
+        document.getElementById("add-alternative-btn").addEventListener("click", () => {
+            const container = document.getElementById("alternatives-container");
+            const count = container.querySelectorAll(".alternative-block").length + 1;
+            
+            const div = document.createElement("div");
+            div.className = "alternative-block card";
+            div.style.background = "rgba(255, 255, 255, 0.01)";
+            div.style.border = "1px dashed var(--border-color)";
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <h4 class="alt-index-title">Alternative Option #${count}</h4>
+                    <button type="button" class="btn btn-danger delete-alt-btn" style="padding: 4px 8px; font-size: 0.75rem;">Delete</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Option Name / Title</label>
+                    <input class="form-control alt-title" type="text" required placeholder="e.g. Alternative name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description & Solution Overview</label>
+                    <textarea class="form-control alt-desc" required placeholder="Describe this alternative option..."></textarea>
+                </div>
+                <div class="grid-stats" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Est. Cost ($ / Year)</label>
+                        <input class="form-control alt-cost" type="number" step="any" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Feasibility (1-5)</label>
+                        <select class="form-control alt-feasibility">
+                            <option value="5">5 - Extremely Feasible</option>
+                            <option value="4">4 - High Feasibility</option>
+                            <option value="3" selected>3 - Medium Feasibility</option>
+                            <option value="2">2 - Low Feasibility</option>
+                            <option value="1">1 - Blocked / Highly Difficult</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Risk Level (1-5)</label>
+                        <select class="form-control alt-risk">
+                            <option value="1">1 - Negligible Risk</option>
+                            <option value="2">2 - Low Risk</option>
+                            <option value="3" selected>3 - Medium Risk</option>
+                            <option value="4">4 - High Risk</option>
+                            <option value="5">5 - Critical Risk</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-stats" style="grid-template-columns: 1fr 1fr; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Pros (Comma separated list)</label>
+                        <input class="form-control alt-pros" type="text" placeholder="Managed backups, high availability">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cons (Comma separated list)</label>
+                        <input class="form-control alt-cons" type="text" placeholder="Vendor lock-in, higher cost">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Risk Mitigation Plan</label>
+                    <textarea class="form-control alt-mitigation" placeholder="Describe backup plans or migration fallback..."></textarea>
+                </div>
+            `;
+            
+            // Wire delete event
+            div.querySelector(".delete-alt-btn").addEventListener("click", () => {
+                div.remove();
+                reindexAlternatives();
+            });
+            
+            container.appendChild(div);
+            
+            // Show all delete buttons if count > 1
+            const allBlocks = container.querySelectorAll(".alternative-block");
+            if (allBlocks.length > 1) {
+                allBlocks.forEach(block => {
+                    block.querySelector(".delete-alt-btn").style.display = "block";
+                });
+            }
+        });
+
+        function reindexAlternatives() {
+            const container = document.getElementById("alternatives-container");
+            const blocks = container.querySelectorAll(".alternative-block");
+            blocks.forEach((block, index) => {
+                block.querySelector(".alt-index-title").textContent = `Alternative Option #${index + 1}`;
+            });
+            if (blocks.length === 1) {
+                blocks[0].querySelector(".delete-alt-btn").style.display = "none";
+            }
+        }
+
+        // Add dynamic Approver level
+        document.getElementById("add-approver-btn").addEventListener("click", () => {
+            const container = document.getElementById("approvers-container");
+            const count = container.querySelectorAll(".approver-row").length + 1;
+            
+            const div = document.createElement("div");
+            div.className = "approver-row";
+            div.style.display = "grid";
+            div.style.gridTemplateColumns = "1fr 2fr auto";
+            div.style.gap = "15px";
+            div.style.alignItems = "center";
+            div.style.marginTop = "10px";
+            div.innerHTML = `
+                <div>
+                    <input class="form-control app-level" type="number" readonly value="${count}">
+                </div>
+                <div>
+                    <select class="form-control app-user-id" required></select>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-danger delete-app-btn" style="padding: 10px 14px; font-size: 0.85rem;">🗑️</button>
+                </div>
+            `;
+            
+            populateApproverSelect(div.querySelector(".app-user-id"));
+            
+            div.querySelector(".delete-app-btn").addEventListener("click", () => {
+                div.remove();
+                reindexApprovers();
+            });
+            
+            container.appendChild(div);
+            reindexApprovers();
+        });
+
+        function reindexApprovers() {
+            const container = document.getElementById("approvers-container");
+            const rows = container.querySelectorAll(".approver-row");
+            rows.forEach((row, index) => {
+                row.querySelector(".app-level").value = index + 1;
+            });
+        }
+
+        // Handle Submit
+        document.getElementById("decision-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const title = document.getElementById("title").value;
+            const category = document.getElementById("category").value;
+            const status = document.getElementById("status").value;
+            const problem = document.getElementById("problem_statement").value;
+            const errMsg = document.getElementById("error-message");
+            errMsg.style.display = "none";
+
+            // Parse alternatives
+            const alternatives = [];
+            document.querySelectorAll(".alternative-block").forEach(block => {
+                const altTitle = block.querySelector(".alt-title").value;
+                const altDesc = block.querySelector(".alt-desc").value;
+                const altCost = parseFloat(block.querySelector(".alt-cost").value) || 0.0;
+                const altFeasibility = parseInt(block.querySelector(".alt-feasibility").value) || 3;
+                const altRisk = parseInt(block.querySelector(".alt-risk").value) || 3;
+                
+                const prosRaw = block.querySelector(".alt-pros").value;
+                const pros = prosRaw ? prosRaw.split(",").map(p => p.trim()).filter(p => p) : [];
+                
+                const consRaw = block.querySelector(".alt-cons").value;
+                const cons = consRaw ? consRaw.split(",").map(c => c.trim()).filter(c => c) : [];
+                
+                const altMitigation = block.querySelector(".alt-mitigation").value;
+
+                alternatives.push({
+                    title: altTitle,
+                    description: altDesc,
+                    cost: altCost,
+                    feasibility_rating: altFeasibility,
+                    risk_rating: altRisk,
+                    pros: pros,
+                    cons: cons,
+                    risk_mitigation: altMitigation
+                });
+            });
+
+            // Parse approvers
+            const requiredApprovers = [];
+            document.querySelectorAll(".approver-row").forEach(row => {
+                const level = parseInt(row.querySelector(".app-level").value);
+                const approverId = row.querySelector(".app-user-id").value;
+                if (approverId) {
+                    requiredApprovers.push({
+                        level: level,
+                        approver_id: parseInt(approverId)
+                    });
+                }
+            });
+
+            // Check if Under Review, we MUST have approvers
+            if (status === "Under Review" && requiredApprovers.length === 0) {
+                errMsg.textContent = "Error: You must assign at least one approver to submit for review immediately.";
+                errMsg.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/decisions/`, {
+                    method: 'POST',
+                    headers: Auth.getHeaders(),
+                    body: JSON.stringify({
+                        title: title,
+                        problem_statement: problem,
+                        category: category,
+                        status: status,
+                        alternatives: alternatives,
+                        required_approvers: requiredApprovers
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || "Error saving decision.");
+                }
+
+                alert("Decision created successfully!");
+                window.location.href = "/dashboard";
+            } catch (err) {
+                errMsg.textContent = err.message;
+                errMsg.style.display = "block";
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            setTimeout(fetchApprovers, 300);
+        });
+    </script>
+</body>
+</html>
