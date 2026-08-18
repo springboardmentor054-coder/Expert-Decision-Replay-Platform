@@ -195,11 +195,3 @@ Multi-level approval routing/escalation, notifications, dashboards, analytics/re
 export (PDF/Excel), full test suite, and production deployment hardening — these belong
 to Milestones 3–4 per the project plan. The data model already includes the pieces
 (status lifecycle, stakeholders, version history) those milestones will build on top of.
-
-## Note on this environment
-
-This code was written and syntax-verified here, but the sandbox has no internet access,
-so dependencies couldn't be pip-installed to run a live smoke test. Everything has been
-checked for correctness (imports, SQLAlchemy relationships, Pydantic schemas, route
-logic), but please run it locally per the steps above and let me know if anything needs
-adjustment — I can fix it immediately.
