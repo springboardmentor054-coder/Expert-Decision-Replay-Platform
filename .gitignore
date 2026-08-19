@@ -4,4 +4,6 @@ frontend/node_modules/
 __pycache__/
 .env
 *.pyc
+backend/uploads/edrp_backup.dump
 backend/uploads/
+edrp_backup.dump

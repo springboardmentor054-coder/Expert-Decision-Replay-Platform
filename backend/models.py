@@ -51,6 +51,7 @@ class User(Base):
     )
 
 
+
 # ==========================
 # Decision Model
 # ==========================
@@ -492,3 +493,5 @@ class AuditLog(Base):
     decision = relationship(
         "Decision"
     )
+
+

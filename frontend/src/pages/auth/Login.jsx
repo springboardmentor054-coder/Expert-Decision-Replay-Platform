@@ -97,7 +97,7 @@ function Login() {
               />
             </div>
 
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="form-label">
                 Password
               </label>
@@ -112,6 +112,20 @@ function Login() {
                 }
                 required
               />
+            </div>
+
+            {/* Forgot Password */}
+
+            <div className="text-end mb-4">
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none"
+                onClick={() =>
+                  navigate("/forgot-password")
+                }
+              >
+                Forgot Password?
+              </button>
             </div>
 
             <button

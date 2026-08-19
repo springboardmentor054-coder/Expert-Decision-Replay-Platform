@@ -1,18 +1,39 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import (
+    FastAPI,
+    Depends,
+    HTTPException,
+    UploadFile,
+    File,
+    Form,
+)
+
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-import os
-import shutil
-from fastapi import UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from fastapi import Depends, HTTPException
-from sqlalchemy import func
-from database import get_db
-from models import Decision, Approval, User
-from datetime import datetime, timezone
 
-from database import Base, engine, get_db
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from datetime import datetime, timedelta, timezone
+
+import os
+import shutil
+
+# ==========================
+# Database
+# ==========================
+
+from database import (
+    Base,
+    engine,
+    get_db,
+)
+
+
+# ==========================
+# Models
+# ==========================
+
 from models import (
     User,
     Decision,
@@ -24,32 +45,52 @@ from models import (
     DecisionVersion,
     Approval,
     Notification,
-    AuditLog
+    AuditLog,
 )
+
+
+# ==========================
+# Schemas
+# ==========================
 
 from schemas import (
     UserRegister,
     UserLogin,
     UserUpdate,
     RoleUpdate,
+
     DecisionCreate,
     DecisionUpdate,
+
     AlternativeCreate,
     AlternativeUpdate,
+
     CriteriaCreate,
     CriteriaUpdate,
+
     AlternativeScoreCreate,
     AlternativeScoreUpdate,
+
     DiscussionCreate,
     DiscussionUpdate,
+
     DecisionVersionCreate,
     DecisionVersionUpdate,
+
     ApprovalCreate,
     ApprovalUpdate,
     ApprovalResponse,
+
     AuditLogCreate,
-    AuditLogResponse
+    AuditLogResponse,
+
+    
 )
+
+
+# ==========================
+# Security
+# ==========================
 
 from security import (
     hash_password,
@@ -57,9 +98,8 @@ from security import (
     create_access_token,
     get_current_user,
     require_role,
-    validate_role
+    validate_role,
 )
-
 
 # =====================================
 # FastAPI App
@@ -226,6 +266,8 @@ def login(
         "role": db_user.role
 
     }
+
+
 # =====================================
 # Update User
 # =====================================

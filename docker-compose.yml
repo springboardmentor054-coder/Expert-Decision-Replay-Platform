@@ -1,41 +1,67 @@
 services:
 
+  # ==========================
+  # PostgreSQL Database
+  # ==========================
   db:
-    image: postgres:16
+    image: postgres:17
     container_name: edrp-postgres
     restart: unless-stopped
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     ports:
       - "5432:5432"
 
+
+  # ==========================
+  # FastAPI Backend
+  # ==========================
   backend:
     build:
       context: ./backend
+
     container_name: edrp-backend
     restart: unless-stopped
+
     depends_on:
       - db
+
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
+
     ports:
       - "8000:8000"
+
     volumes:
       - ./backend/uploads:/app/uploads
 
+
+  # ==========================
+  # React Frontend
+  # ==========================
   frontend:
     build:
       context: ./frontend
+
     container_name: edrp-frontend
     restart: unless-stopped
+
     depends_on:
       - backend
+
     ports:
       - "3000:80"
 
+
+# ==========================
+# Persistent PostgreSQL Data
+# ==========================
 volumes:
   postgres_data:

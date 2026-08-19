@@ -79,11 +79,8 @@ import AuditLogs from "./pages/Management/AuditLogs";
 import KnowledgeRepository from "./pages/Knowledge/KnowledgeRepository";
 
 function App() {
-
   return (
-
     <BrowserRouter>
-
       <Routes>
 
         {/* ==========================
@@ -106,14 +103,18 @@ function App() {
 
         <Route element={<Layout />}>
 
-          {/* Dashboard */}
+          {/* ==========================
+              Dashboard
+          ========================== */}
 
           <Route
             path="/dashboard"
             element={<Dashboard />}
           />
 
-          {/* Decision */}
+          {/* ==========================
+              Decision Module
+          ========================== */}
 
           <Route
             path="/decisions"
@@ -140,56 +141,72 @@ function App() {
             element={<DecisionHistory />}
           />
 
-          {/* Alternatives */}
+          {/* ==========================
+              Alternative Module
+          ========================== */}
 
           <Route
             path="/alternatives"
             element={<Alternatives />}
           />
 
-          {/* Criteria */}
+          {/* ==========================
+              Criteria Module
+          ========================== */}
 
           <Route
             path="/criteria"
             element={<Criteria />}
           />
 
-          {/* Scores */}
+          {/* ==========================
+              Score Module
+          ========================== */}
 
           <Route
             path="/scores"
             element={<Scores />}
           />
 
-          {/* Recommendation */}
+          {/* ==========================
+              Recommendation Module
+          ========================== */}
 
           <Route
             path="/recommendation"
             element={<Recommendation />}
           />
 
-          {/* Documents */}
+          {/* ==========================
+              Documents
+          ========================== */}
 
           <Route
             path="/documents"
             element={<Documents />}
           />
 
-          {/* Discussion */}
+          {/* ==========================
+              Discussion
+          ========================== */}
 
           <Route
             path="/discussion"
             element={<Discussions />}
           />
 
-          {/* Version History */}
+          {/* ==========================
+              Version History
+          ========================== */}
 
           <Route
             path="/history"
             element={<History />}
           />
 
-          {/* Pending Approvals */}
+          {/* ==========================
+              Pending Approvals
+          ========================== */}
 
           <Route
             path="/pending-approvals"
@@ -206,7 +223,9 @@ function App() {
             }
           />
 
-          {/* Approval History */}
+          {/* ==========================
+              Approval History
+          ========================== */}
 
           <Route
             path="/approval-history"
@@ -223,14 +242,18 @@ function App() {
             }
           />
 
-          {/* Approval Workflow */}
+          {/* ==========================
+              Approval Workflow
+          ========================== */}
 
           <Route
             path="/approval-workflow/:approvalId"
             element={<ApprovalWorkflow />}
           />
 
-          {/* Users */}
+          {/* ==========================
+              Users
+          ========================== */}
 
           <Route
             path="/users"
@@ -243,7 +266,9 @@ function App() {
             }
           />
 
-          {/* Team Management */}
+          {/* ==========================
+              Team Management
+          ========================== */}
 
           <Route
             path="/team"
@@ -259,7 +284,9 @@ function App() {
             }
           />
 
-          {/* Audit Logs */}
+          {/* ==========================
+              Audit Logs
+          ========================== */}
 
           <Route
             path="/audit-logs"
@@ -275,7 +302,9 @@ function App() {
             }
           />
 
-          {/* Reports */}
+          {/* ==========================
+              Reports
+          ========================== */}
 
           <Route
             path="/reports"
@@ -300,7 +329,9 @@ function App() {
             element={<KnowledgeRepository />}
           />
 
-          {/* Profile */}
+          {/* ==========================
+              Profile
+          ========================== */}
 
           <Route
             path="/profile"
@@ -310,11 +341,8 @@ function App() {
         </Route>
 
       </Routes>
-
     </BrowserRouter>
-
   );
-
 }
 
 export default App;
