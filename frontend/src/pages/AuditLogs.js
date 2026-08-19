@@ -5,39 +5,62 @@ function AuditLogs() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [users, setUsers] = useState([]);
   const [decisions, setDecisions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [userFilter, setUserFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
   const token = localStorage.getItem("token");
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+  const API_BASE_URL =
+    process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   const fetchAuditLogs = useCallback(async () => {
     try {
-      const response = await fetch(API_BASE_URL + "/audit-logs", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Cache-busting query parameter ensures the live app
+      // always requests the latest audit logs.
+      const response = await fetch(
+        `${API_BASE_URL}/audit-logs?t=${Date.now()}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+          cache: "no-store",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch audit logs");
       }
 
       const data = await response.json();
-      setAuditLogs(data);
+
+      // Always show newest audit logs first.
+      const sortedLogs = [...data].sort((a, b) => {
+        return (
+          new Date(b.created_at).getTime() -
+          new Date(a.created_at).getTime()
+        );
+      });
+
+      setAuditLogs(sortedLogs);
     } catch (error) {
       console.error("Error fetching audit logs:", error);
+      setAuditLogs([]);
     }
-  }, [token, API_BASE_URL]);
+  }, [API_BASE_URL, token]);
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch(API_BASE_URL + "/users", {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -48,15 +71,17 @@ function AuditLogs() {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      setUsers([]);
     }
-  }, [token, API_BASE_URL]);
+  }, [API_BASE_URL, token]);
 
   const fetchDecisions = useCallback(async () => {
     try {
-      const response = await fetch(API_BASE_URL + "/decisions", {
+      const response = await fetch(`${API_BASE_URL}/decisions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -67,14 +92,25 @@ function AuditLogs() {
       setDecisions(data);
     } catch (error) {
       console.error("Error fetching decisions:", error);
+      setDecisions([]);
     }
-  }, [token, API_BASE_URL]);
+  }, [API_BASE_URL, token]);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+
+    await Promise.all([
+      fetchAuditLogs(),
+      fetchUsers(),
+      fetchDecisions(),
+    ]);
+
+    setLoading(false);
+  }, [fetchAuditLogs, fetchUsers, fetchDecisions]);
 
   useEffect(() => {
-    fetchAuditLogs();
-    fetchUsers();
-    fetchDecisions();
-  }, [fetchAuditLogs, fetchUsers, fetchDecisions]);
+    loadData();
+  }, [loadData]);
 
   const getUserName = (userId) => {
     const user = users.find((user) => user.id === userId);
@@ -138,7 +174,7 @@ function AuditLogs() {
   const filteredLogs = auditLogs.filter((log) => {
     const matchesUser =
       userFilter === "" ||
-      log.user_id.toString() === userFilter;
+      log.user_id?.toString() === userFilter;
 
     const matchesAction =
       actionFilter === "" ||
@@ -147,7 +183,8 @@ function AuditLogs() {
     const matchesDate =
       dateFilter === "" ||
       (log.created_at &&
-        new Date(log.created_at).toISOString().split("T")[0] === dateFilter);
+        new Date(log.created_at).toISOString().split("T")[0] ===
+          dateFilter);
 
     return matchesUser && matchesAction && matchesDate;
   });
@@ -158,22 +195,28 @@ function AuditLogs() {
 
   return (
     <div className="audit-logs-page">
-
       <div className="audit-header">
         <div>
           <h1>Audit Logs</h1>
           <p>Track user activities and system actions</p>
         </div>
 
-        <div className="audit-count">
-          {filteredLogs.length} Logs
+        <div className="audit-header-actions">
+          <button
+            className="refresh-audit-btn"
+            onClick={loadData}
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+
+          <div className="audit-count">
+            {filteredLogs.length} Logs
+          </div>
         </div>
       </div>
 
-      {/* ================= FILTERS ================= */}
-
       <div className="audit-filters">
-
         <div className="filter-group">
           <label>Filter by User</label>
 
@@ -224,15 +267,10 @@ function AuditLogs() {
         >
           Clear Filters
         </button>
-
       </div>
 
-      {/* ================= AUDIT TABLE ================= */}
-
       <div className="audit-table-container">
-
         <table className="audit-table">
-
           <thead>
             <tr>
               <th>User Name</th>
@@ -244,9 +282,16 @@ function AuditLogs() {
           </thead>
 
           <tbody>
-
-            {filteredLogs.length === 0 ? (
-
+            {loading ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="no-audit-logs"
+                >
+                  Loading audit logs...
+                </td>
+              </tr>
+            ) : filteredLogs.length === 0 ? (
               <tr>
                 <td
                   colSpan="5"
@@ -255,13 +300,9 @@ function AuditLogs() {
                   No audit logs found.
                 </td>
               </tr>
-
             ) : (
-
               filteredLogs.map((log) => (
-
                 <tr key={log.id}>
-
                   <td>
                     <span className="user-name">
                       {getUserName(log.user_id)}
@@ -289,26 +330,14 @@ function AuditLogs() {
                   <td>
                     {formatDateTime(log.created_at)}
                   </td>
-
                 </tr>
-
               ))
-
             )}
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }
 
 export default AuditLogs;
-
-
-
-
-
