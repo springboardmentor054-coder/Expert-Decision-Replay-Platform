@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./AuditLogs.css";
+import API_BASE_URL from "../api";
 
 function AuditLogs() {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -13,8 +14,8 @@ function AuditLogs() {
 
   const token = localStorage.getItem("token");
 
-  const API_BASE_URL =
-    process.env.REACT_APP_API_URL || "http://localhost:8000";
+  
+    
 
   const fetchAuditLogs = useCallback(async () => {
     try {
