@@ -14,13 +14,8 @@ function AuditLogs() {
 
   const token = localStorage.getItem("token");
 
-  
-    
-
   const fetchAuditLogs = useCallback(async () => {
     try {
-      // Cache-busting query parameter ensures the live app
-      // always requests the latest audit logs.
       const response = await fetch(
         `${API_BASE_URL}/audit-logs?t=${Date.now()}`,
         {
@@ -40,7 +35,6 @@ function AuditLogs() {
 
       const data = await response.json();
 
-      // Always show newest audit logs first.
       const sortedLogs = [...data].sort((a, b) => {
         return (
           new Date(b.created_at).getTime() -
@@ -109,9 +103,21 @@ function AuditLogs() {
     setLoading(false);
   }, [fetchAuditLogs, fetchUsers, fetchDecisions]);
 
+  // Initial load
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Automatically refresh audit logs every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchAuditLogs();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [fetchAuditLogs]);
 
   const getUserName = (userId) => {
     const user = users.find((user) => user.id === userId);
