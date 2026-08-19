@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "./AddAlternative.css";
 
@@ -83,7 +84,7 @@ function AddAlternative() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/alternatives/",
+                `${API_BASE_URL}/alternatives/`,
                 {
 
                     method: "POST",

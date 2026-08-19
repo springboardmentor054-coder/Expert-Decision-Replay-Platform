@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate } from "react-router-dom";
 import "./DecisionDetails.css";
 
@@ -58,7 +59,7 @@ function ApprovalHistory() {
                 // =========================================
 
                 const userResponse = await fetch(
-                    "http://127.0.0.1:8000/auth/me",
+                    `${API_BASE_URL}/auth/me`,
                     {
                         headers: {
                             "Authorization":
@@ -106,7 +107,7 @@ function ApprovalHistory() {
                 // =========================================
 
                 const response = await fetch(
-                    "http://127.0.0.1:8000/approvals",
+                    `${API_BASE_URL}/approvals`,
                     {
                         headers: {
                             "Authorization":
@@ -236,7 +237,7 @@ function ApprovalHistory() {
 
             const response =
                 await fetch(
-                    `http://127.0.0.1:8000/decisions/${decisionId}`,
+                    `${API_BASE_URL}/decisions/${decisionId}`,
                     {
                         headers: {
                             "Authorization":

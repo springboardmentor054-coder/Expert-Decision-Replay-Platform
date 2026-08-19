@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import "./EditDecision.css";
 
@@ -35,7 +36,7 @@ function EditDecision() {
       try {
 
         const response = await fetch(
-          `http://127.0.0.1:8000/decisions/${id}`,
+          `${API_BASE_URL}/decisions/${id}`,
           {
             method: "GET",
             headers: {
@@ -128,7 +129,7 @@ function EditDecision() {
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/decisions/${id}`,
+        `${API_BASE_URL}/decisions/${id}`,
         {
           method: "PUT",
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import {
     Bar,
     BarChart,
@@ -366,7 +367,7 @@ function Dashboard() {
 
                 const dashboardResponse =
                     await fetch(
-                        "http://127.0.0.1:8000/dashboard/role-dashboard",
+                        `${API_BASE_URL}/dashboard/role-dashboard`,
                         {
                             method: "GET",
                             headers: {
@@ -434,7 +435,7 @@ function Dashboard() {
 
                     const chartResponse =
                         await fetch(
-                            "http://127.0.0.1:8000/dashboard/charts",
+                            `${API_BASE_URL}/dashboard/charts`,
                             {
                                 method: "GET",
                                 headers: {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Documents.css";
 
@@ -14,8 +15,8 @@ function Documents() {
   useEffect(() => {
 
     const url = id
-      ? `http://127.0.0.1:8000/documents/decision/${id}`
-      : "http://127.0.0.1:8000/documents";
+      ? `${API_BASE_URL}/documents/decision/${id}`
+      : `${API_BASE_URL}/documents`;
 
 
     fetch(url)
@@ -52,7 +53,7 @@ function Documents() {
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/documents/${documentId}`,
+        `${API_BASE_URL}/documents/${documentId}`,
         {
           method: "DELETE",
         }
@@ -461,7 +462,7 @@ function Documents() {
 
 
                           <a
-                            href={`http://127.0.0.1:8000/${document.file_path}`}
+                            href={`${API_BASE_URL}/${document.file_path}`}
                             target="_blank"
                             rel="noreferrer"
                           >

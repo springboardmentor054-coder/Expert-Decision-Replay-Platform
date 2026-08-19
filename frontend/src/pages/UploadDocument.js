@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE_URL from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import "./UploadDocument.css";
 
@@ -52,7 +53,7 @@ function UploadDocument() {
     try {
 
       const response = await fetch(
-        "http://127.0.0.1:8000/documents/upload",
+        `${API_BASE_URL}/documents/upload`,
         {
           method: "POST",
 

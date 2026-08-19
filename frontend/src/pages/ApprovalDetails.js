@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "./DecisionDetails.css";
 
@@ -55,7 +56,7 @@ function ApprovalDetails() {
 
                     const approvalResponse =
                         await fetch(
-                            `http://127.0.0.1:8000/approvals/${id}`,
+                            `${API_BASE_URL}/approvals/${id}`,
                             {
                                 headers: {
                                     "Authorization":
@@ -87,7 +88,7 @@ function ApprovalDetails() {
 
                     const decisionResponse =
                         await fetch(
-                            `http://127.0.0.1:8000/decisions/${approvalData.decision_id}`,
+                            `${API_BASE_URL}/decisions/${approvalData.decision_id}`,
                             {
                                 headers: {
                                     "Authorization":
@@ -174,7 +175,7 @@ function ApprovalDetails() {
 
                 const response =
                     await fetch(
-                        `http://127.0.0.1:8000/approvals/${id}/approve`,
+                        `${API_BASE_URL}/approvals/${id}/approve`,
                         {
                             method: "PUT",
 
@@ -302,7 +303,7 @@ function ApprovalDetails() {
 
                 const response =
                     await fetch(
-                        `http://127.0.0.1:8000/approvals/${id}/reject`,
+                        `${API_BASE_URL}/approvals/${id}/reject`,
                         {
                             method: "PUT",
 

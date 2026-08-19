@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import "./DecisionDetails.css";
 
@@ -34,7 +35,7 @@ function DecisionDetails() {
 
     useEffect(() => {
 
-        fetch(`http://127.0.0.1:8000/decisions/${id}`)
+        fetch(`${API_BASE_URL}/decisions/${id}`)
             .then(response => response.json())
             .then(data => setDecision(data))
             .catch(error => console.log(error));
@@ -48,7 +49,7 @@ function DecisionDetails() {
 
     useEffect(() => {
 
-        fetch(`http://127.0.0.1:8000/comments/decision/${id}`)
+        fetch(`${API_BASE_URL}/comments/decision/${id}`)
             .then(response => response.json())
             .then(data => setComments(data))
             .catch(error => console.log(error));
@@ -62,7 +63,7 @@ function DecisionDetails() {
 
     useEffect(() => {
 
-        fetch(`http://127.0.0.1:8000/meeting-notes/decision/${id}`)
+        fetch(`${API_BASE_URL}/meeting-notes/decision/${id}`)
             .then(response => response.json())
             .then(data => setMeetingNotes(data))
             .catch(error => console.log(error));
@@ -98,7 +99,7 @@ function DecisionDetails() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/comments/",
+                `${API_BASE_URL}/comments/`,
                 {
                     method: "POST",
 
@@ -191,7 +192,7 @@ function DecisionDetails() {
         try {
 
             const response = await fetch(
-                `http://127.0.0.1:8000/comments/${commentId}`,
+                `${API_BASE_URL}/comments/${commentId}`,
                 {
                     method: "DELETE",
 
@@ -281,7 +282,7 @@ function DecisionDetails() {
         try {
 
             const response = await fetch(
-                `http://127.0.0.1:8000/comments/${commentId}`,
+                `${API_BASE_URL}/comments/${commentId}`,
                 {
                     method: "PUT",
 
@@ -379,7 +380,7 @@ function DecisionDetails() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/meeting-notes/",
+                `${API_BASE_URL}/meeting-notes/`,
                 {
                     method: "POST",
 

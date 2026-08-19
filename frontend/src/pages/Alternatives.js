@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Decision.css";
 
@@ -14,7 +15,7 @@ function Alternatives() {
 
   useEffect(() => {
 
-    fetch("http://127.0.0.1:8000/alternatives")
+    fetch(`${API_BASE_URL}/alternatives`)
 
       .then(response => response.json())
 
@@ -55,7 +56,7 @@ function Alternatives() {
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/alternatives/${alternativeId}`,
+        `${API_BASE_URL}/alternatives/${alternativeId}`,
         {
           method: "DELETE",
         }

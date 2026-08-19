@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Decision.css";
 
@@ -22,8 +23,8 @@ function AlternativeComparison() {
         setLoading(true);
 
         const url = id
-            ? `http://127.0.0.1:8000/alternatives/decision/${id}`
-            : "http://127.0.0.1:8000/alternatives";
+            ? `${API_BASE_URL}/alternatives/decision/${id}`
+            : `${API_BASE_URL}/alternatives`;
 
 
         fetch(url)

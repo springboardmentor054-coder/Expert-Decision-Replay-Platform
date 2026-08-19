@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import "./Profile.css";
 
 function Profile() {
@@ -51,7 +52,7 @@ function Profile() {
             try {
 
                 const response = await fetch(
-                    "http://127.0.0.1:8000/auth/me",
+                    `${API_BASE_URL}/auth/me`,
                     {
                         method: "GET",
 
@@ -135,7 +136,7 @@ function Profile() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/me",
+                `${API_BASE_URL}/auth/me`,
                 {
                     method: "PUT",
 
@@ -262,7 +263,7 @@ function Profile() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8000/auth/change-password",
+                `${API_BASE_URL}/auth/change-password`,
                 {
                     method: "PUT",
 

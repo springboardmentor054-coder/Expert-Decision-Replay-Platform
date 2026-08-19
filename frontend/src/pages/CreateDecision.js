@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE_URL from "../api";
 import { useNavigate } from "react-router-dom";
 import "./CreateDecision.css";
 
@@ -76,7 +77,7 @@ function CreateDecision() {
 
         try {
             const response = await fetch(
-                "http://127.0.0.1:8000/decisions",
+                `${API_BASE_URL}/decisions`,
                 {
                     method: "POST",
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
@@ -20,7 +21,7 @@ function Sidebar() {
             try {
 
                 const response = await fetch(
-                    "http://127.0.0.1:8000/auth/me",
+                    `${API_BASE_URL}/auth/me`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

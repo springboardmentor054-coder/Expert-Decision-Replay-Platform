@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import "./VersionHistory.css";
 
@@ -14,7 +15,7 @@ function VersionHistory() {
     useEffect(() => {
 
         fetch(
-            `http://127.0.0.1:8000/decisions/${id}/versions`
+            `${API_BASE_URL}/decisions/${id}/versions`
         )
 
             .then(response => {

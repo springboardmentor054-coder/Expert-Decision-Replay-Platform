@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api";
 import "./Reports.css";
 
 function Reports() {
@@ -56,28 +57,28 @@ function Reports() {
             ] = await Promise.all([
 
                 fetch(
-                    "http://127.0.0.1:8000/reports/decisions",
+                    `${API_BASE_URL}/reports/decisions`,
                     {
                         headers
                     }
                 ),
 
                 fetch(
-                    "http://127.0.0.1:8000/reports/approvals",
+                    `${API_BASE_URL}/reports/approvals`,
                     {
                         headers
                     }
                 ),
 
                 fetch(
-                    "http://127.0.0.1:8000/reports/teams",
+                    `${API_BASE_URL}/reports/teams`,
                     {
                         headers
                     }
                 ),
 
                 fetch(
-                    "http://127.0.0.1:8000/reports/audit",
+                    `${API_BASE_URL}/reports/audit`,
                     {
                         headers
                     }
@@ -269,7 +270,7 @@ function Reports() {
                         className="export-button pdf-button"
                         onClick={() =>
                             window.open(
-                                "http://127.0.0.1:8000/reports/export/pdf",
+                                `${API_BASE_URL}/reports/export/pdf`,
                                 "_blank"
                             )
                         }
@@ -288,7 +289,7 @@ function Reports() {
                         className="export-button excel-button"
                         onClick={() =>
                             window.open(
-                                "http://127.0.0.1:8000/reports/export/excel",
+                                `${API_BASE_URL}/reports/export/excel`,
                                 "_blank"
                             )
                         }
