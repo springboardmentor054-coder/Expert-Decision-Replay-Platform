@@ -10,3 +10,4 @@ reportlab
 openpyxl
 python-dotenv
 email-validator
+resend

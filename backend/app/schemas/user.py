@@ -56,3 +56,19 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ==========================================
+# FORGOT PASSWORD
+# ==========================================
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+# ==========================================
+# RESET PASSWORD
+# ==========================================
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

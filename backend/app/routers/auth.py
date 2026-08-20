@@ -1,15 +1,24 @@
+from datetime import datetime, timedelta
+import secrets
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.connection import SessionLocal
 from app.models.user import User
+from app.models.password_reset_token import PasswordResetToken
+
 from app.schemas.user import (
     UserCreate,
     UserResponse,
     UserLogin,
     UserProfileUpdate,
-    PasswordChange
+    PasswordChange,
+    ForgotPasswordRequest,
+    ResetPasswordRequest
 )
+
 from app.core.security import (
     create_access_token,
     get_current_user,
@@ -17,7 +26,9 @@ from app.core.security import (
     verify_password,
     is_password_hashed
 )
+
 from app.utils.audit import create_audit_log
+from app.utils.email import send_password_reset_email
 
 
 router = APIRouter(
@@ -152,6 +163,193 @@ def login_user(
 
 
 # ==========================================
+# FORGOT PASSWORD
+# ==========================================
+
+@router.post("/forgot-password")
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(User).filter(
+        User.email == request.email
+    ).first()
+
+    # ==========================================
+    # DON'T REVEAL WHETHER EMAIL EXISTS
+    # ==========================================
+
+    if not user:
+
+        return {
+            "message": "If the email is registered, a password reset link has been sent."
+        }
+
+    # ==========================================
+    # INVALIDATE PREVIOUS UNUSED TOKENS
+    # ==========================================
+
+    previous_tokens = db.query(
+        PasswordResetToken
+    ).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.used == False
+    ).all()
+
+    for previous_token in previous_tokens:
+
+        previous_token.used = True
+
+    # ==========================================
+    # GENERATE SECURE RESET TOKEN
+    # ==========================================
+
+    token = secrets.token_urlsafe(32)
+
+    expires_at = datetime.utcnow() + timedelta(
+        minutes=30
+    )
+
+    reset_token = PasswordResetToken(
+        token=token,
+        user_id=user.id,
+        expires_at=expires_at,
+        used=False
+    )
+
+    db.add(reset_token)
+    db.commit()
+
+    # ==========================================
+    # CREATE FRONTEND RESET LINK
+    # ==========================================
+
+    frontend_url = os.getenv(
+        "FRONTEND_URL",
+        "http://localhost:3000"
+    )
+
+    reset_link = (
+        f"{frontend_url}/reset-password?token={token}"
+    )
+
+    # ==========================================
+    # SEND RESET EMAIL
+    # ==========================================
+
+    try:
+
+        send_password_reset_email(
+            recipient_email=user.email,
+            reset_link=reset_link
+        )
+
+    except Exception as error:
+
+        # Remove the token if email sending fails
+        db.delete(reset_token)
+        db.commit()
+
+        print(
+            f"Password reset email error: {error}"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to send password reset email."
+        )
+
+    return {
+        "message": "If the email is registered, a password reset link has been sent."
+    }
+
+
+# ==========================================
+# RESET PASSWORD
+# ==========================================
+
+@router.post("/reset-password")
+def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+
+    reset_token = db.query(
+        PasswordResetToken
+    ).filter(
+        PasswordResetToken.token == request.token,
+        PasswordResetToken.used == False
+    ).first()
+
+    if not reset_token:
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or already used reset token."
+        )
+
+    # ==========================================
+    # CHECK TOKEN EXPIRATION
+    # ==========================================
+
+    if reset_token.expires_at < datetime.utcnow():
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token has expired."
+        )
+
+    # ==========================================
+    # FIND USER
+    # ==========================================
+
+    user = db.query(User).filter(
+        User.id == reset_token.user_id
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
+    # ==========================================
+    # UPDATE PASSWORD
+    # ==========================================
+
+    user.password = hash_password(
+        request.new_password
+    )
+
+    # ==========================================
+    # INVALIDATE TOKEN
+    # ==========================================
+
+    reset_token.used = True
+
+    db.commit()
+
+    # ==========================================
+    # AUDIT LOG
+    # ==========================================
+
+    create_audit_log(
+        db=db,
+        user_id=user.id,
+        action_type="PASSWORD_RESET",
+        description=f"User {user.email} reset their password."
+    )
+
+    db.commit()
+
+    return {
+        "message": "Password reset successfully."
+    }
+
+
+# ==========================================
 # GET CURRENT LOGGED-IN USER
 # ==========================================
 
@@ -179,10 +377,6 @@ def update_my_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-
-    # ==========================================
-    # GET USER IN CURRENT SESSION
-    # ==========================================
 
     db_user = db.query(User).filter(
         User.id == current_user.id
@@ -247,10 +441,6 @@ def change_password(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-
-    # ==========================================
-    # GET USER IN CURRENT SESSION
-    # ==========================================
 
     db_user = db.query(User).filter(
         User.id == current_user.id

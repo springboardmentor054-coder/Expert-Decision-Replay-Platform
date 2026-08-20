@@ -17,6 +17,7 @@ from app.models.approval import Approval
 from app.models.notification import Notification
 from app.models.audit_log import AuditLog
 from app.models.team import Team
+from app.models.password_reset_token import PasswordResetToken
 
 # Routers
 from app.routers.comment import router as comment_router
