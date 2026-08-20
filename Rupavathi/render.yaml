@@ -8,8 +8,9 @@ services:
   - type: web
     name: edrp-backend
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    rootDir: Rupavathi/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     envVars:
       - key: DATABASE_URL
@@ -31,7 +32,7 @@ services:
   - type: web
     name: edrp-frontend
     runtime: static
-    rootDir: frontend
+    rootDir: Rupavathi/frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     envVars:
