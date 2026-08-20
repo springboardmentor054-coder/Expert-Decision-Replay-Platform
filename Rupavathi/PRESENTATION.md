@@ -57,8 +57,11 @@ Follow this exact sequence — it exercises every major module in one coherent s
 ## 7. Docker & deployment (1–2 min)
 
 - `docker compose up --build` brings up backend + frontend + Postgres together — demonstrated working locally
-- Deployed via Render using a Blueprint (`render.yaml`) that provisions all three services in one step
-- **Live URLs:** _[frontend URL]_ · _[backend URL]_ · _[API docs URL]/docs_
+- Deployed to Render as three services (PostgreSQL, a Docker web service for the backend, a static site for the frontend); `render.yaml` documents the equivalent one-step Blueprint configuration
+- **Live URLs:**
+  - Frontend: https://expert-decision-replay-platform-1.onrender.com
+  - Backend: https://expert-decision-replay-platform-3tcn.onrender.com
+  - API docs: https://expert-decision-replay-platform-3tcn.onrender.com/docs
 
 ## 8. What's next (1 min)
 

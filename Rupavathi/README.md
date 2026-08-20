@@ -236,9 +236,10 @@ Deployed via [Render](https://render.com) using the [`render.yaml`](./render.yam
 3. Render auto-detects `render.yaml` and provisions all three services, wiring `DATABASE_URL`, `JWT_SECRET_KEY`, `CORS_ORIGINS`, and `VITE_API_BASE_URL` automatically
 4. Optionally set `GOOGLE_CLIENT_ID` / `APPLE_SERVICES_ID` (and their `VITE_` frontend equivalents) in the dashboard if OAuth sign-in is needed in production
 
-**Deployed URLs:** _add your live Render URLs here once deployed —_
-- Frontend: `https://edrp-frontend.onrender.com`
-- Backend: `https://edrp-backend.onrender.com`
+**Deployed URLs:**
+- Frontend: https://expert-decision-replay-platform-1.onrender.com
+- Backend: https://expert-decision-replay-platform-3tcn.onrender.com
+- API docs: https://expert-decision-replay-platform-3tcn.onrender.com/docs
 
 ## Screenshots
 
